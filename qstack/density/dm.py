@@ -1,7 +1,7 @@
 from pyscf import dft
 
-def get_converged_dm_RKS(mol, xc):
-    """Performs SCF and returns density matrix, given pyscf mol object and an XC density functional.
+def get_converged_dm(mol, xc):
+    """Performs restricted SCF and returns density matrix, given pyscf mol object and an XC density functional.
 
     Args:
         mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
@@ -12,14 +12,18 @@ def get_converged_dm_RKS(mol, xc):
     
     """
 
-    # Prepare and run an RKS computation object
-    mf = dft.RKS(mol)
-    mf.xc = xc
-    mf.verbose = 1
-    mf.run()
+    if mol.multiplicity == 1:
+        mf = dft.RKS(mol)
+    else:
+        mf = dft.UKS(mol)
 
-    # print("Convergence: ",mf.converged)
-    # print("Energy: ",mf.e_tot)
+    mf.xc = xc
+    print("Starting Kohn-Sham computation at "+str(mf.xc)+"/"+str(mol.basis)+" level.")
+    mf.verbose = 1
+    mf.kernel()
+
+    print("Convergence: ",mf.converged)
+    print("Energy: ",mf.e_tot)
 
     # Make the one-particle density matrix in ao-basis
     dm = mf.make_rdm1()
