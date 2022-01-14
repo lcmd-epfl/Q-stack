@@ -71,7 +71,7 @@ def mol_to_xyz(mol, fout, format='xyz'):
 
 
 
-def makeauxmol(mol, basis):
+def make_auxmol(mol, basis):
     """Builds an auxiliary Mole object given a basis set and a pyscf Mole object.
 
     Args:

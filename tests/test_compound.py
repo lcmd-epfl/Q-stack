@@ -21,7 +21,7 @@ def test_makeauxmol():
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
     auxbasis = "cc-pvtz-jkfit"
     
-    auxmol = compound.makeauxmol(mol, auxbasis)
+    auxmol = compound.make_auxmol(mol, auxbasis)
 
     assert auxmol.natm == 3
     assert auxmol.nelectron == 10
