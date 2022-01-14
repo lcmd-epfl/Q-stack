@@ -27,3 +27,17 @@ def test_makeauxmol():
     assert auxmol.nelectron == 10
     assert type(auxmol.elements) == type([])
     assert auxmol.basis == "cc-pvtz-jkfit"
+
+def test_rotate_molecule():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
+    rotated_mol = compound.xyz_to_mol(path+'/data/rotated_H2O.xyz', 'def2svp', charge=0, spin=0)
+
+    rotated = compound.rotate_molecule(mol, 90, 0, 0)
+    assert np.linalg.norm(rotated_mol.atom_coords()-rotated.atom_coords()) < 1e-10
+
+def test_mol_to_xyz():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
+
+    compound.mol_to_xyz(mol, path+'/data/H2O_saved.xyz')
