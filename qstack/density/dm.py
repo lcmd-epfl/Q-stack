@@ -1,4 +1,6 @@
 from pyscf import dft
+from qstack import constants
+import numpy as np
 
 def get_converged_dm(mol, xc):
     """Performs restricted SCF and returns density matrix, given pyscf mol object and an XC density functional.
@@ -29,3 +31,40 @@ def get_converged_dm(mol, xc):
     dm = mf.make_rdm1()
 
     return dm
+
+def sphericalize_density_matrix(mol, dm):
+    """Sphericalize the density matrix in the sense of an integral over all possible rotations.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
+        dm (numpy ndarray): density matrix in AO-basis.
+
+    Returns:
+        numpy ndarray: sphericalized density matrix.
+    
+    """
+
+    idx_by_l = [[] for i in range(constants.MAX_L)]
+    i0 = 0
+    for ib in range(mol.nbas):
+        l = mol.bas_angular(ib)
+        nc = mol.bas_nctr(ib)
+        i1 = i0 + nc * (l*2+1)
+        idx_by_l[l].extend(range(i0, i1, l*2+1))
+        i0 = i1
+
+    spherical_dm = np.zeros_like(dm)
+
+    for l in np.nonzero(idx_by_l)[0]:
+        for idx in idx_by_l[l]:
+            for jdx in idx_by_l[l]:
+                if l == 0:
+                    spherical_dm[idx,jdx] = dm[idx,jdx]
+                else:
+                    trace = 0
+                    for m in range(2*l+1):
+                        trace += dm[idx+m,jdx+m]
+                    for m in range(2*l+1):
+                        spherical_dm[idx+m,jdx+m] = trace / (2*l+1)
+
+    return spherical_dm
