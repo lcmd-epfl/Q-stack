@@ -1,4 +1,14 @@
-# Q-stack
+Q-stack
+==============================================
+![qstack logo](./images/logo.png)
+
+## Contents
+* [About](#about-)
+* [Install](#install-)
+* [Examples](#examples-)
+
+## About [↑](#about)
+
 Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress, and will be updated soon.
 
 For now, we link to the relevant packages that will be incorporated (among others):
