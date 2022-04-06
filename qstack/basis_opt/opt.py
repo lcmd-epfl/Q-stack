@@ -1,121 +1,119 @@
-from msvcrt import get_osfhandle
 import os
 import sys
 import numpy as np
 import scipy.optimize
 from pyscf import gto
 import pyscf.data
-from basis_tools import *
-
-
-def energy(x):
-  exponents = np.exp(x)
-  newbasis  = exp2basis(exponents, myelements, basis)
-  E = 0.0
-  for m in moldata:
-    E += energy_mol(newbasis, m)
-  return E
-
-
-def gradient(x):
-  exponents = np.exp(x)
-  newbasis  = exp2basis(exponents, myelements, basis)
-
-  global it
-
-  E = 0.0
-  dE_da = np.zeros(nexp)
-  for m,name in zip(moldata, molecules_in_global):
-    E_, dE_da_ = gradient_mol(nexp, newbasis, m)
-    E     += E_
-    dE_da += dE_da_
-    print(os.path.basename(name), 'e =', E_, '(', E_/m['self']*100.0, '%)')
-  print('it:', it, E, max(abs(dE_da)))
-  dE_da = cut_myelements(dE_da, myelements, bf_bounds)
-
-  it+=1
-  print(flush=True)
-
-  dE_dx = dE_da * exponents
-  return E, dE_dx
-
-
-def gradient_only(x):
-  return gradient(x)[1]
-
-
-def read_bases(basis_files):
-  basis = {}
-  for i in basis_files:
-    with open(i, "r") as f:
-      addbasis = eval(f.read())
-    q = list(addbasis.keys())[0]
-    if q in basis.keys():
-      print('error: several sets for element', q)
-      exit()
-    basis.update(addbasis)
-  return basis
-
-
-def make_bf_start():
-  nbf = []
-  for q in elements:
-    nbf.append(len(basis[q]))
-  bf_bounds = {}
-  for i,q in enumerate(elements):
-    start = sum(nbf[0:i])
-    bf_bounds[q] = [start, start+nbf[i]]
-  return bf_bounds
-
-
-def make_moldata(fname):
-  rho_data = np.load(fname)
-  molecule = rho_data['atom'   ]
-  rho      = rho_data['rho'    ]
-  coords   = rho_data['coords' ]
-  weights  = rho_data['weights']
-  self = np.einsum('p,p,p->',weights,rho,rho)
-  mol = gto.M(atom=str(molecule), basis=basis)
-
-  idx     = []
-  centers = []
-  for iat in range(mol.natm):
-    q = mol._atom[iat][0]
-    ib0 = bf_bounds[q][0]
-    for ib,b in enumerate(mol._basis[q]):
-      l = b[0]
-      idx     += [ib+ib0] * (2*l+1)
-      centers += [iat]    * (2*l+1)
-  idx = np.array(idx)
-
-  distances = np.zeros((mol.natm, len(rho)))
-  for iat in range(mol.natm):
-    center = mol.atom_coord(iat)
-    distances[iat] = np.sum((coords - center)**2, axis=1)
-
-  return {
-   'mol'       : mol      ,
-   'rho'       : rho      ,
-   'coords'    : coords   ,
-   'weights'   : weights  ,
-   'self'      : self     ,
-   'idx'       : idx      ,
-   'centers'   : centers  ,
-   'distances' : distances
-  }
+import qstack.basis_opt.basis_tools as qbbt
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in = 1e-7, method_in = "CG"):
 
-  global basis
-  global myelements
-  global elements
-  global moldata
-  global molecules_in_global
-  global bf_bounds
-  global nexp
+  def energy(x):
+    exponents = np.exp(x)
+    newbasis  = qbbt.exp2basis(exponents, myelements, basis)
+    E = 0.0
+    for m in moldata:
+      E += qbbt.energy_mol(newbasis, m)
+    return E
+
+
+  def gradient(x):
+    exponents = np.exp(x)
+    newbasis  = qbbt.exp2basis(exponents, myelements, basis)
+
+    E = 0.0
+    dE_da = np.zeros(nexp)
+    for m in moldata:
+      E_, dE_da_ = qbbt.gradient_mol(nexp, newbasis, m)
+      E     += E_
+      dE_da += dE_da_
+      print('e =', E_, '(', E_/m['self']*100.0, '%)')
+    print(E, max(abs(dE_da)))
+    dE_da = qbbt.cut_myelements(dE_da, myelements, bf_bounds)
+
+    print(flush=True)
+
+    dE_dx = dE_da * exponents
+    return E, dE_dx
+
+
+  def gradient_only(x):
+    return gradient(x)[1]
+
+
+  def read_bases(basis_files):
+    basis = {}
+    for i in basis_files:
+      if isinstance(i, str):
+        with open(i, "r") as f:
+          addbasis = eval(f.read())
+        q = list(addbasis.keys())[0]
+        if q in basis.keys():
+          print('error: several sets for element', q)
+          exit()
+        basis.update(addbasis)
+      else:
+        q = list(i.keys())[0]
+        if q in basis.keys():
+          print('error: several sets for element', q)
+          exit()
+        basis.update(i)
+    return basis
+
+
+  def make_bf_start():
+    nbf = []
+    for q in elements:
+      nbf.append(len(basis[q]))
+    bf_bounds = {}
+    for i,q in enumerate(elements):
+      start = sum(nbf[0:i])
+      bf_bounds[q] = [start, start+nbf[i]]
+    return bf_bounds
+
+
+  def make_moldata(fname):
+    if isinstance(fname, str):
+      rho_data = np.load(fname)
+    else:
+      rho_data = fname
+
+    molecule = rho_data['atom'   ]
+    rho      = rho_data['rho'    ]
+    coords   = rho_data['coords' ]
+    weights  = rho_data['weights']
+    self = np.einsum('p,p,p->',weights,rho,rho)
+    mol = gto.M(atom=str(molecule), basis=basis)
+
+    idx     = []
+    centers = []
+    for iat in range(mol.natm):
+      q = mol._atom[iat][0]
+      ib0 = bf_bounds[q][0]
+      for ib,b in enumerate(mol._basis[q]):
+        l = b[0]
+        idx     += [ib+ib0] * (2*l+1)
+        centers += [iat]    * (2*l+1)
+    idx = np.array(idx)
+
+    distances = np.zeros((mol.natm, len(rho)))
+    for iat in range(mol.natm):
+      center = mol.atom_coord(iat)
+      distances[iat] = np.sum((coords - center)**2, axis=1)
+
+    return {
+    'mol'       : mol      ,
+    'rho'       : rho      ,
+    'coords'    : coords   ,
+    'weights'   : weights  ,
+    'self'      : self     ,
+    'idx'       : idx      ,
+    'centers'   : centers  ,
+    'distances' : distances
+    }
+
 
   basis = read_bases(basis_in)
-  molecules_in_global = molecules_in
 
   elements = sorted(basis.keys(), key=pyscf.data.elements.charge)
   if elements_in:
@@ -142,11 +140,13 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in = 1e-7, method_i
 
 
   x0 = np.log(exponents)
-  x1 = cut_myelements(x0, myelements, bf_bounds)
-  angular_momenta = cut_myelements(angular_momenta, myelements, bf_bounds)
+  x1 = qbbt.cut_myelements(x0, myelements, bf_bounds)
+  angular_momenta = qbbt.cut_myelements(angular_momenta, myelements, bf_bounds)
 
   xopt = scipy.optimize.minimize(energy, x1, method=method_in, jac=gradient_only, options={ 'gtol':gtol_in,'disp':True}).x
 
   exponents = np.exp(xopt)
-  newbasis  = exp2basis(exponents, myelements, basis)
-  printbasis(newbasis, sys.stdout)
+  newbasis  = qbbt.exp2basis(exponents, myelements, basis)
+  qbbt.printbasis(newbasis, sys.stdout)
+
+  return newbasis
