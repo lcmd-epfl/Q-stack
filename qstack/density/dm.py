@@ -49,28 +49,6 @@ def make_grid_for_rho(mol, grid_level = 3):
 
     return grid
 
-def hf_otpd(mol, dm, grid_level = 3):
-    """ Computes the uncorrelated on-top pair density on a grid.
-
-    Args:
-        mol (pyscf Mole): pyscf Mole object.
-        dm (numpy ndarray): density matrix in AO-basis.
-        grid_level (int): controls the number of radial and angular points.
-
-    Returns:
-        numpy ndarray : uncorrelated on-top pair density on a grid.
-    
-    """
-
-    grid = make_grid_for_rho(mol, grid_level)
-
-    ao = dft.numint.eval_ao(mol, grid.coords)
-    rho = np.einsum('pq,ip,iq->i', dm, ao, ao)
-
-    hf_otpd = np.power(rho / 2, 2)
-
-    return hf_otpd
-
 def sphericalize_density_matrix(mol, dm):
     """Sphericalize the density matrix in the sense of an integral over all possible rotations.
 

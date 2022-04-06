@@ -3,20 +3,30 @@ import numpy as np
 from pyscf import df,dft
 
 def energy_mol(newbasis, moldata):
+    """Computes overlap and 2-/3-centers ERI matrices.
 
-  mol       = moldata['mol'      ]
-  rho       = moldata['rho'      ]
-  coords    = moldata['coords'   ]
-  weights   = moldata['weights'  ]
-  self      = moldata['self'     ]
+    Args:
+        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
+        auxmol (pyscf Mole): pyscf Mole object holding molecular structure, composition and the auxiliary basis set.
 
-  newmol = df.make_auxmol(mol, newbasis)
-  ao = dft.numint.eval_ao(newmol, coords).T
-  w = np.einsum('pi,i,i->p', ao,rho,weights)
-  S = np.einsum('pi,qi,i->pq', ao,ao,weights)
-  c = np.linalg.solve(S, w)
-  E = self-c@w
-  return E
+    Returns:
+        numpy ndarray: Overlap matrix, 2-centers and 3-centers ERI matrices.
+        
+    """
+    mol       = moldata['mol'      ]
+    rho       = moldata['rho'      ]
+    coords    = moldata['coords'   ]
+    weights   = moldata['weights'  ]
+    self      = moldata['self'     ]
+
+    newmol = df.make_auxmol(mol, newbasis)
+    ao = dft.numint.eval_ao(newmol, coords).T
+    w = np.einsum('pi,i,i->p', ao,rho,weights)
+    S = np.einsum('pi,qi,i->pq', ao,ao,weights)
+    c = np.linalg.solve(S, w)
+    E = self-c@w
+    
+    return E
 
 
 def gradient_mol(nexp, newbasis, moldata):
