@@ -1,0 +1,15 @@
+$control
+task=optimize
+theory=qm_n3
+basis=qm.in
+$end
+
+
+$molecule
+ cartesian
+   1     0.00000000   0.00000000  -1.09474360
+   6     0.00000000   0.00000000  -0.02823780
+   7     0.00000000   0.00000000   1.12298140
+$end
+ Energy =    -93.2137939244
+
