@@ -22,6 +22,7 @@ parser.add_argument('--func',   type=str,            dest='func',      default='
 parser.add_argument('--dir',    type=str,            dest='dir',       default='./',    help='directory to save the output in (default=current dir)')
 parser.add_argument('--cutoff', type=float,          dest='cutoff',    default=5.0,     help='bond length cutoff')
 parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,   help='if use a version with more padding zeros')
+parser.add_argument('--split',  action='store_true', dest='split',     default=False,   help='if split into molecules')
 args = parser.parse_args()
 print(vars(args))
 
@@ -110,7 +111,7 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx):
   for i0 in range(mol.natm):
     vec[i0] = np.hstack([ M[qq] @ mybonds[i0][0][qq] for qq in qqs[q[i0]] ])
     vec[i0] = np.pad(vec[i0], (0, maxlen-len(vec[i0])), 'constant')
-  return vec
+  return np.array(vec)
 
 def get_element_pairs(elements):
   qqs0  = []
@@ -152,7 +153,7 @@ def read_basis_wrapper(mols):
   qqs0      = qqs[list(qqs.keys())[0]]
   mybasis   = read_df_basis(qqs0)
   idx, M    = get_basis_info(qqs0, mybasis)
-  return mybasis, qqs, qqs4q, idx, M
+  return elements, mybasis, qqs, qqs4q, idx, M
 
 
 def main():
@@ -161,15 +162,28 @@ def main():
   xyzlist = repre.get_xyzlist(xyzlistfile)
 
   mols, dms = mols_guess(xyzlist, args.basis, args.guess)
-  mybasis, qqs, qqs4q, idx, M = read_basis_wrapper(mols)
+  elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols)
+  qqs = qqs0 if args.zeros else qqs4q
 
-  allvec = []
+  if args.split:
+    natm   = max([mol.natm for mol in mols])
+    maxlen = max([bonds_dict_init(qqs[q0], M)[1] for q0 in elements ])
+    allvec = np.zeros((len(mols), natm, maxlen))
+  else:
+    allvec = []
+
   for i,(mol,dm) in enumerate(zip(mols,dms)):
     print('mol', i)
-    vec = repr_for_mol(mol, dm, qqs if args.zeros else qqs4q, M, mybasis, idx) # not a lot of zeros
-    allvec.append(np.array(vec))
+    vec = repr_for_mol(mol, dm, qqs, M, mybasis, idx)
+    if args.split:
+      allvec[i,:len(vec),:] = vec
+    else:
+      allvec.append(vec)
 
-  allvec = np.vstack(allvec)
+  if not args.split:
+    allvec = np.vstack(allvec)
+
+
   print(allvec.shape)
   np.save('mygreatrepresentation', allvec)
 
