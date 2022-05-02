@@ -1,6 +1,6 @@
 from pyscf import dft
 import numpy as np
-from qstack.density.dm import make_grid_for_rho
+from qstack.fields.dm import make_grid_for_rho
 
 def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
     """ Computes the uncorrelated on-top pair density on a grid.

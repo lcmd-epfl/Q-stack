@@ -3,7 +3,7 @@ import numpy
 import scipy
 import pyscf
 import pyscf.dft
-from LB2020guess import LB2020guess
+from qstack.spahm.LB2020guess import LB2020guess
 
 def hcore(mol, *_):
   h  = mol.intor_symmetric('int1e_kin')
