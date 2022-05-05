@@ -1,5 +1,8 @@
 import numpy as np
 
+def decompose(mol, auxmol):
+    return 0
+
 def get_integrals(mol, auxmol):
     """Computes overlap and 2-/3-centers ERI matrices.
 

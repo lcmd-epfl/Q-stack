@@ -1,5 +1,5 @@
 from pyscf import scf
-from qstack.spahm.guesses import *
+from qstack.spahm.guesses import solveF, get_guess, get_occ
 
 def get_spahm_representation(mol, guess_in, xc="pbe"):
 

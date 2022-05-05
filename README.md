@@ -9,6 +9,7 @@ Q-stack
 * [About](#about-)
 * [Install](#install-)
 * [Examples](#examples-)
+* [Acknowledgements](#Acknowledgements-)
 
 ## About [↑](#about)
 
@@ -23,3 +24,8 @@ For now, we link to the relevant packages that will be incorporated (among other
 
 Stay tuned for updates!
 
+## Acknowledgements [↑](#Acknowledgements)
+![epfl logo](./images/elogo.png)
+![MARVEL logo](./images/mlogo.svg)
+![LCMD logo](./images/llogo.jpg)
+![SNSF logo](./images/slogo.png)
