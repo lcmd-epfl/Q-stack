@@ -6,6 +6,7 @@ Q-stack
 ![qstack logo](./images/logo.png)
 
 ## Contents
+* [Contents](#Contents-)
 * [About](#about-)
 * [Install](#install-)
 * [Examples](#examples-)
