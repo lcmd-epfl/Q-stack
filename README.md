@@ -11,7 +11,7 @@ Q-stack
 * [Examples](#examples-)
 * [Acknowledgements](#Acknowledgements-)
 
-## About [↑](#about)
+## About [↑](#Contents)
 
 Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress, and will be updated soon.
 
@@ -24,7 +24,9 @@ For now, we link to the relevant packages that will be incorporated (among other
 
 Stay tuned for updates!
 
-## Acknowledgements [↑](#Acknowledgements)
+## Acknowledgements [↑](#Contents)
+The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR) "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" of the Swiss National Science Foundation (SNSF, grant number 182892).
+
 ![epfl logo](./images/elogo.png)
 ![MARVEL logo](./images/mlogo.svg)
 ![LCMD logo](./images/llogo.jpg)
