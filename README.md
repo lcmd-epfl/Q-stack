@@ -28,7 +28,8 @@ Stay tuned for updates!
 ## Acknowledgements [↑](#Contents-)
 The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR) "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" of the Swiss National Science Foundation (SNSF, grant number 182892).
 
-![epfl logo](./images/elogo.png | width=100)
-![MARVEL logo](./images/mlogo.svg | width=100)
-![LCMD logo](./images/llogo.jpg | width=100)
-![SNSF logo](./images/slogo.png | width=100)
+ <img src="./images/elogo.png" width="100">
+![epfl logo](./images/elogo.png)
+![MARVEL logo](./images/mlogo.svg)
+![LCMD logo](./images/llogo.jpg)
+![SNSF logo](./images/slogo.png)
