@@ -25,6 +25,7 @@ parser.add_argument('--bpath',  type=str,            dest='bpath',     default='
 parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,               help='if use a version with more padding zeros')
 parser.add_argument('--split',  action='store_true', dest='split',     default=False,               help='if split into molecules')
 parser.add_argument('--onlym0', action='store_true', dest='only_m0',   default=False,               help='if use only fns with m=0')
+parser.add_argument('--save',   action='store_true', dest='save',      default=False,               help='if save dms')
 
 
 args = parser.parse_args()
@@ -35,19 +36,33 @@ print(vars(args))
 #1e-8 : 4 A
 #1e-6 : 3 A
 
-def mols_guess(xyzlist, basis, aguess):
-  guess = get_guess(aguess)
+def mols_guess(xyzlist, basis, aguess, save):
+
   mols  = []
-  dms   = []
   for xyzfile in xyzlist:
-    mol = readmol(xyzfile, basis)
-    if args.guess == 'huckel':
-      e,v = scf.hf._init_guess_huckel_orbitals(mol)
-    else:
-      fock = guess(mol, args.func)
-      e,v = solveF(mol, fock)
-    mols.append( mol)
-    dms.append( v[:,:mol.nelectron//2] @ v[:,:mol.nelectron//2].T )
+    print(xyzfile, flush=True)
+    mols.append(readmol(xyzfile, basis))
+
+  dms  = []
+  try:
+    guess = get_guess(aguess)
+    for xyzfile,mol in zip(xyzlist,mols):
+      print(xyzfile, flush=True)
+      if args.guess == 'huckel':
+        e,v = scf.hf._init_guess_huckel_orbitals(mol)
+      else:
+        fock = guess(mol, args.func)
+        e,v = solveF(mol, fock)
+      dm = v[:,:mol.nelectron//2] @ v[:,:mol.nelectron//2].T
+      dms.append(dm)
+      if save:
+        np.save(os.path.basename(xyzfile)+'.npy', dm)
+
+  except:
+    for xyzfile,mol in zip(xyzlist,mols):
+      print(xyzfile, flush=True)
+      dm = np.load(aguess+'/'+os.path.basename(xyzfile)+'.npy')
+      dms.append(dm)
   return mols, dms
 
 
@@ -169,7 +184,7 @@ def main():
   xyzlistfile = args.filename
   xyzlist = repre.get_xyzlist(xyzlistfile)
 
-  mols, dms = mols_guess(xyzlist, args.basis, args.guess)
+  mols, dms = mols_guess(xyzlist, args.basis, args.guess, args.save)
   elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath, args.only_m0)
   qqs = qqs0 if args.zeros else qqs4q
 
