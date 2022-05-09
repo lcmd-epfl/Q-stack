@@ -137,6 +137,16 @@ def store_pair_indices_z(ao):
       idx.append([i,j])
   return idx
 
+def store_pair_indices_z_only0(ao):
+  idx = []
+  for i,[li,mi] in enumerate(zip(ao['l'], ao['m'])):
+    if mi!=0 : continue
+    for j,[lj,mj] in enumerate(zip(ao['l'], ao['m'])):
+      if mj!=0 : continue
+      idx.append([i,j])
+  return idx
+
+
 def metrix_matrix_z(q, idx, ao, S):
   N = len(idx)
   A = np.zeros((N,N))

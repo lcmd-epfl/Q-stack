@@ -24,6 +24,7 @@ parser.add_argument('--cutoff', type=float,          dest='cutoff',    default=5
 parser.add_argument('--bpath',  type=str,            dest='bpath',     default='basis/optimized/',  help='dir with basis sets')
 parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,               help='if use a version with more padding zeros')
 parser.add_argument('--split',  action='store_true', dest='split',     default=False,               help='if split into molecules')
+parser.add_argument('--onlym0', action='store_true', dest='only_m0',   default=False,               help='if use only fns with m=0')
 
 
 args = parser.parse_args()
@@ -75,7 +76,7 @@ def make_aux_mol(ri0, ri1, mybasis):
   return auxmol
 
 
-def vec_from_cs(z, cs, lmax, idx, M):
+def vec_from_cs(z, cs, lmax, idx):
   D = Dmatrix_for_z(z, lmax)
   c_new = rotate_c(D, cs)
   v = repre.vectorize_c('No', idx, c_new)
@@ -105,8 +106,8 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx):
       c  = fit_dm(dm1, mol, auxmol)
       cs = c_split(auxmol, c)
       lmax = max([ c[0] for c in cs])
-      v0 = vec_from_cs(+z, cs, lmax, idx[bname], M[bname])
-      v1 = vec_from_cs(-z, cs, lmax, idx[bname], M[bname])
+      v0 = vec_from_cs(+z, cs, lmax, idx[bname])
+      v1 = vec_from_cs(-z, cs, lmax, idx[bname])
       mybonds[i0][0][bname] += v0
       mybonds[i1][0][bname] += v1
 
@@ -140,22 +141,26 @@ def read_df_basis(bnames, bpath):
         mybasis[bname] = eval(f.read())
   return mybasis
 
-def get_basis_info(qqs, mybasis):
+def get_basis_info(qqs, mybasis, only_m0):
   idx = {}
-  M = {}
+  M   = {}
   for qq in qqs:
     print(qq)
-    S, ao, _ = repre.get_S('No', mybasis[qq])
-    idx[qq]  = repre.store_pair_indices_z(ao)
-    M[qq]    = repre.metrix_matrix_z('No', idx[qq], ao, S)
+    S, ao, _  = repre.get_S('No', mybasis[qq])
+    if not only_m0:
+      idx[qq] = repre.store_pair_indices_z(ao)
+    else:
+      idx[qq] = repre.store_pair_indices_z_only0(ao)
+    M[qq]     = repre.metrix_matrix_z('No', idx[qq], ao, S)
+
   return idx, M
 
-def read_basis_wrapper(mols, bpath):
+def read_basis_wrapper(mols, bpath, only_m0):
   elements  = sorted(list(set([q for mol in mols for q in mol.elements])))
   qqs,qqs4q = get_element_pairs(elements)
   qqs0      = qqs[list(qqs.keys())[0]]
   mybasis   = read_df_basis(qqs0, bpath)
-  idx, M    = get_basis_info(qqs0, mybasis)
+  idx, M    = get_basis_info(qqs0, mybasis, only_m0)
   return elements, mybasis, qqs, qqs4q, idx, M
 
 
@@ -165,7 +170,7 @@ def main():
   xyzlist = repre.get_xyzlist(xyzlistfile)
 
   mols, dms = mols_guess(xyzlist, args.basis, args.guess)
-  elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath)
+  elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath, args.only_m0)
   qqs = qqs0 if args.zeros else qqs4q
 
   if args.split:
