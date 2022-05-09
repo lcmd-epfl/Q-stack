@@ -13,16 +13,19 @@ import repre
 import scipy
 
 parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
-parser.add_argument('--mol',    type=str,            dest='filename',  required=True,   help='file containing a list of molecular structures in xyz format')
-parser.add_argument('--guess',  type=str,            dest='guess',     required=True,   help='initial guess type')
-parser.add_argument('--basis',  type=str,            dest='basis'  ,   default='minao', help='AO basis set (default=MINAO)')
-parser.add_argument('--charge', type=int,            dest='charge',    default=0,       help='total charge of the system (default=0)')
-parser.add_argument('--spin',   type=int,            dest='spin',      default=None,    help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
-parser.add_argument('--func',   type=str,            dest='func',      default='hf',    help='DFT functional for the SAD guess (default=HF)')
-parser.add_argument('--dir',    type=str,            dest='dir',       default='./',    help='directory to save the output in (default=current dir)')
-parser.add_argument('--cutoff', type=float,          dest='cutoff',    default=5.0,     help='bond length cutoff')
-parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,   help='if use a version with more padding zeros')
-parser.add_argument('--split',  action='store_true', dest='split',     default=False,   help='if split into molecules')
+parser.add_argument('--mol',    type=str,            dest='filename',  required=True,               help='file containing a list of molecular structures in xyz format')
+parser.add_argument('--guess',  type=str,            dest='guess',     required=True,               help='initial guess type')
+parser.add_argument('--basis',  type=str,            dest='basis'  ,   default='minao',             help='AO basis set (default=MINAO)')
+parser.add_argument('--charge', type=int,            dest='charge',    default=0,                   help='total charge of the system (default=0)')
+parser.add_argument('--spin',   type=int,            dest='spin',      default=None,                help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
+parser.add_argument('--func',   type=str,            dest='func',      default='hf',                help='DFT functional for the SAD guess (default=HF)')
+parser.add_argument('--dir',    type=str,            dest='dir',       default='./',                help='directory to save the output in (default=current dir)')
+parser.add_argument('--cutoff', type=float,          dest='cutoff',    default=5.0,                 help='bond length cutoff')
+parser.add_argument('--bpath',  type=str,            dest='bpath',     default='basis/optimized/',  help='dir with basis sets')
+parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,               help='if use a version with more padding zeros')
+parser.add_argument('--split',  action='store_true', dest='split',     default=False,               help='if split into molecules')
+
+
 args = parser.parse_args()
 print(vars(args))
 
@@ -129,11 +132,11 @@ def get_element_pairs(elements):
     qqs[q] = qqs0
   return qqs, qqs4q
 
-def read_df_basis(bnames):
+def read_df_basis(bnames, bpath):
   mybasis = {}
   for bname in bnames:
       if bname in mybasis: continue
-      with open('basis/optimized/'+bname+'.bas', 'r') as f:
+      with open(bpath+'/'+bname+'.bas', 'r') as f:
         mybasis[bname] = eval(f.read())
   return mybasis
 
@@ -147,11 +150,11 @@ def get_basis_info(qqs, mybasis):
     M[qq]    = repre.metrix_matrix_z('No', idx[qq], ao, S)
   return idx, M
 
-def read_basis_wrapper(mols):
+def read_basis_wrapper(mols, bpath):
   elements  = sorted(list(set([q for mol in mols for q in mol.elements])))
   qqs,qqs4q = get_element_pairs(elements)
   qqs0      = qqs[list(qqs.keys())[0]]
-  mybasis   = read_df_basis(qqs0)
+  mybasis   = read_df_basis(qqs0, bpath)
   idx, M    = get_basis_info(qqs0, mybasis)
   return elements, mybasis, qqs, qqs4q, idx, M
 
@@ -162,7 +165,7 @@ def main():
   xyzlist = repre.get_xyzlist(xyzlistfile)
 
   mols, dms = mols_guess(xyzlist, args.basis, args.guess)
-  elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols)
+  elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath)
   qqs = qqs0 if args.zeros else qqs4q
 
   if args.split:
