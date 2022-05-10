@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 
+import argparse
 import numpy as np
 
-data = np.loadtxt('6666')
-qs   = np.loadtxt('q.dat', dtype=int)
+parser = argparse.ArgumentParser(description='Split representation by elements')
+parser.add_argument('--d', type=str,  dest='dfile',  required=True, help='representation')
+parser.add_argument('--q', type=str,  dest='qfile',  required=True, help='list of all atoms')
+args = parser.parse_args()
+
+data = np.load(args.dfile)
+qs   = np.loadtxt(args.qfile, dtype=str)
 
 mydict = {}
 for q in sorted(list(set(qs))):
