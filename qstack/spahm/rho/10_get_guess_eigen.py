@@ -98,14 +98,13 @@ def vec_from_cs(z, cs, lmax, idx):
   return v
 
 
-def repr_for_mol(mol, dm, qqs, M, mybasis, idx):
+def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen):
 
   L = lowdin.Lowdin_split(mol, dm)
   q = [mol.atom_symbol(i) for i in range(mol.natm)]
   r = mol.atom_coords(unit='ANG')
 
   mybonds = [bonds_dict_init(qqs[q0], M) for q0 in q]
-  maxlen = max([bond[1] for bond in mybonds])
 
   for i0 in range(mol.natm):
     for i1 in range(i0):
@@ -188,16 +187,16 @@ def main():
   elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath, args.only_m0)
   qqs = qqs0 if args.zeros else qqs4q
 
+  maxlen = max([bonds_dict_init(qqs[q0], M)[1] for q0 in elements ])
   if args.split:
     natm   = max([mol.natm for mol in mols])
-    maxlen = max([bonds_dict_init(qqs[q0], M)[1] for q0 in elements ])
     allvec = np.zeros((len(mols), natm, maxlen))
   else:
     allvec = []
 
   for i,(mol,dm) in enumerate(zip(mols,dms)):
     print('mol', i)
-    vec = repr_for_mol(mol, dm, qqs, M, mybasis, idx)
+    vec = repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen)
     if args.split:
       allvec[i,:len(vec),:] = vec
     else:
