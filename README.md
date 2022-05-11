@@ -12,7 +12,7 @@ Q-stack
 * [Examples](#examples-)
 * [Acknowledgements](#Acknowledgements-)
 
-## About [↑](#Contents-)
+## About [↑](#contents)
 
 Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress, and will be updated soon.
 
@@ -25,7 +25,14 @@ For now, we link to the relevant packages that will be incorporated (among other
 
 Stay tuned for updates!
 
-## Acknowledgements [↑](#Contents-)
+## Install [↑](#contents)
+
+The installation of the library for python use can be done executing the following commands:
+
+```
+python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
+```
+## Acknowledgements [↑](#contents)
 The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR) "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" of the Swiss National Science Foundation (SNSF, grant number 182892) and the European Research Council (ERC, grant agreement no 817977).
 
 ![ackw logo](./images/ackw.png)
