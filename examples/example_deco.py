@@ -14,5 +14,4 @@ c = get_coeff(dm, eri2c, eri3c)
 print("Expansion Coefficients:", c)
 
 N = fields.decomposition.number_of_electrons_deco(auxmol, c)
-
 print("Number of electrons after decomposition: ", N)

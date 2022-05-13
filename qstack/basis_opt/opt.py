@@ -4,7 +4,7 @@ import numpy as np
 import scipy.optimize
 from pyscf import gto
 import pyscf.data
-import qstack.basis_opt.basis_tools as qbbt
+from qstack.basis_opt import basis_tools as qbbt
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in = 1e-7, method_in = "CG"):
 
