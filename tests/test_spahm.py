@@ -4,7 +4,7 @@ from qstack import compound
 from qstack.spahm import compute_spahm
 
 def test_spahm():
-    
+
     path = os.path.dirname(os.path.realpath(__file__))
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
 

@@ -11,7 +11,7 @@ def get_converged_dm(mol, xc):
 
     Returns:
         numpy ndarray: density matrix in AO-basis.
-    
+
     """
 
     if mol.multiplicity == 1:
@@ -41,7 +41,7 @@ def make_grid_for_rho(mol, grid_level = 3):
 
     Returns:
         object : pyscf DFT mesh grid object
-    
+
     """
     grid = dft.gen_grid.Grids(mol)
     grid.level = grid_level
@@ -58,7 +58,7 @@ def sphericalize_density_matrix(mol, dm):
 
     Returns:
         numpy ndarray: sphericalized density matrix.
-    
+
     """
 
     idx_by_l = [[] for i in range(constants.MAX_L)]

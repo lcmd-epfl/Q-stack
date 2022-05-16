@@ -125,7 +125,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in = 1e-7, method_i
   basis_list = [ i for q in elements for i in basis[q]]
   angular_momenta = np.array([ i[0]    for i in basis_list ])
   exponents       = np.array([ i[1][0] for i in basis_list ])
-  
+
   nexp = len(basis_list)
   bf_bounds = make_bf_start()
 

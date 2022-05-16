@@ -12,7 +12,7 @@ def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
 
     Returns:
         numpy ndarray : uncorrelated on-top pair density on a grid.
-    
+
     """
 
     grid = make_grid_for_rho(mol, grid_level)

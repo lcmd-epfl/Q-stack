@@ -11,7 +11,7 @@ def energy_mol(newbasis, moldata):
 
     Returns:
         numpy ndarray: Overlap matrix, 2-centers and 3-centers ERI matrices.
-        
+
     """
     mol       = moldata['mol'      ]
     rho       = moldata['rho'      ]
@@ -25,7 +25,7 @@ def energy_mol(newbasis, moldata):
     S = np.einsum('pi,qi,i->pq', ao,ao,weights)
     c = np.linalg.solve(S, w)
     E = self-c@w
-    
+
     return E
 
 

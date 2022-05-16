@@ -4,7 +4,7 @@ from qstack import compound
 
 
 def test_reader():
-    
+
     path = os.path.dirname(os.path.realpath(__file__))
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
 
@@ -20,7 +20,7 @@ def test_makeauxmol():
     path = os.path.dirname(os.path.realpath(__file__))
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
     auxbasis = "cc-pvtz-jkfit"
-    
+
     auxmol = compound.make_auxmol(mol, auxbasis)
 
     assert auxmol.natm == 3

@@ -2,7 +2,7 @@ import os
 from qstack import compound, fields
 
 def test_hf_otpd():
-    
+
     path = os.path.dirname(os.path.realpath(__file__))
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
 
