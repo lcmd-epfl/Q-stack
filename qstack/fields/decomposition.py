@@ -1,7 +1,23 @@
 import numpy as np
+import qstack
 
-def decompose(mol, auxmol):
-    return 0
+def decompose(mol, dm, auxbasis):
+    """Fit molecular density onto an atom-centered basis.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
+        dm (numpy 2d ndarray): density matrix.
+        auxbasis (string / pyscf basis dictionary): atom-centered basis to decompose on.
+
+    Returns:
+        pyscf Mole : copy of the pyscf Mole object but with the auxbasis basis.
+        numpy 1d ndarray: Decomposition coefficients
+
+    """
+    auxmol = qstack.compound.make_auxmol(mol, auxbasis)
+    S, eri2c, eri3c = qstack.fields.decomposition.get_integrals(mol, auxmol)
+    c = get_coeff(dm, eri2c, eri3c)
+    return auxmol, c
 
 def get_integrals(mol, auxmol):
     """Computes overlap and 2-/3-centers ERI matrices.
@@ -12,7 +28,7 @@ def get_integrals(mol, auxmol):
 
     Returns:
         numpy ndarray: Overlap matrix, 2-centers and 3-centers ERI matrices.
-        
+
     """
 
     # Get overlap integral in the auxiliary basis
@@ -38,7 +54,7 @@ def get_coeff(dm, eri2c, eri3c):
 
     Returns:
         numpy ndarray: Expansion coefficients of the density onto the auxiliary basis.
-        
+
     """
 
     # Compute the projection of the density onto auxiliary basis using a Coulomb metric
@@ -61,7 +77,7 @@ def number_of_electrons_deco(auxmol, c):
         int: number of electrons.
     """
 
-    # Initialize variables 
+    # Initialize variables
     nel = 0.0
     i = 0
 
