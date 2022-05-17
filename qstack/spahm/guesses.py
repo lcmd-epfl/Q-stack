@@ -51,7 +51,7 @@ def solveF(mol, fock):
 
 def get_guess(arg):
   arg = arg.lower()
-  guesses = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':None, 'lb-hfs':LB_HFS}
+  guesses = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}
   if arg not in guesses.keys():
     print('Unknown guess. Available guesses:', list(guesses.keys()), file=sys.stderr);
     exit(1)
@@ -67,4 +67,15 @@ def get_occ(e, nelec, spin):
     e1[0,:nocc[0]] = e[:nocc[0]]
     e1[1,:nocc[1]] = e[:nocc[1]]
     return e1
+
+def get_dm(v, nelec, spin):
+  if spin==None:
+    nocc = nelec[0]
+    dm = v[:,:nocc] @ v[:,:nocc].T
+    return dm
+  else:
+    nocc = nelec
+    dm0 = v[:,:nocc[0]] @ v[:,:nocc[0]].T
+    dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
+    return (dm0+dm1)*0.5
 
