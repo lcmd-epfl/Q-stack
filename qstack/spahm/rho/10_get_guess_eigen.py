@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 
 import os
+import operator
 import argparse
+import scipy
 import numpy as np
 from pyscf import scf, gto
-from utils import readmol
-from guesses import *
+import qstack
+import qstack.spahm.compute_spahm as spahm
+import qstack.spahm.guesses as guesses
+
 import lowdin
-import operator
 from Dmatrix import Dmatrix_for_z, c_split, rotate_c
 import repre
-import scipy
+
+
 
 parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
 parser.add_argument('--mol',    type=str,            dest='filename',  required=True,               help='file containing a list of molecular structures in xyz format')
-parser.add_argument('--guess',  type=str,            dest='guess',     required=True,               help='initial guess type')
+parser.add_argument('--guess',  type=str,            dest='guess',     default='lb',                help='initial guess type')
 parser.add_argument('--basis',  type=str,            dest='basis'  ,   default='minao',             help='AO basis set (default=MINAO)')
 parser.add_argument('--charge', type=int,            dest='charge',    default=0,                   help='total charge of the system (default=0)')
 parser.add_argument('--spin',   type=int,            dest='spin',      default=None,                help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
@@ -26,6 +30,7 @@ parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=F
 parser.add_argument('--split',  action='store_true', dest='split',     default=False,               help='if split into molecules')
 parser.add_argument('--onlym0', action='store_true', dest='only_m0',   default=False,               help='if use only fns with m=0')
 parser.add_argument('--save',   action='store_true', dest='save',      default=False,               help='if save dms')
+parser.add_argument('--readdm', type=str,            dest='readdm',    default=None,                help='dir to read dms from')
 
 
 args = parser.parse_args()
@@ -36,33 +41,28 @@ print(vars(args))
 #1e-8 : 4 A
 #1e-6 : 3 A
 
-def mols_guess(xyzlist, basis, aguess, save):
+def mols_guess(xyzlist, args):
 
   mols  = []
   for xyzfile in xyzlist:
     print(xyzfile, flush=True)
-    mols.append(readmol(xyzfile, basis))
+    mols.append(qstack.compound.xyz_to_mol(xyzfile, args.basis)) # TODO spin charge
 
   dms  = []
-  try:
-    guess = get_guess(aguess)
-    for xyzfile,mol in zip(xyzlist,mols):
-      print(xyzfile, flush=True)
-      if args.guess == 'huckel':
-        e,v = scf.hf._init_guess_huckel_orbitals(mol)
-      else:
-        fock = guess(mol, args.func)
-        e,v = solveF(mol, fock)
-      dm = v[:,:mol.nelectron//2] @ v[:,:mol.nelectron//2].T
-      dms.append(dm)
-      if save:
-        np.save(os.path.basename(xyzfile)+'.npy', dm)
-
-  except:
-    for xyzfile,mol in zip(xyzlist,mols):
-      print(xyzfile, flush=True)
-      dm = np.load(aguess+'/'+os.path.basename(xyzfile)+'.npy')
-      dms.append(dm)
+  if not args.readdm:
+      guess = guesses.get_guess(args.guess)
+      for xyzfile,mol in zip(xyzlist,mols):
+          print(xyzfile, flush=True)
+          e,v = spahm.get_guess_orbitals(mol, guess)
+          dm  = guesses.get_dm(v, mol.nelec, mol.spin)
+          dms.append(dm)
+          if args.save:
+              np.save(os.path.basename(xyzfile)+'.npy', dm)
+  else:
+      for xyzfile,mol in zip(xyzlist,mols):
+          print(xyzfile, flush=True)
+          dm = np.load(args.readdm+'/'+os.path.basename(xyzfile)+'.npy')
+          dms.append(dm)
   return mols, dms
 
 
@@ -183,7 +183,7 @@ def main():
   xyzlistfile = args.filename
   xyzlist = repre.get_xyzlist(xyzlistfile)
 
-  mols, dms = mols_guess(xyzlist, args.basis, args.guess, args.save)
+  mols, dms = mols_guess(xyzlist, args)
   elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath, args.only_m0)
   qqs = qqs0 if args.zeros else qqs4q
 
