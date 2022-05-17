@@ -1,5 +1,6 @@
 name: qstack
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
@@ -44,4 +45,3 @@ dependencies:
     - pytest==6.2.5
     - scipy==1.7.3
     - toml==0.10.2
-prefix: /home/afabrizi/anaconda3/envs/qstack

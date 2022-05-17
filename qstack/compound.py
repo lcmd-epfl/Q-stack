@@ -23,7 +23,7 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0):
 
     # Open and read the file
     f = open(fin, "r")
-    molxyz = '\n'.join(f.read().split('\n')[2:])
+    molxyz = "\n".join(f.read().split("\n")[2:])
     f.close()
 
     # Define attributes to the Mole object and build it
@@ -36,7 +36,8 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0):
 
     return mol
 
-def mol_to_xyz(mol, fout, format='xyz'):
+
+def mol_to_xyz(mol, fout, format="xyz"):
     """Converts a pyscf Mole object into a molecular file in xyz format.
 
     Args:
@@ -48,30 +49,29 @@ def mol_to_xyz(mol, fout, format='xyz'):
     """
 
     format = format.lower()
-    if format == 'xyz':
+    if format == "xyz":
         coords = mol.atom_coords() * constants.BOHR2ANGS
         output = []
-        if format == 'xyz':
-            output.append('%d' % mol.natm)
-            output.append('%d %d' % (mol.charge, mol.multiplicity))
+        if format == "xyz":
+            output.append("%d" % mol.natm)
+            output.append("%d %d" % (mol.charge, mol.multiplicity))
 
         for i in range(mol.natm):
             symb = mol.atom_pure_symbol(i)
             x, y, z = coords[i]
-            output.append('%-4s %14.5f %14.5f %14.5f' %
-                          (symb, x, y, z))
-        string = '\n'.join(output)
+            output.append("%-4s %14.5f %14.5f %14.5f" % (symb, x, y, z))
+        string = "\n".join(output)
 
     else:
         raise NotImplementedError
 
-    with open(fout, 'w') as f:
+    with open(fout, "w") as f:
         f.write(string)
-        f.write('\n')
+        f.write("\n")
     return string
 
 
-def gmol_to_mol(fin, basis="def2-svp", charge=0, spin=0):
+def gmol_to_mol(fin, basis="def2-svp"):
     """Reads .
 
     Args:
@@ -122,7 +122,10 @@ def gmol_to_mol(fin, basis="def2-svp", charge=0, spin=0):
                 lig = gmol
                 if not hasattr(lig, "totcharge"):
                     print(
-                        "Total Charge is Missing for Ligand:", refcode, lig.type, lig.natoms
+                        "Total Charge is Missing for Ligand:",
+                        refcode,
+                        lig.type,
+                        lig.natoms,
                     )
                 elif not hasattr(lig, "totmconnec"):
                     print(
@@ -147,18 +150,20 @@ def gmol_to_mol(fin, basis="def2-svp", charge=0, spin=0):
                         mol.labels,
                     )
                 else:
-                    print(f"Info (Charge, number of atoms): {mol.totcharge}, {mol.natoms}")
-
+                    print(
+                        f"Info (Charge, number of atoms): {mol.totcharge}, {mol.natoms}"
+                    )
 
     # Define attributes to the Mole object and build it
     mole = gto.Mole()
-    mole.atom = molxyz
+    atoms = list(zip(mol.labels, mol.coord))
+    mole.atom = atoms
     mole.basis = basis
-    mole.charge = charge
-    mole.spin = spin
+    mole.charge = mol.totcharge
+    mole.spin = (sum(mol.atnums) - mol.totcharge) % 2
     mole.build()
 
-    return mol
+    return mole
 
 
 def make_auxmol(mol, basis):
@@ -182,7 +187,8 @@ def make_auxmol(mol, basis):
 
     return auxmol
 
-def rotate_molecule(mol, a, b, g, rad = False):
+
+def rotate_molecule(mol, a, b, g, rad=False):
     """Rotate a molecule: transform nuclear coordinates given a set of Euler angles.
 
     Args:
@@ -198,7 +204,7 @@ def rotate_molecule(mol, a, b, g, rad = False):
     """
 
     orig_coords = mol.atom_coords()
-    rotated_coords = orig_coords@rotate_euler(a, b, g, rad) * constants.BOHR2ANGS
+    rotated_coords = orig_coords @ rotate_euler(a, b, g, rad) * constants.BOHR2ANGS
     atom_types = mol.elements
 
     rotated_mol = gto.Mole()

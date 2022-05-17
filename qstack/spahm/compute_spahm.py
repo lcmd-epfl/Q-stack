@@ -1,5 +1,5 @@
 from pyscf import scf
-from qstack.spahm.guesses import solveF, get_guess, get_occ, get_dm
+from qstack.spahm.guesses import solveF, get_guess, get_occ
 
 def get_guess_orbitals(mol, guess, xc="pbe"):
     if guess == 'huckel':
