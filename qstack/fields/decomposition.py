@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 import qstack
 
 def decompose(mol, dm, auxbasis):
@@ -65,6 +66,80 @@ def get_coeff(dm, eri2c, eri3c):
 
     return c
 
+def _get_inv_metric(mol, metric, v):
+  if isinstance(metric, str):
+      metric = metric.lower()
+      if metric == 'u' or metric == 'unit' or metric == '1' :
+          return v
+      elif metric == 's' or metric == 'overlap' or metric == 'ovlp' :
+          O = mol.intor('int1e_ovlp_sph')
+      elif metric=='j' or metric == 'coulomb':
+          O = mol.intor('int2c2e_sph')
+  else:
+      O = metric
+  return scipy.linalg.solve(O, v)
+
+
+def correct_N_atomic(mol, N, c0, metric='u'):
+    # TODO write the readme
+    Q = number_of_electrons_deco_vec_per_atom(mol)
+    N0 = c0 @ Q
+    O1q = _get_inv_metric(mol, metric, Q)
+    la = scipy.linalg.solve(Q.T @ O1q, N-N0)
+    c = c0 + np.einsum('pq,q->p', O1q, la)
+    return c
+
+
+def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
+    # TODO write the readme
+
+    mode = mode.lower()
+    q = number_of_electrons_deco_vec(mol)
+    N0 = c0 @ q
+
+    if N==None:
+        N = mol.nelectron
+
+    if mode == 'scale':
+        c = c0 * N/N0
+
+    elif mode == 'lagrange' :
+      O1q = _get_inv_metric(mol, metric, q)
+      la  = (N - N0) / (q @ O1q)
+      c   = c0 + la * O1q
+      print(c)
+    return c
+
+    pass
+
+def number_of_electrons_deco_vec(mol):
+    # TODO: for now works only with uncontracted DF bases
+    nel = []
+    for iat in range(mol.natm):
+        j = 0
+        q = mol._atom[iat][0]
+        max_l = mol._basis[q][-1][0]
+        numbs = [x[0] for x in mol._basis[q]]
+
+        # Loop over all radial channels for l = 0
+        for n in range(numbs.count(0)):
+            a, w = mol._basis[q][j][1]
+            nel.append(w * pow (2.0*np.pi/a, 0.75))
+            j += 1
+        # if l !=0 it does not contribute to the number of electrons
+        for l in range(1,max_l+1):
+            n_l = numbs.count(l)
+            nel.extend([0]*(2*l+1)*n_l)
+            j += n_l
+    return np.array(nel)
+
+def number_of_electrons_deco_vec_per_atom(mol, q=None):
+    if q is None:
+        q = number_of_electrons_deco_vec(mol)
+    Q = np.zeros((len(q), mol.natm))
+    for ia,a in enumerate(mol.aoslice_by_atom()):
+        Q[a[2]:a[3],ia] = q[a[2]:a[3]]
+    return Q
 
 def number_of_electrons_deco(auxmol, c):
     """Computes the number of electrons of a molecule given a set of expansion coefficients and a Mole object.
@@ -77,27 +152,5 @@ def number_of_electrons_deco(auxmol, c):
         int: number of electrons.
     """
 
-    # Initialize variables
-    nel = 0.0
-    i = 0
-
-    # Loop over each atom in the molecule
-    for iat in range(auxmol.natm):
-        j = 0
-        q = auxmol._atom[iat][0]
-        max_l = auxmol._basis[q][-1][0]
-        numbs = [x[0] for x in auxmol._basis[q]]
-
-        # Loop over all radial channels for l = 0
-        for n in range(numbs.count(0)):
-            a, w = auxmol._basis[q][j][1]
-            nel += c[i] * w * pow (2.0*np.pi/a, 0.75) # norm = (2.0*a/np.pi)^3/4, integral = (pi/a)^3/2
-            i += 1
-            j += 1
-        # if l !=0 it does not contribute to the number of electrons, so skip them.
-        for l in range(1,max_l+1):
-            n_l = numbs.count(l)
-            i += n_l * (2*l+1)
-            j += n_l
-
-    return nel
+    q = number_of_electrons_deco_vec(auxmol)
+    return q @ c
