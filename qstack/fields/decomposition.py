@@ -82,11 +82,11 @@ def _get_inv_metric(mol, metric, v):
 
 def correct_N_atomic(mol, N, c0, metric='u'):
     # TODO write the readme
-    Q = number_of_electrons_deco_vec_per_atom(mol)
-    N0 = c0 @ Q
+    Q   = number_of_electrons_deco_vec(mol, per_atom=True)
+    N0  = c0 @ Q
     O1q = _get_inv_metric(mol, metric, Q)
-    la = scipy.linalg.solve(Q.T @ O1q, N-N0)
-    c = c0 + np.einsum('pq,q->p', O1q, la)
+    la  = scipy.linalg.solve(Q.T @ O1q, N-N0)
+    c   = c0 + np.einsum('pq,q->p', O1q, la)
     return c
 
 
@@ -97,48 +97,38 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
     q = number_of_electrons_deco_vec(mol)
     N0 = c0 @ q
 
-    if N==None:
+    if N is None:
         N = mol.nelectron
 
     if mode == 'scale':
         c = c0 * N/N0
 
     elif mode == 'lagrange' :
-      O1q = _get_inv_metric(mol, metric, q)
-      la  = (N - N0) / (q @ O1q)
-      c   = c0 + la * O1q
-      print(c)
+        O1q = _get_inv_metric(mol, metric, q)
+        la  = (N - N0) / (q @ O1q)
+        c   = c0 + la * O1q
     return c
 
-    pass
 
-def number_of_electrons_deco_vec(mol):
-    # TODO: for now works only with uncontracted DF bases
-    nel = []
+def number_of_electrons_deco_vec(mol, per_atom=False):
+    if per_atom:
+        Q = np.zeros((mol.nao,mol.natm))
+    else:
+        Q = np.zeros(mol.nao)
+    i = 0
     for iat in range(mol.natm):
-        j = 0
-        q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
-        numbs = [x[0] for x in mol._basis[q]]
-
-        # Loop over all radial channels for l = 0
-        for n in range(numbs.count(0)):
-            a, w = mol._basis[q][j][1]
-            nel.append(w * pow (2.0*np.pi/a, 0.75))
-            j += 1
-        # if l !=0 it does not contribute to the number of electrons
-        for l in range(1,max_l+1):
-            n_l = numbs.count(l)
-            nel.extend([0]*(2*l+1)*n_l)
-            j += n_l
-    return np.array(nel)
-
-def number_of_electrons_deco_vec_per_atom(mol, q=None):
-    if q is None:
-        q = number_of_electrons_deco_vec(mol)
-    Q = np.zeros((len(q), mol.natm))
-    for ia,a in enumerate(mol.aoslice_by_atom()):
-        Q[a[2]:a[3],ia] = q[a[2]:a[3]]
+        for bas_id in mol.atom_shell_ids(iat):
+            l = mol.bas_angular(bas_id)
+            n = mol.bas_nctr(bas_id)
+            if l==0:
+                w = mol.bas_ctr_coeff(bas_id)
+                a = mol.bas_exp(bas_id)
+                q = pow (2.0*np.pi/a, 0.75) @ w
+                if per_atom:
+                    Q[i:i+n,iat] = q
+                else:
+                    Q[i:i+n] = q
+            i += (2*l+1)*n
     return Q
 
 def number_of_electrons_deco(auxmol, c):
