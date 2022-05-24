@@ -12,7 +12,7 @@ import qstack.spahm.guesses as guesses
 
 import lowdin
 from Dmatrix import Dmatrix_for_z, c_split, rotate_c
-import repre
+import modules.repr as repre
 
 
 

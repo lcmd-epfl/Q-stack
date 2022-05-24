@@ -1,12 +1,8 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 
+import sys
 import numpy as np
 from pyscf import gto, data
-
-#np.set_printoptions(edgeitems=30, linewidth=100000)
-# basis  = 'ccpvdzjkfit'
-# method = 'sph-short'
-#method = 'sph'
 
 def get_xyzlist(xyzlistfile):
   xyzlist = np.loadtxt(xyzlistfile, dtype=str)
@@ -19,16 +15,17 @@ def mysqrtm(m):
   sm = b @ np.diag(np.sqrt(e)) @ b.T
   return (sm+sm.T)*0.5
 
-def idxl0(i,l):
+def idxl0(i,l, ao):
   # return the index of the basis function with the same L and N but M=0
   if l!=1:
-    return i - ao[q]['m'][i]+l
+    return i - ao['m'][i]+l
   else:
-    if ao[q]['m'][i]==1  : return i+2
-    if ao[q]['m'][i]==-1 : return i+1
-    if ao[q]['m'][i]==0  : return i
+    if ao['m'][i]==1  : return i+2
+    if ao['m'][i]==-1 : return i+1
+    if ao['m'][i]==0  : return i
 
 def read_mols(xyzlist, basis):
+  #SHOULD BE CHANGED TODO
   mols  = []
   coefs = []
   for xyzfile in xyzlist:
@@ -41,7 +38,7 @@ def read_mols(xyzlist, basis):
     print(mol_name, flush=True)
   return mols, coefs
 
-def get_S(q,basis):
+def get_S(q, basis):
   mol = gto.Mole()
   mol.atom = q + " 0.0 0.0 0.0"
   mol.charge = 0
@@ -97,8 +94,8 @@ def metrix_matrix(q, idx, ao, S):
       l1 = ao['l'][i1]
       if(l!=l1): continue
       A[p1,p] = A[p,p1] = 1.0/(2*l+1) \
-        * S[ idxl0(i, l), idxl0(i1, l) ] \
-        * S[ idxl0(j, l), idxl0(j1, l) ]
+        * S[ idxl0(i, l, ao[q]), idxl0(i1, l, ao[q]) ] \
+        * S[ idxl0(j, l, ao[q]), idxl0(j1, l, ao[q]) ]
   return mysqrtm(A)
 
 def metrix_matrix_short(q, idx, ao, S):
@@ -127,3 +124,108 @@ def vectorize_c_short(q, idx, ao, c):
     msize = 2*l+1
     v[p] = c[i:i+msize] @ c[j:j+msize]
   return v
+
+def store_pair_indices_z(ao):
+  idx = []
+  for i,[li,mi] in enumerate(zip(ao['l'], ao['m'])):
+    for j,[lj,mj] in enumerate(zip(ao['l'], ao['m'])):
+      if abs(mi)!=abs(mj): continue
+      idx.append([i,j])
+  return idx
+
+def store_pair_indices_z_only0(ao):
+  idx = []
+  for i,[li,mi] in enumerate(zip(ao['l'], ao['m'])):
+    if mi!=0 : continue
+    for j,[lj,mj] in enumerate(zip(ao['l'], ao['m'])):
+      if mj!=0 : continue
+      idx.append([i,j])
+  return idx
+
+
+def metrix_matrix_z(q, idx, ao, S):
+  N = len(idx)
+  A = np.zeros((N,N))
+  for p in range(N):
+    for p1 in range(p,N):
+      i,i1 = idx[p]
+      j,j1 = idx[p1]
+      li  = ao['l'][i ]
+      li1 = ao['l'][i1]
+      lj  = ao['l'][j ]
+      lj1 = ao['l'][j1]
+      if li  != lj  : continue
+      if li1 != lj1 : continue
+
+      mi  = ao['m'][i ]
+      mi1 = ao['m'][i1]
+      mj  = ao['m'][j ]
+      mj1 = ao['m'][j1]
+
+      A[p1,p] = A[p,p1] = ( (mi==mj)*(mi1==mj1) +  (mi==-mj)*(mi1==-mj1)*(mi!=0) ) \
+        * S[ idxl0(i,  li , ao), idxl0(j,  li , ao)  ] \
+        * S[ idxl0(i1, li1, ao), idxl0(j1, li1, ao) ]
+
+
+  return mysqrtm(A)
+
+################################################################################
+
+def main():
+  basis  = 'ccpvdzjkfit'
+  #method = 'sph-short'
+  #method = 'sph'
+  method = 'z'
+  xyzlistfile = sys.argv[1]
+  xyzlist = get_xyzlist(xyzlistfile)
+  mols, coefs = read_mols(xyzlist, basis)
+
+  elements = sorted(list(set([q for mol in mols for q in mol.elements])))
+
+  S  = {}
+  ao = {}
+  ao_start = {}
+  idx = {}
+  M = {}
+
+  for q in elements:
+    S[q], ao[q], ao_start[q] = get_S(q, basis)
+    if method == 'sph':
+      idx[q]     = store_pair_indices(ao[q])
+      M[q] = metrix_matrix(q, idx[q], ao[q], S[q])
+    elif method == 'sph-short':
+      idx[q] = store_pair_indices_short(ao[q], ao_start[q])
+      M[q] = metrix_matrix_short(q, idx[q], ao[q], S[q])
+    elif method == 'z':
+      idx[q]     = store_pair_indices_z(ao[q])
+      M[q] = metrix_matrix_z(q, idx[q], ao[q], S[q])
+
+  vectors = []
+  for mol,c in zip(mols, coefs):
+    vectors.append([])
+    c_split = []
+    i0 = 0
+    for q in mol.elements:
+      n = len(S[q])
+      c_at = c[i0:i0+n]
+      i0 += n
+
+      if method == 'sph':
+        v = vectorize_c(q, idx[q], c_at)
+      elif method == 'sph-short':
+        v = vectorize_c_short(q, idx[q], ao[q], c_at)
+      elif method == 'z':
+        v = vectorize_c(q, idx[q], c_at)
+      v = M[q] @ v
+      vectors[-1].append(v)
+
+  #for i in vectors:
+  #    for j in i:
+  #        print(j)
+  #
+  np.save('1.v.dat', vectors[0][0])
+  np.save('2.v.dat', vectors[1][0])
+
+
+if __name__=='__main__':
+    main()
