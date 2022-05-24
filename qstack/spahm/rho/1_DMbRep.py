@@ -1,148 +1,121 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
+import sys,os
 from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
-from qstack.spahm.LB2020guess import LB2020guess
-import qstack
-
-from modules.make_atomic_DF import get_a_DF
+from  qstack import compound, spahm, fields
 import modules.repr as repre
-import modules.utils as utils
 
+from modules import make_atomic_DF
 
 parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
-parser.add_argument('--mol', dest='pathToMol', required=True, type=str, help='The path to the molecular file within the database (must be a FILE)')
-parser.add_argument('--guess', dest='initialGuess', required=False, default='LB', type=str, help="The initial guess Hamiltonian to be used."\
-                                                                                    "Can be of the following :\n"\
-                                                                                    "- Hcore (default)\n- ANO\n- SAD\n-Huckel\n- LB")
-parser.add_argument('--basis-set', dest='basisSet',  required=False, default='minao', type=str, help="Basis set for computing density matrix (default : minao)")
-parser.add_argument('--aux-basis', dest='auxBasisSet', required=False, default='ccpvdzjkfit', type=str, help="auxiliary basis-set for density-fitting the density-matrix (default: ccpdvz-jkfit")
-parser.add_argument('--model', dest='modelRep', required=False, default='Lowdin', type=str, help="The model to use when creating the representation.\n"\
-                                                                                "Availabel model :\n"\
-                                                                                "- Lowdin (default)\n- pure (simple DF(DM))\n- SAD_diff")
-parser.add_argument('--species', required = False, type = str, nargs='+', dest='Species', help = 'The species contained in the DatBase.')
-
+parser.add_argument('--mol',       dest='pathToMol',    required=True,                       type=str,            help='The path to the xyz file with the molecular structure')
+parser.add_argument('--guess',     dest='initialGuess', default='LB',                        type=str,            help="The initial guess Hamiltonian to be used. Default: LB")
+parser.add_argument('--basis-set', dest='basisSet',     default='minao',                     type=str,            help="Basis set for computing density matrix (default : minao)")
+parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
+parser.add_argument('--model',     dest='modelRep',     default='Lowdin',                    type=str,            help="The model to use when creating the representation. Available models : -Lowdin (default); -pure (simple DF(DM)); -SAD_diff")
+parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help='The species contained in the database.')
 args = parser.parse_args()
+print(vars(args))
 
-"""
-TO RESOLVE :
-    - make the script molecule or DB based ??? --> Make molecular for now ! ; maybe extend after ??
-    - to parallelize density-matrix computations ?
-    - including H-LB_script within utils.py or differently ? DONE : included as side-script
-    - should we save temporary objects (hamiltonina , dm) ? or make optional (-debug-) ??
-"""
-
-def LB(mol):
-    return LB2020guess(parameters='HF').Heff(mol)
-
-def main() :
-# User-defined options (initial guess ; basis-set ; auxiliary basis-set ; model)
-    guesses = ['Hcore', 'Huckel', 'ANO', 'LB']
-    if args.initialGuess not in guesses :
-        print("input-error : guess not recognized --> using default (LB) !\n")
-        Hguess = 'LB'
-    else :
-        Hguess = args.initialGuess
-    basis_set = args.basisSet
-    models = ['pure', 'SAD_diff', 'Lowdin']
-    if args.modelRep not in models :
-        print("input-error : model not recognized --> using default (Lowdin) !\n")
-        model = 'Lowdin'
-    else :
-        model = args.modelRep
-    aux_basis_set  = args.auxBasisSet
-    params = {'guess' : Hguess, 'basis' : basis_set, 'model' : model, 'aux_basis' : aux_basis_set}
-    print(f"User-defined parameters : {params}\n")
-
-
-# Generating compound from xyz file
-    cwd = os.getcwd()
-    mol_file = join(cwd, args.pathToMol)
-    if isfile(mol_file) == False :
-        print(f"Error xyz-file {mol_file} not found !\nExiting !!")
-        exit()
-    mol = qstack.compound.xyz_to_mol(mol_file, basis_set)
-    mol_name = mol_file.split('/')[-1].split('.')[0]
-
-    if args.Species :
-        atom_types = sorted(list(set(args.Species)))
-    else :
-        atom_types = sorted(list(set(["C", "H", "O", "N", "S"])))
-    print(atom_types)
-
-# Generating Hamiltonian matrices (if needed cf. LB) and computing density matrices
-    mf = pyscf.scf.RHF(mol)
-    print("Computing DM...")
-    if Hguess == 'Hcore' :
-        dm = mf.init_guess_by_1e(mol)
-    elif Hguess == 'ANO' :
-        dm = mf.init_guess_by_minao(mol)
-    elif Hguess == 'Huckel' :
-        dm = mf.init_guess_by_huckel(mol)
-    elif Hguess == 'LB' :
-        h = LB(mol)
-        e, coeffs = utils.get_e_c(mol, h=h)
-        occ = mol.get_occ(e,coeffs)
-        dm = utils.get_dm(coeffs, occ)
-
-# Post-processing the density-matrix
-# Density-Fitting
-
-    if model == 'pure' :
-        c_df = get_DF(mol, dm, basis=basis_set, aux_basis=aux_basis_set)
-    elif model == 'Lowdin' :
-        c_df = get_a_DF(mol, dm , basis_set, aux_basis_set)
-    elif model == 'SAD_diff' :
-        dm_sad = mf.init_guess_by_atom(mol)
-        dm = dm - dm_sad
-        c_df = get_DF(mol, dm, basis=basis_set, aux_basis=aux_basis_set)
-
-# Power-Spectrum generation --> make function // one for SAD & pure-DM AND one for Lowind / new-lowdin
-# TODO: Modify computations according to new-lowdin ; check 11_DMBRep_DB.py for suitable modifications (carefull with padding)
-
-
-
-    elements = sorted(list(set(mol.elements)))
-
-    S  = {}
+def get_basis_info(atom_types, aux_basis_set):
     ao = {}
-    ao_start = {}
     idx = {}
     M = {}
-
+    ao_len = {}
     for q in atom_types:
-      S[q], ao[q], ao_start[q] = repre.get_S(q, aux_basis_set)
-      idx[q] = repre.store_pair_indices_short(ao[q], ao_start[q])
-      M[q] = repre.metrix_matrix_short(q, idx[q], ao[q], S[q])
+        S, ao[q], ao_start = repre.get_S(q, aux_basis_set)
+        idx[q] = repre.store_pair_indices_short(ao[q], ao_start)
+        M[q]   = repre.metrix_matrix_short(q, idx[q], ao[q], S)
+        ao_len[q] = len(S)
+    return ao, ao_len, idx, M
+
+def check_file(pathToMol):
+    cwd = os.getcwd()                 #  TODO why?
+    mol_file = join(cwd, pathToMol)   #  TODO why?
+    if isfile(mol_file) == False :
+        print(f"Error xyz-file {mol_file} not found !\nExiting !!", file=sys.stderr)
+        exit(1)
+    mol_name = mol_file.split('/')[-1].split('.')[0]
+    return mol_file, mol_name, cwd
+
+def get_model(arg):
+
+    def df_pure(mol, dm, basis_set, aux_basis_set):
+        return fields.decomposition.decompose(mol, dm, aux_basis_set)[1]
+    def df_sad_diff(mol, dm, basis_set, aux_basis_set):
+        mf = pyscf.scf.RHF(mol)
+        dm_sad = mf.init_guess_by_atom(mol)
+        dm = dm - dm_sad
+        return fields.decomposition.decompose(mol, dm, aux_basis_set)[1]
+    def df_lowdin(mol, dm, basis_set, aux_basis_set):
+        return make_atomic_DF.get_a_DF(mol, dm , basis_set, aux_basis_set)
+
+    arg = arg.lower()
+    models = {'pure'    : [df_pure,     coefficients_symmetrize_short],
+             'sad_diff' : [df_sad_diff, coefficients_symmetrize_short],
+             'lowdin'   : [df_lowdin,   coefficients_symmetrize_long ] }
+    if arg not in models.keys():
+        print('Unknown model. Available models:', list(models.keys()), file=sys.stderr)
+        exit(1)
+    return models[arg]
 
 
+def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
+    # short lowdin / everything else
+    v = []
+    i0 = 0
+    for q in mol.elements :
+        n = ao_len[q]
+        v.append([q, M[q] @ repre.vectorize_c_short(q, idx[q], ao[q], c[i0:i0+n])])
+        i0 += n
+    return v
 
-
-
+def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
+    # long lowdin
     vectors = []
     for c_a, e in zip(c_df, mol.elements) :
+        v_atom = {}
+        for q in atom_types:
+            v_atom[q] = np.zeros(len(idx[q]))
+        i0 = 0
+        for q in mol.elements :
+            n = ao_len[q]
+            v_atom[q] += M[q] @ repre.vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n])
+            i0 += n
+        v_a = np.hstack([v_atom[q] for q in atom_types])
+        vectors.append([e, v_a])
+    return vectors
 
-        # KSENIA'S OPTIMIZED CODE !!!!
+def main() :
 
-            v_atom = {}
+    # User-defined options
+    guess         = spahm.guesses.get_guess(args.initialGuess)
+    model         = get_model(args.modelRep)
+    basis_set     = args.basisSet
+    aux_basis_set = args.auxBasisSet
 
-            for q in atom_types:
-                v_atom[q] = np.zeros(len(idx[q]))
+    # Molecule-independent computation
+    atom_types    = sorted(list(set(args.Species)))
+    ao, ao_len, idx, M = get_basis_info(atom_types, aux_basis_set)
 
-            i0 = 0
-            for q in mol.elements :
-                n_size = len(S[q])
-                v_atom[q] += M[q] @ repre.vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n_size])
-                i0 += n_size
+    # Generate compound from xyz file
+    mol_file, mol_name, cwd = check_file(args.pathToMol)
+    mol = compound.xyz_to_mol(mol_file, basis_set)
 
+    # Compute density matrices
+    print("Computing DM...")
+    e,v = spahm.compute_spahm.get_guess_orbitals(mol, guess)
+    dm = spahm.guesses.get_dm(v, mol.nelec, mol.spin)
 
-            v_a = np.hstack([v_atom[q] for q in atom_types])
-            vectors.append([e, v_a])
+    # Post-processing the density-matrix
+    df_wrapper, sym_wrapper = model
+    c_df    = df_wrapper(mol, dm, basis_set, aux_basis_set)
+    vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, atom_types)
 
-
+    # save the output
     name_out = 'X_'+mol_name
     dir_out = 'X_' + mol_file.split('/')[-2]
     if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
