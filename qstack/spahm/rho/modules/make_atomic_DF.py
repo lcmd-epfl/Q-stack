@@ -1,14 +1,11 @@
 import numpy as np
-from pyscf.gto import mole
-from modules.utils import *
-import os
-from os.path import join, isdir
+from modules import utils as utils
 from scipy.linalg import sqrtm
 
 def get_a_DF(mol, dm, basis, aux_basis) :
     n_atm = mol.natm
 
-    S = get_overlap(mol)
+    S = utils.get_overlap(mol)
     S_sqrt = sqrtm(S)
     S_inv = np.linalg.inv(S_sqrt)
 
@@ -16,9 +13,9 @@ def get_a_DF(mol, dm, basis, aux_basis) :
 
     dm_slices = mol.aoslice_nr_by_atom()
     a_dfs = []
-    aux_mol = make_object(mol.atom, aux_basis)
+    aux_mol = utils.make_object(mol.atom, aux_basis)
     fit_slices = aux_mol.aoslice_nr_by_atom()
-    S_fit, eri2c, eri3c = get_fit_integrals(mol, aux_mol)
+    S_fit, eri2c, eri3c = utils.get_fit_integrals(mol, aux_mol)
     S_fit_a = np.zeros(S_fit.shape)
     for s in fit_slices :
         S_fit_a[s[2]:s[3], s[2]:s[3]] = S_fit[s[2]:s[3], s[2]:s[3]]
@@ -39,13 +36,14 @@ def get_a_DF(mol, dm, basis, aux_basis) :
         a_dm0 = S_inv @ a_dm1 @ S_inv
         fit_start = a_slice_fit[2]
         fit_stop = a_slice_fit[3]
-        df = get_fit_coeff(a_dm0, eri2c, eri3c)
+        df = utils.get_fit_coeff(a_dm0, eri2c, eri3c)
         # S_fit_inv = np.linalg.inv(S_fit)
         c_a = S_fit_a_inv @ df
         a_dfs.append(c_a)
 #    a_dfs = np.array(a_dfs, dtype=object)
     print("\t... fitting completed !\n")
     # print(f"Fitted ({len(a_dfs)} coeffs.) using Lowdin model !")
+    print("I'm alive")
     return a_dfs
 
 

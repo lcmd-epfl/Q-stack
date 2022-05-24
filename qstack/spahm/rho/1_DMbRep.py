@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-import numpy as np
-from modules.make_atomic_DF import get_a_DF
-from modules.utils import *
 import argparse
-from os.path import join, isfile, isdir
 import os
-from modules.repr import *
-from modules.pyscf_ext import *
+from os.path import join, isfile, isdir
+import numpy as np
 import pyscf
-from pyscf import gto
-from modules.LB2020guess import LB2020guess
+from qstack.spahm.LB2020guess import LB2020guess
+import qstack
+
+from modules.make_atomic_DF import get_a_DF
+import modules.repr as repre
+import modules.utils as utils
 
 
 parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
@@ -64,7 +64,7 @@ def main() :
     if isfile(mol_file) == False :
         print(f"Error xyz-file {mol_file} not found !\nExiting !!")
         exit()
-    mol = make_object(mol_file, basis_set)
+    mol = qstack.compound.xyz_to_mol(mol_file, basis_set)
     mol_name = mol_file.split('/')[-1].split('.')[0]
 
     if args.Species :
@@ -84,9 +84,9 @@ def main() :
         dm = mf.init_guess_by_huckel(mol)
     elif Hguess == 'LB' :
         h = LB(mol)
-        e, coeffs = get_e_c(mol, h=h)
+        e, coeffs = utils.get_e_c(mol, h=h)
         occ = mol.get_occ(e,coeffs)
-        dm = get_dm(coeffs, occ)
+        dm = utils.get_dm(coeffs, occ)
 
 # Post-processing the density-matrix
 # Density-Fitting
@@ -114,9 +114,9 @@ def main() :
     M = {}
 
     for q in atom_types:
-      S[q], ao[q], ao_start[q] = get_S(q, aux_basis_set)
-      idx[q] = store_pair_indices_short(ao[q], ao_start[q])
-      M[q] = metrix_matrix_short(q, idx[q], ao[q], S[q])
+      S[q], ao[q], ao_start[q] = repre.get_S(q, aux_basis_set)
+      idx[q] = repre.store_pair_indices_short(ao[q], ao_start[q])
+      M[q] = repre.metrix_matrix_short(q, idx[q], ao[q], S[q])
 
 
 
@@ -135,7 +135,7 @@ def main() :
             i0 = 0
             for q in mol.elements :
                 n_size = len(S[q])
-                v_atom[q] += M[q] @ vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n_size])
+                v_atom[q] += M[q] @ repre.vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n_size])
                 i0 += n_size
 
 
