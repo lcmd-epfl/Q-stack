@@ -72,10 +72,10 @@ def get_dm(v, nelec, spin):
   if spin==None:
     nocc = nelec[0]
     dm = v[:,:nocc] @ v[:,:nocc].T
-    return dm
+    return 2.0*dm
   else:
     nocc = nelec
     dm0 = v[:,:nocc[0]] @ v[:,:nocc[0]].T
     dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
-    return (dm0+dm1)*0.5
+    return dm0+dm1
 
