@@ -2,7 +2,7 @@ import numpy as np
 from scipy.linalg import sqrtm
 from qstack import compound, fields
 
-def get_a_DF(mol, dm, basis, aux_basis) :
+def get_a_DF(mol, dm, basis, aux_basis, short=False) :
     n_atm = mol.natm
 
     S = mol.intor_symmetric('int1e_ovlp')
@@ -45,5 +45,13 @@ def get_a_DF(mol, dm, basis, aux_basis) :
 #    a_dfs = np.array(a_dfs, dtype=object)
     print("\t... fitting completed !\n")
     # print(f"Fitted ({len(a_dfs)} coeffs.) using Lowdin model !")
+
+
+    if short:
+        cc = []
+        for i,c in zip(aux_mol.aoslice_by_atom()[:,2:], a_dfs):
+            cc.append(c[i[0]:i[1]])
+        return np.hstack(cc)
+
     return a_dfs
 

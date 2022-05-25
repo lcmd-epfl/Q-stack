@@ -11,12 +11,12 @@ import modules.repr as repre
 from modules import make_atomic_DF
 
 parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
-parser.add_argument('--mol',       dest='pathToMol',    required=True,                       type=str,            help='The path to the xyz file with the molecular structure')
+parser.add_argument('--mol',       dest='pathToMol',    required=True,                       type=str,            help="The path to the xyz file with the molecular structure")
 parser.add_argument('--guess',     dest='initialGuess', default='LB',                        type=str,            help="The initial guess Hamiltonian to be used. Default: LB")
 parser.add_argument('--basis-set', dest='basisSet',     default='minao',                     type=str,            help="Basis set for computing density matrix (default : minao)")
 parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
-parser.add_argument('--model',     dest='modelRep',     default='Lowdin',                    type=str,            help="The model to use when creating the representation. Available models : -Lowdin (default); -pure (simple DF(DM)); -SAD_diff")
-parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help='The species contained in the database.')
+parser.add_argument('--model',     dest='modelRep',     default='Lowdin-long',               type=str,            help="The model to use when creating the representation" )
+parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
 args = parser.parse_args()
 print(vars(args))
 
@@ -32,14 +32,11 @@ def get_basis_info(atom_types, aux_basis_set):
         ao_len[q] = len(S)
     return ao, ao_len, idx, M
 
-def check_file(pathToMol):
-    cwd = os.getcwd()                 #  TODO why?
-    mol_file = join(cwd, pathToMol)   #  TODO why?
+def check_file(mol_file):
     if isfile(mol_file) == False :
         print(f"Error xyz-file {mol_file} not found !\nExiting !!", file=sys.stderr)
         exit(1)
-    mol_name = mol_file.split('/')[-1].split('.')[0]
-    return mol_file, mol_name, cwd
+    return mol_file
 
 def get_model(arg):
 
@@ -50,13 +47,16 @@ def get_model(arg):
         dm_sad = mf.init_guess_by_atom(mol)
         dm = dm - dm_sad
         return fields.decomposition.decompose(mol, dm, aux_basis_set)[1]
-    def df_lowdin(mol, dm, basis_set, aux_basis_set):
-        return make_atomic_DF.get_a_DF(mol, dm , basis_set, aux_basis_set)
+    def df_lowdin_long(mol, dm, basis_set, aux_basis_set):
+        return make_atomic_DF.get_a_DF(mol, dm, basis_set, aux_basis_set)
+    def df_lowdin_short(mol, dm, basis_set, aux_basis_set):
+        return make_atomic_DF.get_a_DF(mol, dm, basis_set, aux_basis_set, short=True)
 
     arg = arg.lower()
-    models = {'pure'    : [df_pure,     coefficients_symmetrize_short],
-             'sad_diff' : [df_sad_diff, coefficients_symmetrize_short],
-             'lowdin'   : [df_lowdin,   coefficients_symmetrize_long ] }
+    models = {'pure'         : [df_pure,          coefficients_symmetrize_short],
+             'sad-diff'      : [df_sad_diff,      coefficients_symmetrize_short],
+             'lowdin-short'  : [df_lowdin_short,  coefficients_symmetrize_short],
+             'lowdin-long'   : [df_lowdin_long,   coefficients_symmetrize_long ] }
     if arg not in models.keys():
         print('Unknown model. Available models:', list(models.keys()), file=sys.stderr)
         exit(1)
@@ -102,7 +102,7 @@ def main() :
     ao, ao_len, idx, M = get_basis_info(atom_types, aux_basis_set)
 
     # Generate compound from xyz file
-    mol_file, mol_name, cwd = check_file(args.pathToMol)
+    mol_file = check_file(args.pathToMol)
     mol = compound.xyz_to_mol(mol_file, basis_set)
 
     # Compute density matrices
@@ -110,14 +110,16 @@ def main() :
     e,v = spahm.compute_spahm.get_guess_orbitals(mol, guess)
     dm = spahm.guesses.get_dm(v, mol.nelec, mol.spin)
 
-    # Post-processing the density-matrix
+    # Post-processing of the density matrix
     df_wrapper, sym_wrapper = model
     c_df    = df_wrapper(mol, dm, basis_set, aux_basis_set)
     vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, atom_types)
 
     # save the output
+    mol_name = mol_file.split('/')[-1].split('.')[0]
     name_out = 'X_'+mol_name
     dir_out = 'X_' + mol_file.split('/')[-2]
+    cwd = os.getcwd()
     if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
     path_out = join(cwd, dir_out, name_out)
     np.save(path_out, vectors)
