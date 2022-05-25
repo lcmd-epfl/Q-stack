@@ -116,10 +116,10 @@ def main() :
     vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, atom_types)
 
     # save the output
+    cwd = os.getcwd()
     mol_name = mol_file.split('/')[-1].split('.')[0]
     name_out = 'X_'+mol_name
-    dir_out = 'X_' + mol_file.split('/')[-2]
-    cwd = os.getcwd()
+    dir_out = 'X_' + (cwd+'/'+mol_file).split('/')[-2]
     if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
     path_out = join(cwd, dir_out, name_out)
     np.save(path_out, vectors)

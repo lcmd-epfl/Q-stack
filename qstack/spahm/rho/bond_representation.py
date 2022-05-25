@@ -10,8 +10,8 @@ import qstack
 import qstack.spahm.compute_spahm as spahm
 import qstack.spahm.guesses as guesses
 
-import lowdin
-from Dmatrix import Dmatrix_for_z, c_split, rotate_c
+from modules import lowdin
+from modules.Dmatrix import Dmatrix_for_z, c_split, rotate_c
 import modules.repr as repre
 
 
