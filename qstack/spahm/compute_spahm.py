@@ -1,5 +1,5 @@
 from pyscf import scf
-from qstack.spahm.guesses import solveF, get_guess, get_occ
+from qstack.spahm.guesses import solveF, get_guess, get_occ, get_dm
 
 def get_guess_orbitals(mol, guess, xc="pbe"):
     if guess == 'huckel':
@@ -8,6 +8,10 @@ def get_guess_orbitals(mol, guess, xc="pbe"):
         fock = guess(mol, xc)
         e,v = solveF(mol, fock)
     return e,v
+
+def get_guess_dm(mol, guess, xc="pbe"):
+    e,v = get_guess_orbitals(mol, guess, xc)
+    return get_dm(v, mol.nelec, mol.spin)
 
 def get_spahm_representation(mol, guess_in, xc="pbe"):
   guess = get_guess(guess_in)
