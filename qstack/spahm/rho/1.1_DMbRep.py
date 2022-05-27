@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys,os
+import os
 from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
