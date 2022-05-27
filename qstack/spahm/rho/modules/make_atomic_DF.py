@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.linalg import sqrtm
 from qstack import compound, fields
-
 from modules import lowdin
 
 def get_a_DF(mol, dm, basis, aux_basis, short=False, w_slicing=True):
