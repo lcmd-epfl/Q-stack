@@ -5,7 +5,7 @@ def _pyscf2gpr_idx(mol):
 
     Args:
         mol (pyscf Mole): a pyscf Mole object.
-        
+
 
     Returns:
         numpy ndarray: Array of re-arranged indices.
@@ -26,7 +26,7 @@ def _pyscf2gpr_idx(mol):
 
         i+=numbs[0]
         if(max_l<1):
-            continue  
+            continue
 
         for n in range(numbs[1]):
             idx[i  ] = i+1
@@ -45,7 +45,7 @@ def _gpr2pyscf_idx(mol):
 
     Args:
         mol (pyscf Mole): a pyscf Mole object.
-        
+
 
     Returns:
         numpy ndarray: Array of re-arranged indices.
@@ -220,3 +220,20 @@ def rotate_euler(a, b, g, rad=False):
     G = _Rx(g)
 
     return A@B@G
+
+
+import resource
+import time
+
+def unix_time_decorator(func):
+# thanks to https://gist.github.com/turicas/5278558
+  def wrapper(*args, **kwargs):
+    start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
+    ret = func(*args, **kwargs)
+    end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
+    print(func.__name__, ':  real: %.4f  user: %.4f  sys: %.4f'%
+          (end_time - start_time,
+           end_resources.ru_utime - start_resources.ru_utime,
+           end_resources.ru_stime - start_resources.ru_stime))
+    return ret
+  return wrapper
