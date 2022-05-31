@@ -35,7 +35,8 @@ python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
 ## Demo [↑](#contents)
 
 
-https://user-images.githubusercontent.com/13234531/171138006-f6ff5a6e-9d8c-410f-8cbf-9cf2605ec03e.mp4
+
+https://user-images.githubusercontent.com/13234531/171138448-1ce91fa1-6600-4cb1-90fc-0758937e2d75.mp4
 
 
 
