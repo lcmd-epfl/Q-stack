@@ -237,3 +237,10 @@ def unix_time_decorator(func):
            end_resources.ru_stime - start_resources.ru_stime))
     return ret
   return wrapper
+
+
+def correct_num_threads():
+    import os
+    if "SLURM_CPUS_PER_TASK" in os.environ:
+        os.environ["MKL_NUM_THREADS"] = os.environ["SLURM_CPUS_PER_TASK"]
+        os.environ["OPENBLAS_NUM_THREADS"] = os.environ["SLURM_CPUS_PER_TASK"]

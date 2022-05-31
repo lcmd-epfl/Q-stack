@@ -4,6 +4,7 @@ import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split, KFold
 from qstack.regression.kernel_utils import get_kernel, defaults
+from qstack.tools import correct_num_threads
 
 def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr,
@@ -50,8 +51,10 @@ def main():
     parser.add_argument('--print',  type=int,   dest='printlevel', default=0,                  help='printlevel')
     parser.add_argument('--eta',    type=float, dest='eta',   default=defaults.etaarr,   nargs='+', help='eta array')
     parser.add_argument('--sigma',  type=float, dest='sigma', default=defaults.sigmaarr, nargs='+', help='sigma array')
+    parser.add_argument('--ll',   action='store_true', dest='ll', default=False,  help='if correct for the numper of threads')
     args = parser.parse_args()
     print(vars(args))
+    if(args.ll): correct_num_threads()
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
