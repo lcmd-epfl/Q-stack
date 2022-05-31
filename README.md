@@ -9,7 +9,7 @@ Q-stack
 * [Contents](#Contents-)
 * [About](#about-)
 * [Install](#install-)
-* [Examples](#examples-)
+* [Demo](#demo-)
 * [Acknowledgements](#Acknowledgements-)
 
 ## About [↑](#contents)
@@ -32,6 +32,13 @@ The installation of the library for python use can be done executing the followi
 ```
 python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
 ```
+## Demo [↑](#contents)
+
+
+https://user-images.githubusercontent.com/13234531/171137838-dfd450ea-3552-4249-949f-f934814672a3.mp4
+
+
+
 ## Acknowledgements [↑](#contents)
 The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR) "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" of the Swiss National Science Foundation (SNSF, grant number 182892) and the European Research Council (ERC, grant agreement no 817977).
 
