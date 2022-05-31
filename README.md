@@ -9,7 +9,7 @@ Q-stack
 * [Contents](#Contents-)
 * [About](#about-)
 * [Install](#install-)
-* [Demo](#demo-)
+* [Examples](#examples-)
 * [Acknowledgements](#Acknowledgements-)
 
 ## About [↑](#contents)
@@ -32,13 +32,25 @@ The installation of the library for python use can be done executing the followi
 ```
 python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
 ```
-## Demo [↑](#contents)
+## Examples [↑](#contents)
+Q-stack comes with several example codes that illustrate some of its key capabilities. To run the examples, go to the example folder and run the following commands:
 
-
-
-https://user-images.githubusercontent.com/13234531/171194232-943f2756-89fb-4115-9e8f-f5e03f76f015.mp4
-
-
+- Field decomposition:
+```
+python example_deco.py
+```
+- Computation of Hirshfeld charges:
+```
+python example_hirsh.py
+```
+- Basis set optimization:
+```
+python example_opt.py
+```
+- Generation of the SPAHM representation:
+```
+python example_SPAHM.py
+```
 
 
 ## Acknowledgements [↑](#contents)
