@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import scipy
 from sklearn.model_selection import train_test_split, KFold
 from qstack.regression.kernel_utils import get_kernel, defaults
 
@@ -18,7 +19,7 @@ def hyperparameters(X, y,
             y_kf_train, y_kf_test = y_train[train_idx], y_train[test_idx]
             K  = K_all [np.ix_(train_idx,train_idx)]
             Ks = K_all [np.ix_(test_idx,train_idx)]
-            alpha = np.linalg.solve(K, y_kf_train)
+            alpha = scipy.linalg.solve(K, y_kf_train)
             y_kf_predict = np.dot(Ks, alpha)
             all_maes.append(np.mean(np.abs(y_kf_predict-y_kf_test)))
         mean = np.mean(all_maes)
