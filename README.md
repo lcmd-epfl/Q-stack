@@ -32,6 +32,27 @@ The installation of the library for python use can be done executing the followi
 ```
 python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
 ```
+## Examples [↑](#contents)
+Q-stack comes with several example codes that illustrate some of its key capabilities. To run the examples, go to the example folder and run the following commands:
+
+- Field decomposition:
+```
+python example_deco.py
+```
+- Computation of Hirshfeld charges:
+```
+python example_hirsh.py
+```
+- Basis set optimization:
+```
+python example_opt.py
+```
+- Generation of the SPAHM representation:
+```
+python example_SPAHM.py
+```
+
+
 ## Acknowledgements [↑](#contents)
 The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR) "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" of the Swiss National Science Foundation (SNSF, grant number 182892) and the European Research Council (ERC, grant agreement no 817977).
 
