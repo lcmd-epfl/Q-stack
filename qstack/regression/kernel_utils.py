@@ -1,5 +1,6 @@
 import numpy
 from types import SimpleNamespace
+import qstack
 
 defaults = SimpleNamespace(
   sigma=32.0,
@@ -28,6 +29,29 @@ def my_laplacian_kernel(X, Y, gamma):
   numpy.exp(K, K)
   return K
 
+def my_laplacian_kernel_c(X, Y, gamma):
+  import os,sys
+  import ctypes
+  array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
+  manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
+  manh.manh.restype = ctypes.c_int
+  manh.manh.argtypes = [
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
+    array_2d_double,
+    array_2d_double,
+    array_2d_double]
+
+  K = numpy.zeros((len(X),len(Y)))
+  manh.manh(len(X), len(Y), len(X[0]), X, Y, K)
+  K *= -gamma
+  numpy.exp(K, K)
+  return K
+
+
+
+
 def get_kernel(arg):
   """ Returns the kernel function depending on the cli argument """
   if arg=='G':
@@ -38,4 +62,6 @@ def get_kernel(arg):
     return laplacian_kernel
   elif arg=='myL':
     return my_laplacian_kernel
+  elif arg=='myLfast':
+    return my_laplacian_kernel_c
 
