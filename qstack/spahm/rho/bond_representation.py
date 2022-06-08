@@ -27,6 +27,7 @@ parser.add_argument('--dir',    type=str,            dest='dir',       default='
 parser.add_argument('--cutoff', type=float,          dest='cutoff',    default=5.0,                 help='bond length cutoff')
 parser.add_argument('--bpath',  type=str,            dest='bpath',     default='basis/optimized/',  help='dir with basis sets')
 parser.add_argument('--omod',   type=str,            dest='omod',      default='sum',               help='model for open-shell systems')
+parser.add_argument('--print',  type=int,            dest='print',     default=0,                   help='printlevel')
 parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,               help='if use a version with more padding zeros')
 parser.add_argument('--split',  action='store_true', dest='split',     default=False,               help='if split into molecules')
 parser.add_argument('--onlym0', action='store_true', dest='only_m0',   default=False,               help='if use only fns with m=0')
@@ -35,7 +36,7 @@ parser.add_argument('--readdm', type=str,            dest='readdm',    default=N
 
 
 args = parser.parse_args()
-print(vars(args))
+if args.print>0: print(vars(args))
 
 #1e-12: 6 A
 #1e-10: 5 A
@@ -56,15 +57,16 @@ def mols_guess(xyzlist, charge, spin, args):
 
   mols  = []
   for xyzfile,ch,sp in zip(xyzlist, charge, spin):
-      print(xyzfile, flush=True)
+      if args.print>0: print(xyzfile, flush=True)
       mols.append(qstack.compound.xyz_to_mol(xyzfile, args.basis, charge=ch, spin=sp))
+  if args.print>0: print()
 
   dms  = []
 
   if not args.readdm:
       guess = guesses.get_guess(args.guess)
       for xyzfile,mol in zip(xyzlist,mols):
-          print(xyzfile, flush=True)
+          if args.print>0: print(xyzfile, flush=True)
           e,v = spahm.get_guess_orbitals(mol, guess)
           dm  = guesses.get_dm(v, mol.nelec, mol.spin if args.spin else None)
           dms.append(dm)
@@ -72,11 +74,12 @@ def mols_guess(xyzlist, charge, spin, args):
               np.save(os.path.basename(xyzfile)+'.npy', dm)
   else:
       for xyzfile,mol in zip(xyzlist,mols):
-          print(xyzfile, flush=True)
+          if args.print>0: print(xyzfile, flush=True)
           dm = np.load(args.readdm+'/'+os.path.basename(xyzfile)+'.npy')
           if args.spin and dm.ndim==3:
               dm = np.arrag((dm/2,dm/2))
           dms.append(dm)
+  if args.print>0: print()
 
   return mols, dms
 
@@ -174,7 +177,7 @@ def get_basis_info(qqs, mybasis, only_m0):
   idx = {}
   M   = {}
   for qq in qqs:
-    print(qq)
+    if args.print>1: print(qq)
     S, ao, _  = repre.get_S('No', mybasis[qq])
     if not only_m0:
       idx[qq] = repre.store_pair_indices_z(ao)
@@ -212,7 +215,7 @@ def main():
     allvec = []
 
   for i,(mol,dm) in enumerate(zip(mols,dms)):
-    print('mol', i)
+    if args.print>0: print('mol', i, flush=True)
 
     if args.spin:
         if args.omod=='sum':
@@ -234,7 +237,7 @@ def main():
     allvec = np.vstack(allvec)
 
 
-  print(allvec.shape)
+  if args.print>1: print(allvec.shape)
   np.save('mygreatrepresentation', allvec)
 
 
