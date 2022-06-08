@@ -3,6 +3,7 @@
 import argparse
 import numpy as np
 from modules import utils, dmb_rep_bond as dmbb
+from qstack.tools import correct_num_threads
 
 parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
 parser.add_argument('--mol',    type=str,            dest='filename',  required=True,               help='file containing a list of molecular structures in xyz format')
@@ -28,6 +29,7 @@ if args.print>0: print(vars(args))
 
 
 def main():
+  correct_num_threads()
 
   xyzlistfile = args.filename
   xyzlist = utils.get_xyzlist(xyzlistfile)
