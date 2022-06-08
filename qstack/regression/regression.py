@@ -4,6 +4,7 @@ import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split
 from qstack.regression.kernel_utils import get_kernel, defaults
+from qstack.tools import correct_num_threads
 
 def regression(X, y, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep, debug=False):
     kernel = get_kernel(akernel)
@@ -32,25 +33,27 @@ def regression(X, y, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.ke
     return maes_all
 
 def main():
-  import argparse
-  parser = argparse.ArgumentParser(description='This program computes the learning curve.')
-  parser.add_argument('--x',      type=str,   dest='repr',       required=True, help='path to the representations file')
-  parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
-  parser.add_argument('--test',   type=float, dest='test_size',  default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
-  parser.add_argument('--eta',    type=float, dest='eta',        default=defaults.eta,       help='eta hyperparameter (default='+str(defaults.eta)+')')
-  parser.add_argument('--sigma',  type=float, dest='sigma',      default=defaults.sigma,     help='sigma hyperparameter (default='+str(defaults.sigma)+')')
-  parser.add_argument('--kernel', type=str,   dest='kernel',     default=defaults.kernel,    help='kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
-  parser.add_argument('--splits', type=int,   dest='splits',     default=defaults.n_rep,     help='number of splits (default='+str(defaults.n_rep)+')')
-  parser.add_argument('--train',  type=float, dest='train_size', default=defaults.train_size, nargs='+', help='training set fractions')
-  parser.add_argument('--debug',  action='store_true', dest='debug', default=False, help='enable debug')
-  args = parser.parse_args()
-  print(vars(args))
-  X = np.load(args.repr)
-  y = np.loadtxt(args.prop)
-  maes_all = regression(X, y, sigma=args.sigma, eta=args.eta, akernel=args.kernel,
-                        test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, debug=args.debug)
-  for size_train, meanerr, stderr in maes_all:
-      print("%d\t%e\t%e" % (size_train, meanerr, stderr))
+    import argparse
+    parser = argparse.ArgumentParser(description='This program computes the learning curve.')
+    parser.add_argument('--x',      type=str,   dest='repr',       required=True, help='path to the representations file')
+    parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
+    parser.add_argument('--test',   type=float, dest='test_size',  default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
+    parser.add_argument('--eta',    type=float, dest='eta',        default=defaults.eta,       help='eta hyperparameter (default='+str(defaults.eta)+')')
+    parser.add_argument('--sigma',  type=float, dest='sigma',      default=defaults.sigma,     help='sigma hyperparameter (default='+str(defaults.sigma)+')')
+    parser.add_argument('--kernel', type=str,   dest='kernel',     default=defaults.kernel,    help='kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
+    parser.add_argument('--splits', type=int,   dest='splits',     default=defaults.n_rep,     help='number of splits (default='+str(defaults.n_rep)+')')
+    parser.add_argument('--train',  type=float, dest='train_size', default=defaults.train_size, nargs='+', help='training set fractions')
+    parser.add_argument('--debug',  action='store_true', dest='debug', default=False, help='enable debug')
+    parser.add_argument('--ll',     action='store_true', dest='ll', default=False,  help='if correct for the numper of threads')
+    args = parser.parse_args()
+    print(vars(args))
+    if(args.ll): correct_num_threads()
+    X = np.load(args.repr)
+    y = np.loadtxt(args.prop)
+    maes_all = regression(X, y, sigma=args.sigma, eta=args.eta, akernel=args.kernel,
+                          test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, debug=args.debug)
+    for size_train, meanerr, stderr in maes_all:
+        print("%d\t%e\t%e" % (size_train, meanerr, stderr))
 
 if __name__ == "__main__":
     main()
