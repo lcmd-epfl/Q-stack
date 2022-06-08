@@ -9,9 +9,9 @@ def get_guess_orbitals(mol, guess, xc="pbe"):
         e,v = solveF(mol, fock)
     return e,v
 
-def get_guess_dm(mol, guess, xc="pbe"):
+def get_guess_dm(mol, guess, xc="pbe", openshell=None):
     e,v = get_guess_orbitals(mol, guess, xc)
-    return get_dm(v, mol.nelec, mol.spin)
+    return get_dm(v, mol.nelec, mol.spin if mol.spin>0 or not openshell is None else None)
 
 def get_spahm_representation(mol, guess_in, xc="pbe"):
   guess = get_guess(guess_in)
