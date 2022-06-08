@@ -3,6 +3,7 @@ import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split
 from qstack.regression.kernel_utils import get_kernel, defaults
+from qstack.tools import correct_num_threads
 
 def final_error(X, y, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, test_size=defaults.test_size):
     kernel = get_kernel(akernel)
@@ -25,8 +26,10 @@ def main():
     parser.add_argument('--eta',    type=float, dest='eta',       default=defaults.eta,       help='eta hyperparameter (default='+str(defaults.eta)+')')
     parser.add_argument('--sigma',  type=float, dest='sigma',     default=defaults.sigma,     help='sigma hyperparameter (default='+str(defaults.sigma)+')')
     parser.add_argument('--kernel', type=str,   dest='kernel',    default=defaults.kernel,    help='kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
+    parser.add_argument('--ll',     action='store_true', dest='ll', default=False,  help='if correct for the numper of threads')
     args = parser.parse_args()
     print(vars(args))
+    if(args.ll): correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
     aes = final_error(X, y, sigma=args.sigma, eta=args.eta, akernel=args.kernel, test_size=args.test_size)
