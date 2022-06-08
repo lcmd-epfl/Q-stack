@@ -6,7 +6,7 @@ from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
 from  qstack import compound, spahm
-from modules import dmb_rep_atom as dmba
+from modules import utils, dmb_rep_atom as dmba
 
 parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
 parser.add_argument('--mol',       dest='pathToMol',    required=True,                       type=str,            help="The path to the xyz file with the molecular structure")
@@ -15,6 +15,9 @@ parser.add_argument('--basis-set', dest='basisSet',     default='minao',        
 parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
 parser.add_argument('--model',     dest='modelRep',     default='Lowdin-long',               type=str,            help="The model to use when creating the representation" )
 parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
+parser.add_argument('--charge',    dest='charge',       default=0,                           type=int,            help='total charge of the system (default=0)')
+parser.add_argument('--spin',      dest='spin',         default=None,                        type=int,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
+parser.add_argument('--omod',      dest='omod',         default='sum',                       type=str,            help='model for open-shell systems')
 args = parser.parse_args()
 print(vars(args))
 
@@ -43,7 +46,8 @@ def main() :
 
     # Compute density matrices
     print("Computing DM...")
-    dm = spahm.compute_spahm.get_guess_dm(mol, guess)
+    dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=args.spin)
+    if not args.spin is None: dm = utils.dm_open_mod(dm, args.omod)
 
     # Post-processing of the density matrix
     df_wrapper, sym_wrapper = model
