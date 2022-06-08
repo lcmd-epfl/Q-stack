@@ -11,7 +11,7 @@ def final_error(X, y, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.k
     K_all  = kernel(X_train, X_train, 1.0/sigma)
     Ks_all = kernel(X_test,  X_train, 1.0/sigma)
     K_all[np.diag_indices_from(K_all)] += eta
-    alpha = scipy.linalg.solve(K_all, y_train)
+    alpha = scipy.linalg.solve(K_all, y_train, assume_a='pos')
     y_kf_predict = np.dot(Ks_all, alpha)
     aes = np.abs(y_test-y_kf_predict)
     return aes

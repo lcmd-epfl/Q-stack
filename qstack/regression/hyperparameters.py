@@ -20,7 +20,7 @@ def hyperparameters(X, y,
             y_kf_train, y_kf_test = y_train[train_idx], y_train[test_idx]
             K  = K_all [np.ix_(train_idx,train_idx)]
             Ks = K_all [np.ix_(test_idx,train_idx)]
-            alpha = scipy.linalg.solve(K, y_kf_train)
+            alpha = scipy.linalg.solve(K, y_kf_train, assume_a='pos')
             y_kf_predict = np.dot(Ks, alpha)
             all_maes.append(np.mean(np.abs(y_kf_predict-y_kf_test)))
         mean = np.mean(all_maes)

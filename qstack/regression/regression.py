@@ -26,7 +26,7 @@ def regression(X, y, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.ke
             y_kf_train = y_train[train_idx]
             K  = K_all [np.ix_(train_idx,train_idx)]
             Ks = Ks_all[:,train_idx]
-            alpha = scipy.linalg.solve(K, y_kf_train)
+            alpha = scipy.linalg.solve(K, y_kf_train, assume_a='pos')
             y_kf_predict = np.dot(Ks, alpha)
             maes.append(np.mean(np.abs(y_test-y_kf_predict)))
         maes_all.append((size_train, np.mean(maes), np.std(maes)))

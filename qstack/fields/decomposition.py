@@ -62,7 +62,7 @@ def get_coeff(dm, eri2c, eri3c):
     projection = np.einsum('ijp,ij->p', eri3c, dm)
 
     # Solve Jc = projection to get the coefficients
-    c = np.linalg.solve(eri2c, projection)
+    c = scipy.linalg.solve(eri2c, projection, assume_a='pos')
 
     return c
 
@@ -77,7 +77,7 @@ def _get_inv_metric(mol, metric, v):
           O = mol.intor('int2c2e_sph')
   else:
       O = metric
-  return scipy.linalg.solve(O, v)
+  return scipy.linalg.solve(O, v, assume_a='pos')
 
 
 def correct_N_atomic(mol, N, c0, metric='u'):
