@@ -1,20 +1,8 @@
 #!/usr/bin/env python3
 
-import os, sys
-import operator
 import argparse
-import scipy
 import numpy as np
-from pyscf import scf, gto
-import qstack
-import qstack.spahm.compute_spahm as spahm
-import qstack.spahm.guesses as guesses
-
-from modules import lowdin
-from modules.Dmatrix import Dmatrix_for_z, c_split, rotate_c
-import modules.repr as repre
-
-
+from modules import utils, dmb_rep_bond as dmbb
 
 parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
 parser.add_argument('--mol',    type=str,            dest='filename',  required=True,               help='file containing a list of molecular structures in xyz format')
@@ -38,176 +26,19 @@ parser.add_argument('--readdm', type=str,            dest='readdm',    default=N
 args = parser.parse_args()
 if args.print>0: print(vars(args))
 
-#1e-12: 6 A
-#1e-10: 5 A
-#1e-8 : 4 A
-#1e-6 : 3 A
-
-def get_chsp(f, n):
-    if f:
-      chsp = np.loadtxt(f, dtype=int).reshape(-1)
-      if(len(chsp)!=n):
-          print('Wrong lengh of the file', f, file=sys.stderr);
-          exit(1)
-    else:
-        chsp = np.zeros(n, dtype=int)
-    return chsp
-
-def mols_guess(xyzlist, charge, spin, args):
-
-  mols  = []
-  for xyzfile,ch,sp in zip(xyzlist, charge, spin):
-      if args.print>0: print(xyzfile, flush=True)
-      mols.append(qstack.compound.xyz_to_mol(xyzfile, args.basis, charge=ch, spin=sp))
-  if args.print>0: print()
-
-  dms  = []
-
-  if not args.readdm:
-      guess = guesses.get_guess(args.guess)
-      for xyzfile,mol in zip(xyzlist,mols):
-          if args.print>0: print(xyzfile, flush=True)
-          e,v = spahm.get_guess_orbitals(mol, guess)
-          dm  = guesses.get_dm(v, mol.nelec, mol.spin if args.spin else None)
-          dms.append(dm)
-          if args.save:
-              np.save(os.path.basename(xyzfile)+'.npy', dm)
-  else:
-      for xyzfile,mol in zip(xyzlist,mols):
-          if args.print>0: print(xyzfile, flush=True)
-          dm = np.load(args.readdm+'/'+os.path.basename(xyzfile)+'.npy')
-          if args.spin and dm.ndim==3:
-              dm = np.arrag((dm/2,dm/2))
-          dms.append(dm)
-  if args.print>0: print()
-
-  return mols, dms
-
-
-def fit_dm(dm, mol, auxmol):
-  e2c  = auxmol.intor('int2c2e_sph')
-  pmol = mol + auxmol
-  e3c  = pmol.intor('int3c2e_sph', shls_slice=(0,mol.nbas,0,mol.nbas,mol.nbas,mol.nbas+auxmol.nbas))
-  e3c  = e3c.reshape(mol.nao_nr(), mol.nao_nr(), -1)
-  w    = np.einsum('pq,qpi->i', dm, e3c)
-  c    = scipy.linalg.solve(e2c, w)
-  return c
-
-def bonds_dict_init(qqs, M):
-  N = 0
-  mybonds = {}
-  for qq in qqs:
-    n = len(M[qq])
-    mybonds[qq] = np.zeros(n)
-    N += n
-  return mybonds, N
-
-def make_aux_mol(ri0, ri1, mybasis):
-  rm = (ri0+ri1)*0.5
-  atom = "No  % f % f % f" % (rm[0], rm[1], rm[2])
-  auxmol = gto.M(atom=atom, basis=mybasis)
-  return auxmol
-
-
-def vec_from_cs(z, cs, lmax, idx):
-  D = Dmatrix_for_z(z, lmax)
-  c_new = rotate_c(D, cs)
-  v = repre.vectorize_c('No', idx, c_new)
-  return v
-
-
-def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen):
-
-  L = lowdin.Lowdin_split(mol, dm)
-  q = [mol.atom_symbol(i) for i in range(mol.natm)]
-  r = mol.atom_coords(unit='ANG')
-
-  mybonds = [bonds_dict_init(qqs[q0], M) for q0 in q]
-
-  for i0 in range(mol.natm):
-    for i1 in range(i0):
-      q0, q1 = q[i0], q[i1]
-      r0, r1 = r[i0], r[i1]
-      z = r1-r0
-      if np.linalg.norm(z)>args.cutoff:
-        continue
-
-      dm1 = L.get_bond(i0,i1)
-      bname = operator.concat(*sorted((q0, q1)))
-      auxmol = make_aux_mol(r0, r1, mybasis[bname])
-      c  = fit_dm(dm1, mol, auxmol)
-      cs = c_split(auxmol, c)
-      lmax = max([ c[0] for c in cs])
-      v0 = vec_from_cs(+z, cs, lmax, idx[bname])
-      v1 = vec_from_cs(-z, cs, lmax, idx[bname])
-      mybonds[i0][0][bname] += v0
-      mybonds[i1][0][bname] += v1
-
-  vec = [None]*mol.natm
-  for i0 in range(mol.natm):
-    vec[i0] = np.hstack([ M[qq] @ mybonds[i0][0][qq] for qq in qqs[q[i0]] ])
-    vec[i0] = np.pad(vec[i0], (0, maxlen-len(vec[i0])), 'constant')
-  return np.array(vec)
-
-def get_element_pairs(elements):
-  qqs0  = []
-  qqs4q = {}
-  for q1 in elements:
-    qqs4q[q1] = []
-    for q2 in elements:
-      qq = operator.concat(*sorted((q1, q2)))
-      qqs4q[q1].append(qq)
-      qqs0.append(qq)
-    qqs4q[q1].sort()
-  qqs0 = sorted(set(qqs0))
-  qqs = {}
-  for q in elements:
-    qqs[q] = qqs0
-  return qqs, qqs4q
-
-def read_df_basis(bnames, bpath):
-  mybasis = {}
-  for bname in bnames:
-      if bname in mybasis: continue
-      with open(bpath+'/'+bname+'.bas', 'r') as f:
-        mybasis[bname] = eval(f.read())
-  return mybasis
-
-def get_basis_info(qqs, mybasis, only_m0):
-  idx = {}
-  M   = {}
-  for qq in qqs:
-    if args.print>1: print(qq)
-    S, ao, _  = repre.get_S('No', mybasis[qq])
-    if not only_m0:
-      idx[qq] = repre.store_pair_indices_z(ao)
-    else:
-      idx[qq] = repre.store_pair_indices_z_only0(ao)
-    M[qq]     = repre.metrix_matrix_z('No', idx[qq], ao, S)
-
-  return idx, M
-
-def read_basis_wrapper(mols, bpath, only_m0):
-  elements  = sorted(list(set([q for mol in mols for q in mol.elements])))
-  qqs,qqs4q = get_element_pairs(elements)
-  qqs0      = qqs[list(qqs.keys())[0]]
-  mybasis   = read_df_basis(qqs0, bpath)
-  idx, M    = get_basis_info(qqs0, mybasis, only_m0)
-  return elements, mybasis, qqs, qqs4q, idx, M
-
 
 def main():
 
   xyzlistfile = args.filename
-  xyzlist = repre.get_xyzlist(xyzlistfile)
-  charge  = get_chsp(args.charge, len(xyzlist))
-  spin    = get_chsp(args.spin,   len(xyzlist))
+  xyzlist = utils.get_xyzlist(xyzlistfile)
+  charge  = utils.get_chsp(args.charge, len(xyzlist))
+  spin    = utils.get_chsp(args.spin,   len(xyzlist))
 
-  mols, dms = mols_guess(xyzlist, charge, spin, args)
-  elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath, args.only_m0)
+  mols, dms = utils.mols_guess(xyzlist, charge, spin, args)
+  elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print)
   qqs = qqs0 if args.zeros else qqs4q
 
-  maxlen = max([bonds_dict_init(qqs[q0], M)[1] for q0 in elements ])
+  maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements ])
   if args.split:
     natm   = max([mol.natm for mol in mols])
     allvec = np.zeros((len(mols), natm, maxlen))
@@ -217,17 +48,9 @@ def main():
   for i,(mol,dm) in enumerate(zip(mols,dms)):
     if args.print>0: print('mol', i, flush=True)
 
-    if args.spin:
-        if args.omod=='sum':
-            dm = dm[0]+dm[1]
-        elif args.omod=='diff':
-            dm = dm[0]-dm[1]
-        elif args.omod=='alpha':
-            dm = dm[0]
-        elif args.omod=='beta':
-            dm = dm[1]
+    if args.spin: dm = utils.dm_open_mod(dm, args.omod)
 
-    vec = repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen)
+    vec = dmbb.repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, args.cutoff)
     if args.split:
       allvec[i,:len(vec),:] = vec
     else:

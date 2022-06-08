@@ -4,10 +4,6 @@ import sys
 import numpy as np
 from pyscf import gto, data
 
-def get_xyzlist(xyzlistfile):
-  xyzlist = np.loadtxt(xyzlistfile, dtype=str)
-  if xyzlist.shape==(): return [str(xyzlist)]
-  else:                 return list(xyzlist)
 
 def mysqrtm(m):
   e,b = np.linalg.eigh(m)
