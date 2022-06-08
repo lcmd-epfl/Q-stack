@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os
+import os, sys
 import operator
 import argparse
 import scipy
@@ -18,14 +18,15 @@ import modules.repr as repre
 
 parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
 parser.add_argument('--mol',    type=str,            dest='filename',  required=True,               help='file containing a list of molecular structures in xyz format')
+parser.add_argument('--charge', type=str,            dest='charge',    default=None,                help='file with a list of charges')
+parser.add_argument('--spin',   type=str,            dest='spin',      default=None,                help='file with a list of numbers of unpaired electrons')
 parser.add_argument('--guess',  type=str,            dest='guess',     default='lb',                help='initial guess type')
 parser.add_argument('--basis',  type=str,            dest='basis'  ,   default='minao',             help='AO basis set (default=MINAO)')
-parser.add_argument('--charge', type=int,            dest='charge',    default=0,                   help='total charge of the system (default=0)')
-parser.add_argument('--spin',   type=int,            dest='spin',      default=None,                help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
 parser.add_argument('--func',   type=str,            dest='func',      default='hf',                help='DFT functional for the SAD guess (default=HF)')
 parser.add_argument('--dir',    type=str,            dest='dir',       default='./',                help='directory to save the output in (default=current dir)')
 parser.add_argument('--cutoff', type=float,          dest='cutoff',    default=5.0,                 help='bond length cutoff')
 parser.add_argument('--bpath',  type=str,            dest='bpath',     default='basis/optimized/',  help='dir with basis sets')
+parser.add_argument('--omod',   type=str,            dest='omod',      default='sum',               help='model for open-shell systems')
 parser.add_argument('--zeros',  action='store_true', dest='zeros',     default=False,               help='if use a version with more padding zeros')
 parser.add_argument('--split',  action='store_true', dest='split',     default=False,               help='if split into molecules')
 parser.add_argument('--onlym0', action='store_true', dest='only_m0',   default=False,               help='if use only fns with m=0')
@@ -41,20 +42,31 @@ print(vars(args))
 #1e-8 : 4 A
 #1e-6 : 3 A
 
-def mols_guess(xyzlist, args):
+def get_chsp(f, n):
+    if f:
+      chsp = np.loadtxt(f, dtype=int).reshape(-1)
+      if(len(chsp)!=n):
+          print('Wrong lengh of the file', f, file=sys.stderr);
+          exit(1)
+    else:
+        chsp = np.zeros(n, dtype=int)
+    return chsp
+
+def mols_guess(xyzlist, charge, spin, args):
 
   mols  = []
-  for xyzfile in xyzlist:
-    print(xyzfile, flush=True)
-    mols.append(qstack.compound.xyz_to_mol(xyzfile, args.basis)) # TODO spin charge
+  for xyzfile,ch,sp in zip(xyzlist, charge, spin):
+      print(xyzfile, flush=True)
+      mols.append(qstack.compound.xyz_to_mol(xyzfile, args.basis, charge=ch, spin=sp))
 
   dms  = []
+
   if not args.readdm:
       guess = guesses.get_guess(args.guess)
       for xyzfile,mol in zip(xyzlist,mols):
           print(xyzfile, flush=True)
           e,v = spahm.get_guess_orbitals(mol, guess)
-          dm  = guesses.get_dm(v, mol.nelec, mol.spin)
+          dm  = guesses.get_dm(v, mol.nelec, mol.spin if args.spin else None)
           dms.append(dm)
           if args.save:
               np.save(os.path.basename(xyzfile)+'.npy', dm)
@@ -62,7 +74,10 @@ def mols_guess(xyzlist, args):
       for xyzfile,mol in zip(xyzlist,mols):
           print(xyzfile, flush=True)
           dm = np.load(args.readdm+'/'+os.path.basename(xyzfile)+'.npy')
+          if args.spin and dm.ndim==3:
+              dm = np.arrag((dm/2,dm/2))
           dms.append(dm)
+
   return mols, dms
 
 
@@ -182,8 +197,10 @@ def main():
 
   xyzlistfile = args.filename
   xyzlist = repre.get_xyzlist(xyzlistfile)
+  charge  = get_chsp(args.charge, len(xyzlist))
+  spin    = get_chsp(args.spin,   len(xyzlist))
 
-  mols, dms = mols_guess(xyzlist, args)
+  mols, dms = mols_guess(xyzlist, charge, spin, args)
   elements, mybasis, qqs0, qqs4q, idx, M = read_basis_wrapper(mols, args.bpath, args.only_m0)
   qqs = qqs0 if args.zeros else qqs4q
 
@@ -196,6 +213,17 @@ def main():
 
   for i,(mol,dm) in enumerate(zip(mols,dms)):
     print('mol', i)
+
+    if args.spin:
+        if args.omod=='sum':
+            dm = dm[0]+dm[1]
+        elif args.omod=='diff':
+            dm = dm[0]-dm[1]
+        elif args.omod=='alpha':
+            dm = dm[0]
+        elif args.omod=='beta':
+            dm = dm[1]
+
     vec = repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen)
     if args.split:
       allvec[i,:len(vec),:] = vec
