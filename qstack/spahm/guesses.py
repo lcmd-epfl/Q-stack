@@ -77,5 +77,5 @@ def get_dm(v, nelec, spin):
     nocc = nelec
     dm0 = v[:,:nocc[0]] @ v[:,:nocc[0]].T
     dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
-    return dm0+dm1
+    return numpy.array((dm0,dm1))
 
