@@ -16,6 +16,9 @@ parser.add_argument('--guess',     dest='initialGuess', default='LB',           
 parser.add_argument('--basis-set', dest='basisSet',     default='minao',                     type=str,            help="Basis set for computing density matrix (default : minao)")
 parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
 parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
+parser.add_argument('--charge',    dest='charge',       default=0,                           type=int,            help='total charge of the system (default=0)')
+parser.add_argument('--spin',      dest='spin',         default=None,                        type=int,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
+
 args = parser.parse_args()
 print(vars(args))
 
@@ -38,9 +41,11 @@ def main() :
     if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
     mol_name = mol_file.split('/')[-1].split('.')[0]
 
-    dm = spahm.compute_spahm.get_guess_dm(mol, guess)
+    dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=args.spin)
+    if not args.spin is None: dm = utils.dm_open_mod(dm, args.omod)
 
     for mymodel in ['occup', 'pure', 'sad-diff', 'lowdin-short', 'lowdin-long', 'lowdin-short-x', 'lowdin-long-x']:
+        print(mymodel)
         model = dmba.get_model(mymodel)
         df_wrapper, sym_wrapper = model
         c_df    = df_wrapper(mol, dm, basis_set, aux_basis_set)
