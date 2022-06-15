@@ -11,7 +11,8 @@ defaults = SimpleNamespace(
   splits=5,
   train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
   etaarr=list(numpy.logspace(-10, 0, 5)),
-  sigmaarr=list(numpy.logspace(0,6, 13))
+  sigmaarr=list(numpy.logspace(0,6, 13)),
+  sigmaarr_mult=list(numpy.logspace(0,2, 5))
   )
 
 def my_laplacian_kernel(X, Y, gamma):
