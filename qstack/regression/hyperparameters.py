@@ -48,6 +48,7 @@ def hyperparameters(X, y,
 
     work_sigma = sigma
     errors = []
+    direction = None
     while True:
         errors = list(errors)
         errors.extend(hyper_loop(work_sigma, eta))
@@ -60,10 +61,17 @@ def hyperparameters(X, y,
 
         best_sigma = errors[-1][3]
         new_sigma = None
-        if best_sigma==max(work_sigma):
-            new_sigma = best_sigma*np.array(defaults.sigmaarr_mult[1:])
-        elif best_sigma==min(work_sigma):
-            new_sigma = best_sigma/np.array(defaults.sigmaarr_mult[1:])
+
+        if direction is None:
+            if   best_sigma==max(work_sigma): direction = 'up'
+            elif best_sigma==min(work_sigma): direction = 'down'
+
+        # at the 1st iteration if is checked twice on purpose
+        if direction=='up'     and best_sigma==max(work_sigma):
+                new_sigma = best_sigma*np.array(defaults.sigmaarr_mult[1:])
+        elif direction=='down' and best_sigma==min(work_sigma):
+                new_sigma = best_sigma/np.array(defaults.sigmaarr_mult[1:])
+
         if new_sigma is None:
             break
         work_sigma = new_sigma
