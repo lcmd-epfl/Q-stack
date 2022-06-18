@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import numpy as np
 import qstack.spahm.compute_spahm as spahm
 import qstack.spahm.guesses as guesses
@@ -19,7 +19,7 @@ def mols_guess(xyzlist, charge, spin, args):
   mols  = []
   for xyzfile,ch,sp in zip(xyzlist, charge, spin):
       if args.print>0: print(xyzfile, flush=True)
-      mols.append(compound.xyz_to_mol(xyzfile, args.basis, charge=ch, spin=sp))
+      mols.append(compound.xyz_to_mol(xyzfile, args.basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp))
   if args.print>0: print()
 
   dms  = []

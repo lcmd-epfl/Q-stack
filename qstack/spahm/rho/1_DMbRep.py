@@ -13,7 +13,8 @@ parser.add_argument('--mol',       dest='pathToMol',    required=True,          
 parser.add_argument('--guess',     dest='initialGuess', default='LB',                        type=str,            help="The initial guess Hamiltonian to be used. Default: LB")
 parser.add_argument('--basis-set', dest='basisSet',     default='minao',                     type=str,            help="Basis set for computing density matrix (default : minao)")
 parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
-parser.add_argument('--model',     dest='modelRep',     default='Lowdin-long',               type=str,            help="The model to use when creating the representation" )
+parser.add_argument('--model',     dest='modelRep',     default='Lowdin-long-x',             type=str,            help="The model to use when creating the representation" )
+parser.add_argument('--dm',        dest='dm',           default=None,                        type=str,            help="The density matrix to load instead of computing the guess" )
 parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
 parser.add_argument('--charge',    dest='charge',       default=0,                           type=int,            help='total charge of the system (default=0)')
 parser.add_argument('--spin',      dest='spin',         default=None,                        type=int,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
@@ -42,11 +43,14 @@ def main() :
 
     # Generate compound from xyz file
     mol_file = check_file(args.pathToMol)
-    mol = compound.xyz_to_mol(mol_file, basis_set)
+    mol = compound.xyz_to_mol(mol_file, basis_set, charge=args.charge, spin=args.spin)
 
     # Compute density matrices
     print("Computing DM...")
-    dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=args.spin)
+    if not args.dm:
+      dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=args.spin)
+    else:
+      dm = np.load(args.dm)
     if not args.spin is None: dm = utils.dm_open_mod(dm, args.omod)
 
     # Post-processing of the density matrix

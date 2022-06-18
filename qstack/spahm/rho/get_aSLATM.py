@@ -27,7 +27,7 @@ def main():
             a_slatm[q].append(v)
 
     for q in a_slatm :
-        np.save(f'a_SLATM_{q}_QM7', a_slatm[q])
+        np.save(f'a_SLATM_{q}', a_slatm[q])
 
 if __name__ == '__main__':
     main()
