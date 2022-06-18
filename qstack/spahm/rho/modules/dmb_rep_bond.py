@@ -49,8 +49,9 @@ def get_element_pairs(elements):
         qqs[q] = qqs0
     return qqs, qqs4q
 
-def read_basis_wrapper(mols, bpath, only_m0, printlevel):
-    elements  = sorted(list(set([q for mol in mols for q in mol.elements])))
+def read_basis_wrapper(mols, bpath, only_m0, printlevel, elements=None):
+    if elements is None:
+        elements  = sorted(list(set([q for mol in mols for q in mol.elements])))
     qqs,qqs4q = get_element_pairs(elements)
     qqs0      = qqs[list(qqs.keys())[0]]
     mybasis   = read_df_basis(qqs0, bpath)
