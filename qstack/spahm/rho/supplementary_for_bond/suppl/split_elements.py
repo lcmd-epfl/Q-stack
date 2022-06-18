@@ -8,8 +8,13 @@ parser.add_argument('--d', type=str,  dest='dfile',  required=True, help='repres
 parser.add_argument('--q', type=str,  dest='qfile',  required=True, help='list of all atoms')
 args = parser.parse_args()
 
-data = np.load(args.dfile)
-qs   = np.loadtxt(args.qfile, dtype=str)
+txt = False
+try:
+  data = np.load(args.dfile)
+except:
+  data = np.loadtxt(args.dfile)
+  txt  = True
+qs = np.loadtxt(args.qfile, dtype=str)
 
 mydict = {}
 for q in sorted(list(set(qs))):
@@ -19,5 +24,8 @@ for q,d in zip(qs,data):
   mydict[q].append(d)
 
 for q in mydict:
-  np.save(str(q), np.array(mydict[q]))
+  if txt:
+    np.savetxt(str(q)+'.dat', np.array(mydict[q]))
+  else:
+    np.save(str(q), np.array(mydict[q]))
 
