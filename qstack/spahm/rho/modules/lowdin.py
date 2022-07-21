@@ -1,7 +1,6 @@
 import sys
 import numpy as np
 from pyscf import dft,df,tools
-import pyscf_ext
 
 class Lowdin_split:
 
