@@ -113,6 +113,15 @@ def vectorize_c(q, idx, c):
     v[p] = c[i]*c[j]
   return v
 
+def vectorize_c_MR2021(q, idx_pair, ao, c):
+  idx = sorted(set(np.array(idx_pair)[:,0]))
+  v = np.zeros(len(idx))
+  for p,i in enumerate(idx):
+    l = ao['l'][i]
+    msize = 2*l+1
+    v[p] = c[i:i+msize] @ c[i:i+msize]
+  return v
+
 def vectorize_c_short(q, idx, ao, c):
   v = np.zeros(len(idx))
   for p,[i,j] in enumerate(idx):

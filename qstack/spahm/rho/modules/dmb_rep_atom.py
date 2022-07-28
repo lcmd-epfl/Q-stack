@@ -47,18 +47,28 @@ def get_model(arg):
         return c
 
     arg = arg.lower()
-    models = {'pure'          : [df_pure,            coefficients_symmetrize_short],
-             'sad-diff'       : [df_sad_diff,        coefficients_symmetrize_short],
-             'occup'          : [df_occup,           coefficients_symmetrize_short],
-             'lowdin-short'   : [df_lowdin_short,    coefficients_symmetrize_short],
-             'lowdin-long'    : [df_lowdin_long,     coefficients_symmetrize_long ],
-             'lowdin-short-x' : [df_lowdin_short_x,  coefficients_symmetrize_short],
-             'lowdin-long-x'  : [df_lowdin_long_x,   coefficients_symmetrize_long ] }
+    models = {'pure'          : [df_pure,            coefficients_symmetrize_short ],
+             'sad-diff'       : [df_sad_diff,        coefficients_symmetrize_short ],
+             'occup'          : [df_occup,           coefficients_symmetrize_short ],
+             'lowdin-short'   : [df_lowdin_short,    coefficients_symmetrize_short ],
+             'lowdin-long'    : [df_lowdin_long,     coefficients_symmetrize_long  ],
+             'lowdin-short-x' : [df_lowdin_short_x,  coefficients_symmetrize_short ],
+             'lowdin-long-x'  : [df_lowdin_long_x,   coefficients_symmetrize_long  ],
+             'mr2021'         : [df_pure,            coefficients_symmetrize_MR2021]}
     if arg not in models.keys():
         print('Unknown model. Available models:', list(models.keys()), file=sys.stderr)
         exit(1)
     return models[arg]
 
+def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, M, _):
+    # J. T. Margraf and K. Reuter, Nat. Commun. 12, 344 (2021).
+    v = []
+    i0 = 0
+    for q in mol.elements :
+        n = ao_len[q]
+        v.append([q, repre.vectorize_c_MR2021(q, idx[q], ao[q], c[i0:i0+n])])
+        i0 += n
+    return v
 
 
 def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
