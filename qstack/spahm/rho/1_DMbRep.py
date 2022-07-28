@@ -18,7 +18,7 @@ parser.add_argument('--dm',        dest='dm',           default=None,           
 parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
 parser.add_argument('--charge',    dest='charge',       default=0,                           type=int,            help='total charge of the system (default=0)')
 parser.add_argument('--spin',      dest='spin',         default=None,                        type=int,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
-parser.add_argument('--omod',      dest='omod',         default='sum',                       type=str,            help='model for open-shell systems')
+parser.add_argument('--omod',      type=str,            dest='omod',      default=['alpha','beta'], nargs='+',  help='model for open-shell systems (alpha, beta, sum, diff')
 args = parser.parse_args()
 print(vars(args))
 
@@ -36,6 +36,7 @@ def main() :
     model         = dmba.get_model(args.modelRep)
     basis_set     = args.basisSet
     aux_basis_set = args.auxBasisSet
+    df_wrapper, sym_wrapper = model
 
     # Molecule-independent computation
     atom_types    = sorted(list(set(args.Species)))
@@ -45,33 +46,45 @@ def main() :
     mol_file = check_file(args.pathToMol)
     mol = compound.xyz_to_mol(mol_file, basis_set, charge=args.charge, spin=args.spin)
 
+    # output dir
+    cwd = os.getcwd()
+    dir_out = 'X_' + (cwd+'/'+mol_file).split('/')[-2]
+    if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
+
     # Compute density matrices
     print("Computing DM...")
     if not args.dm:
-      dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=args.spin)
+        dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=args.spin)
     else:
-      dm = np.load(args.dm)
-    if not args.spin is None: dm = utils.dm_open_mod(dm, args.omod)
+        dm = np.load(args.dm)
 
-    # Post-processing of the density matrix
-    df_wrapper, sym_wrapper = model
-    c_df    = df_wrapper(mol, dm, basis_set, aux_basis_set)
-    vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, atom_types)
+    for omod in args.omod:
+        if args.spin is None:
+            DM = dm
+        else:
+            DM = utils.dm_open_mod(dm, omod)
 
-    # save the output
-    cwd = os.getcwd()
-    mol_name = mol_file.split('/')[-1].split('.')[0]
-    name_out = 'X_'+mol_name
-    dir_out = 'X_' + (cwd+'/'+mol_file).split('/')[-2]
-    if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
-    path_out = join(cwd, dir_out, name_out)
-    np.save(path_out, vectors)
+        # Post-processing of the density matrix
+        c_df    = df_wrapper(mol, DM, basis_set, aux_basis_set)
+        vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, atom_types)
 
-    print(f"Generated density-based representation for {mol_name} with,\n")
-    print("Type.\tlength")
-    for q,v in vectors :
-        print(q+'\t'+str(len(v)))
-    print(f"stored at : {path_out}")
+        # save the output
+        mol_name = mol_file.split('/')[-1].split('.')[0]
+        if args.spin is None:
+            name_out = 'X_'+mol_name
+        else:
+            name_out = 'X_'+mol_name+'_'+omod
+        path_out = join(cwd, dir_out, name_out)
+        np.save(path_out, vectors)
+
+        print(f"Generated density-based representation for {mol_name} with")
+        print("Type.\tlength")
+        for q,v in vectors :
+            print(q+'\t'+str(len(v)))
+        print(f"stored at : {path_out}\n")
+
+        if args.spin is None:
+            break
 
 
 if __name__ == '__main__' : main()
