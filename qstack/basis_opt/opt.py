@@ -24,7 +24,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in = 1e-7, method_i
     E = 0.0
     dE_da = np.zeros(nexp)
     for m in moldata:
-      E_, dE_da_ = qbbt.gradient_mol(nexp, newbasis, m)
+      E_, dE_da_ = qbbt.gradient_mol(nexp, bf_bounds, newbasis, m)
       E     += E_
       dE_da += dE_da_
       print('e =', E_, '(', E_/m['self']*100.0, '%)')
