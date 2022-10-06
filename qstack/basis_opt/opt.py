@@ -34,7 +34,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         print(flush=True)
 
         dE_dx = dE_da * exponents
-        return E, dE_dx
+        return E, -dE_dx
 
     def gradient_only(x):
         return gradient(x)[1]
