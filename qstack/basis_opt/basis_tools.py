@@ -30,7 +30,7 @@ def energy_mol(newbasis, moldata):
     return E
 
 
-def gradient_mol(nexp, bf_bounds, newbasis, moldata):
+def gradient_mol(nexp, newbasis, moldata):
 
     mol       = moldata['mol'      ]
     rho       = moldata['rho'      ]
@@ -45,22 +45,11 @@ def gradient_mol(nexp, bf_bounds, newbasis, moldata):
     ao = dft.numint.eval_ao(newmol, coords).T
 
     w = np.einsum('pi,i,i->p', ao, rho, weights)
-
-    dao_da_factor = np.ndarray((newmol.nao, len(rho)))
     dw_da = np.zeros((nexp, newmol.nao))
-    prev_ip = -1
     for p in range(newmol.nao):
         iat = centers[p]
         r2 = distances[iat]
-        # number of the 'bas' item within newbasis, not within the mol object
-        ip = idx[p]
-        if prev_ip != ip:
-            s = newmol.atom_symbol(iat)
-            bas = newbasis[s][ip - bf_bounds[s][0]]
-        dao_da_factor[p, :] = 0.5*(bas[0]+1.5) / bas[1][0] - r2
-
-        dw_da[ip, p] = np.einsum(
-            'i,i,i,i->', ao[p], rho, dao_da_factor[p], weights)
+        dw_da[idx[p], p] = np.einsum('i,i,i,i->', ao[p], rho, r2, weights)
 
     S = np.einsum('pi,qi,i->pq', ao, ao, weights)
     dS_da = np.zeros((nexp, newmol.nao, newmol.nao))
@@ -69,9 +58,13 @@ def gradient_mol(nexp, bf_bounds, newbasis, moldata):
         for q in range(p, newmol.nao):
             ip = idx[p]
             iq = idx[q]
+            iatp = centers[p]
+            iatq = centers[q]
+            r2p = distances[iatp]
+            r2q = distances[iatq]
             ao_ao_w = np.einsum('i,i,i->i', ao[p], ao[q], weights)
-            ip_p_q = np.einsum('i,i->', ao_ao_w, dao_da_factor[p])
-            iq_p_q = np.einsum('i,i->', ao_ao_w, dao_da_factor[q])
+            ip_p_q = np.einsum('i,i->', ao_ao_w, r2p)
+            iq_p_q = np.einsum('i,i->', ao_ao_w, r2q)
             dS_da[ip, p, q] += ip_p_q
             dS_da[iq, p, q] += iq_p_q
             if p != q:
