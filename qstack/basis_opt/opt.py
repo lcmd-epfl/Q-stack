@@ -7,7 +7,7 @@ import pyscf.data
 from qstack.basis_opt import basis_tools as qbbt
 
 
-def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", check=False):
+def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", printlvl=2, check=False):
 
     def energy(x):
         exponents = np.exp(x)
@@ -27,11 +27,14 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             E_, dE_da_ = qbbt.gradient_mol(nexp, bf_bounds, newbasis, m)
             E     += E_
             dE_da += dE_da_
-            print('e =', E_, '(', E_/m['self']*100.0, '%)')
-        print(E, max(abs(dE_da)))
+            if printlvl>=2:
+                print('e =', E_, '(', E_/m['self']*100.0, '%)')
+        if printlvl>=2:
+            print(E, max(abs(dE_da)))
         dE_da = qbbt.cut_myelements(dE_da, myelements, bf_bounds)
 
-        print(flush=True)
+        if printlvl>=2:
+            print(flush=True)
 
         dE_dx = dE_da * exponents
         return E, -dE_dx
@@ -47,14 +50,12 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
                     addbasis = eval(f.read())
                 q = list(addbasis.keys())[0]
                 if q in basis.keys():
-                    print('error: several sets for element', q)
-                    exit()
+                    raise RuntimeError('several sets for element ' + q)
                 basis.update(addbasis)
             else:
                 q = list(i.keys())[0]
                 if q in basis.keys():
-                    print('error: several sets for element', q)
-                    exit()
+                    raise RuntimeError('several sets for element ' + q)
                 basis.update(i)
         return basis
 
@@ -128,36 +129,28 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
     for fname in molecules_in:
         moldata.append(make_moldata(fname))
 
-    print("Initial exponents")
-    for l, a in zip(angular_momenta, exponents):
-        print('l =', l, 'a = ', a)
-    print()
+    if printlvl>=2:
+        print("Initial exponents")
+        for l, a in zip(angular_momenta, exponents):
+            print('l =', l, 'a = ', a)
+        print(flush=True)
 
     x0 = np.log(exponents)
     x1 = qbbt.cut_myelements(x0, myelements, bf_bounds)
     angular_momenta = qbbt.cut_myelements(angular_momenta, myelements, bf_bounds)
 
     if check:
-        gr1 = scipy.optimize.approx_fprime(x1, energy, 1e-4)
-        gr2 = gradient_only(x1)
-        print()
-        print('anal')
-        print(gr2)
-        print('num')
-        print(gr1)
-        print('diff')
-        print(gr1-gr2)
-        print('rel diff')
-        print((gr1-gr2)/gr1)
-        print()
-        return None
+        gr_num = scipy.optimize.approx_fprime(x1, energy, 1e-4)
+        gr_an  = gradient_only(x1)
+        return {'num': gr_num, 'an': gr_an, 'diff': gr_an-gr_num}
 
     xopt = scipy.optimize.minimize(energy, x1, method=method_in, jac=gradient_only,
-                                   options={'gtol': gtol_in, 'disp': True}).x
+                                   options={'gtol': gtol_in, 'disp': printlvl}).x
 
     exponents = np.exp(xopt)
     newbasis = qbbt.exp2basis(exponents, myelements, basis)
-    qbbt.printbasis(newbasis, sys.stdout)
+    if printlvl>=1:
+        qbbt.printbasis(newbasis, sys.stdout)
 
     return newbasis
 
@@ -170,10 +163,25 @@ def main():
     parser.add_argument('--molecules', type=str,   dest='molecules', nargs='+',    help='molecules', required=True)
     parser.add_argument('--gtol',      type=float, dest='gtol',      default=1e-7, help='tolerance')
     parser.add_argument('--method',    type=str,   dest='method',    default='CG', help='minimization algoritm')
+    parser.add_argument('--print',     type=int,   dest='print',     default=2,    help='printing level')
     parser.add_argument('--check', action='store_true', dest='check', default=False, help='check the gradient and exit')
     args = parser.parse_args()
 
-    ret = optimize_basis(args.elements, args.basis, args.molecules, args.gtol, args.method, check=args.check)
+    result = optimize_basis(args.elements, args.basis, args.molecules, args.gtol, args.method, check=args.check, printlvl=args.print)
+    if args.check is False:
+        if args.print==0:
+            qbbt.printbasis(result, sys.stdout)
+    else:
+        gr_an, gr_num, gr_diff = result['an'], result['num'], result['diff']
+        print('analytical gradient')
+        print(gr_an)
+        print('numerical gradient')
+        print(gr_num)
+        print('difference')
+        print(gr_diff)
+        print('relative difference')
+        print(gr_diff/gr_num)
+        print(flush=True)
 
 
 if __name__ == "__main__":
