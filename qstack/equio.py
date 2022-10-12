@@ -1,22 +1,23 @@
 import numpy as np
+from types import SimpleNamespace
 from pyscf import data
 import equistore
+
+vector_label_names = SimpleNamespace(
+    tm  = ['spherical_harmonics_l', 'element'],
+    block_prop = ['radial_channel'],
+    block_samp = ['atom_id'],
+    block_comp = ['spherical_harmonics_m']
+    )
 
 def vector_to_tensormap(mol, c):
 
     atom_charges = list(mol.atom_charges())
     elements = sorted(set(atom_charges))
 
-    tm_label_names  = ['spherical_harmonics_l', 'element']
     tm_label_vals = []
-
-    block_prop_label_names  = ['radial_channel']
     block_prop_label_vals = {}
-
-    block_samp_label_names  = ['atom_id']
     block_samp_label_vals = {}
-
-    block_comp_label_names  = ['spherical_harmonics_m']
     block_comp_label_vals = {}
 
     blocks = {}
@@ -39,11 +40,11 @@ def vector_to_tensormap(mol, c):
             block_prop_label_vals[label] = np.arange(properties_count).reshape(-1,1)
             block_samp_label_vals[label] = np.where(atom_charges==q)[0].reshape(-1,1)
 
-    tm_labels = equistore.Labels(tm_label_names, np.array(tm_label_vals))
+    tm_labels = equistore.Labels(vector_label_names.tm, np.array(tm_label_vals))
 
-    block_comp_labels = {key: equistore.Labels(block_comp_label_names, block_comp_label_vals[key]) for key in blocks}
-    block_prop_labels = {key: equistore.Labels(block_prop_label_names, block_prop_label_vals[key]) for key in blocks}
-    block_samp_labels = {key: equistore.Labels(block_samp_label_names, block_samp_label_vals[key]) for key in blocks}
+    block_comp_labels = {key: equistore.Labels(vector_label_names.block_comp, block_comp_label_vals[key]) for key in blocks}
+    block_prop_labels = {key: equistore.Labels(vector_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
+    block_samp_labels = {key: equistore.Labels(vector_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
 
     # Fill in the blocks
 
@@ -80,6 +81,7 @@ def vector_to_tensormap(mol, c):
 
 
 def tensormap_to_vector(mol, tensor):
+    # TODO check if the label names are correct?
     i=0
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
