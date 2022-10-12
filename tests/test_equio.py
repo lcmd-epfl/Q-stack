@@ -25,60 +25,36 @@ def test_equio():
     # labels to create TensorMap
     tm_label_names  = ['spherical_harmonics_l', 'element']
     tm_label_values = []
-    empty_blocks = {}
-    elements = list(auxmol.atom_charges())
-    for q in sorted(set(elements)):
+    blocks = {}
+
+    atom_charges = list(auxmol.atom_charges())
+    elements = sorted(set(atom_charges))
+    lmax = {}
+    llists = {}
+    for q in elements:
         qname = pyscf.data.elements.ELEMENTS[q]
         llist = [b[0] for b in auxmol._basis[qname]]
+        lmax[q] = max(llist)
+        llists[q] = llist
         for l in sorted(set(llist)):
             label = (l, q)
             tm_label_values.append(label)
-            samples_count    = elements.count(q)
+            samples_count    = atom_charges.count(q)
             components_count = 2*l+1
             properties_count = llist.count(l)
-            empty_blocks[label] = np.zeros((samples_count, components_count, properties_count))
+            blocks[label] = np.zeros((samples_count, components_count, properties_count))
     tm_labels = equistore.Labels(names=tm_label_names, values = np.array(tm_label_values))
 
 
-    # blocks
-    for i in empty_blocks:
-        print(i, empty_blocks[i].shape)
-
-
-    block_lists = {}
-    for i in empty_blocks:
-        block_lists[i] = [[] for _ in range(empty_blocks[i].shape[0])]
-    iq = {}
-    for q in sorted(set(elements)):
-        iq[q] = 0
+    # fill the blocks
+    iq = {q:0 for q in elements}
     i=0
-    for iat, q in enumerate(auxmol.atom_charges()):
-        qname = pyscf.data.elements.ELEMENTS[q]
-        for gto in auxmol._basis[qname]:
-            l = gto[0]
+    for iat, q in enumerate(atom_charges):
+        il = {l:0 for l in range(max(llists[q])+1)}
+        for l in llists[q]:
             msize = 2*l+1
-            block_lists[(l,q)][iq[q]].append(c[i:i+msize])
-            i  += msize
-        iq[q] += 1
-    for i in block_lists:
-        block_lists[i] = np.transpose(np.array(block_lists[i]), axes=(0,2,1))
-
-
-
-    iq = {}
-    for q in sorted(set(elements)):
-        iq[q] = 0
-    i=0
-    for iat, q in enumerate(auxmol.atom_charges()):
-        qname = pyscf.data.elements.ELEMENTS[q]
-        il = {}
-        for l in range(max([b[0] for b in auxmol._basis[qname]]) + 1):
-            il[l] = 0
-        for gto in auxmol._basis[qname]:
-            l = gto[0]
-            msize = 2*l+1
-            empty_blocks [(l,q)] [iq[q], : , il[l]] = c[i:i+msize]
-            i  += msize
+            blocks [(l,q)] [ iq[q] , : , il[l] ] = c[i:i+msize]
+            i     += msize
             il[l] += 1
         iq[q] += 1
 
@@ -88,10 +64,10 @@ def test_equio():
 
     print()
     print()
-    for i in block_lists:
+    for i in blocks:
         print()
-        print(np.linalg.norm(block_lists[i]-empty_blocks[i]))
-        #print(i, block_lists[i].shape)
+        print(i, blocks[i].shape)
+        print(blocks[i])
 
 
 
