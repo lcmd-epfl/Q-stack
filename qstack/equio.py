@@ -50,17 +50,25 @@ def vector_to_tensormap(auxmol, c):
     iq = {q:0 for q in elements}
     i = 0
     for iat, q in enumerate(atom_charges):
-        il = {l:0 for l in range(max(llists[q])+1)}
-        for l in llists[q]:
-            msize = 2*l+1
-            if l!=1:
+        if llists[q]==sorted(llists[q]):
+            for l in set(llists[q]):
+                msize = 2*l+1
+                nsize = blocks[(l,q)].shape[-1]
+                cslice =  c[i:i+nsize*msize].reshape(nsize,msize).T
+                if l==1: # for l=1, the pyscf order is x,y,z (1,-1,0)
+                    cslice = cslice[[1,2,0]]
+                blocks [(l,q)] [ iq[q] , : , : ] = cslice
+                i += msize*nsize
+        else:
+            il = {l:0 for l in range(max(llists[q])+1)}
+            for l in llists[q]:
+                msize = 2*l+1
                 cslice = c[i:i+msize]
-            else:
-                # for l=1, the pyscf order is x,y,z (1,-1,0)
-                cslice = c[i+1], c[i+2], c[i]
-            blocks [(l,q)] [ iq[q] , : , il[l] ] = cslice
-            i     += msize
-            il[l] += 1
+                if l==1: # for l=1, the pyscf order is x,y,z (1,-1,0)
+                    cslice = cslice[[1,2,0]]
+                blocks [(l,q)] [ iq[q] , : , il[l] ] = cslice
+                i     += msize
+                il[l] += 1
         iq[q] += 1
 
     # Build tensor blocks and tensor map
