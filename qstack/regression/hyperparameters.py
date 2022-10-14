@@ -10,7 +10,7 @@ from qstack.tools import correct_num_threads
 def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr,
            akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits,
-           printlevel=0, adaptive=False):
+           printlevel=0, adaptive=False, read_kernel=False):
 
     def k_fold_opt(K_all):
         kfold = KFold(n_splits=splits, shuffle=False)
@@ -32,7 +32,11 @@ def hyperparameters(X, y,
     def hyper_loop(sigma, eta):
         errors = []
         for s in sigma:
-            K_all = kernel(X_train, X_train, 1.0/s)
+            if read_kernel is False:
+                K_all = kernel(X_train, X_train, 1.0/s)
+            else:
+                K_all = X_train
+
             for e in eta:
                 K_all[np.diag_indices_from(K_all)] += e
                 mean, std = k_fold_opt(K_all)
@@ -44,7 +48,12 @@ def hyperparameters(X, y,
         return errors
 
     kernel = get_kernel(akernel)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
+    if read_kernel is False:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
+    else:
+        idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=0)
+        X_train = X[np.ix_(idx_train,idx_train)]
+        sigma = [np.nan]
 
     work_sigma = sigma
     errors = []
@@ -91,13 +100,15 @@ def main():
     parser.add_argument('--sigma',  type=float, dest='sigma', default=defaults.sigmaarr, nargs='+', help='sigma array')
     parser.add_argument('--ll',   action='store_true', dest='ll',       default=False,  help='if correct for the numper of threads')
     parser.add_argument('--ada',  action='store_true', dest='adaptive', default=False,  help='if adapt sigma')
+    parser.add_argument('--readkernel', action='store_true', dest='readk', default=False,  help='if X is kernel')
     args = parser.parse_args()
+    if(args.readk): args.sigma = [np.nan]
     print(vars(args))
     if(args.ll): correct_num_threads()
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    errors = hyperparameters(X, y, sigma=args.sigma, eta=args.eta, akernel=args.kernel, test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
+    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.kernel, test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
 
     print()
     print('error        stdev          eta          sigma')

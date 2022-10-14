@@ -22,7 +22,7 @@ def main():
     if(args.ll): correct_num_threads()
     X = np.load(args.repr)
     K = kernel(X, args.sigma, args.kernel)
-    np.save(args.dir+'/K_'+os.path.basename(args.repr)+'_'+args.kernel, K)
+    np.save(args.dir+'/K_'+os.path.splitext(os.path.basename(args.repr))[0]+'_'+args.kernel+'_'+"%e"%args.sigma, K)
 
 if __name__ == "__main__":
     main()
