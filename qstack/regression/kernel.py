@@ -3,9 +3,11 @@ import numpy as np
 from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
-def kernel(X, sigma=defaults.sigma, akernel=defaults.kernel):
+def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel):
+    if Y == None :
+        Y = X
     kernel = get_kernel(akernel)
-    K = kernel(X, X, 1.0/sigma)
+    K = kernel(X, Y, 1.0/sigma)
     return K
 
 def main():
