@@ -175,41 +175,63 @@ def matrix_to_tensormap(mol, dm):
 
     # Fill in the blocks
 
-    # TODO simplify if llist is sorted
-    iq1 = {q1:0 for q1 in elements}
-    i1 = 0
-    for iat1, q1 in enumerate(atom_charges):
-        il1 = {l1:0 for l1 in range(max(llists[q1])+1)}
-        for l1 in llists[q1]:
-            msize1 = 2*l1+1
+    if all([llists[q]==sorted(llists[q]) for q in llists]):
+        iq1 = {q1:0 for q1 in elements}
+        i1 = 0
+        for iat1, q1 in enumerate(atom_charges):
+            for l1 in set(llists[q1]):
+                msize1 = 2*l1+1
+                nsize1 = llists[q1].count(l1)
+                iq2 = {q2:0 for q2 in elements}
+                i2 = 0
+                for iat2, q2 in enumerate(atom_charges):
+                    for l2 in set(llists[q2]):
+                        msize2 = 2*l2+1
+                        nsize2 = llists[q2].count(l2)
+                        dmslice = dm[i1:i1+nsize1*msize1,i2:i2+nsize2*msize2].reshape(nsize1,msize1,nsize2,msize2)
+                        dmslice = np.transpose(dmslice, axes=[1,3,0,2]).reshape(msize1,msize2,-1)
+                        block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
+                        at_p = block.samples.position((iat1,iat2))
+                        blocks [(l1,l2,q1,q2)][at_p,:,:,:] = dmslice
+                        i2 += msize2*nsize2
+                    iq2[q2] += 1
+                i1 += msize1*nsize1
+            iq1[q1] += 1
+    else:
+       iq1 = {q1:0 for q1 in elements}
+       i1 = 0
+       for iat1, q1 in enumerate(atom_charges):
+           il1 = {l1:0 for l1 in range(max(llists[q1])+1)}
+           for l1 in llists[q1]:
+               msize1 = 2*l1+1
+               iq2 = {q2:0 for q2 in elements}
+               i2 = 0
+               for iat2, q2 in enumerate(atom_charges):
+                   il2 = {l2:0 for l2 in range(max(llists[q2])+1)}
+                   for l2 in llists[q2]:
+                       msize2 = 2*l2+1
+                       dmslice = dm[i1:i1+msize1,i2:i2+msize2]
+                       block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
+                       at_p = block.samples.position((iat1,iat2))
+                       n_p  = block.properties.position((il1[l1],il2[l2]))
+                       blocks [(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
+                       i2 += msize2
+                       il2[l2] += 1
+                   iq2[q2] += 1
+               i1 += msize1
+               il1[l1] += 1
+           iq1[q1] += 1
 
-            iq2 = {q2:0 for q2 in elements}
-            i2 = 0
-            for iat2, q2 in enumerate(atom_charges):
-                il2 = {l2:0 for l2 in range(max(llists[q2])+1)}
-                for l2 in llists[q2]:
-                    msize2 = 2*l2+1
-
-                    dmslice = dm[i1:i1+msize1,i2:i2+msize2]
-                    # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    if l1==1:
-                        dmslice = dmslice[[1,2,0]]
-                    if l2==1:
-                        dmslice = dmslice[:,[1,2,0]]
-
-                    block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
-                    at_p = block.samples.position((iat1,iat2))
-                    n_p  = block.properties.position((il1[l1],il2[l2]))
-                    blocks [(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
-
-                    i2 += msize2
-                    il2[l2] += 1
-                iq2[q2] += 1
-            i1 += msize1
-            il1[l1] += 1
-        iq1[q1] += 1
+    # Fix the m order (for l=1, the pyscf order is x,y,z (1,-1,0))
+    for key in blocks:
+        l1,l2 = key[:2]
+        if l1==1:
+            blocks[key] = np.ascontiguousarray(blocks[key][:,[1,2,0],:,:])
+        if l2==1:
+            blocks[key] = np.ascontiguousarray(blocks[key][:,:,[1,2,0],:])
 
     # Build tensor map
+    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
     tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensor
