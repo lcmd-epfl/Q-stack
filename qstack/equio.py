@@ -2,6 +2,7 @@ import numpy as np
 from types import SimpleNamespace
 from pyscf import data
 import equistore
+import numbers
 
 vector_label_names = SimpleNamespace(
     tm  = ['spherical_harmonics_l', 'element'],
@@ -16,6 +17,23 @@ matrix_label_names = SimpleNamespace(
     block_samp = ['atom_id1', 'atom_id2'],
     block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
     )
+
+def _get_mrange(l):
+    # for l=1, the pyscf order is x,y,z (1,-1,0)
+    if l==1:
+        return (1,-1,0)
+    else:
+        return range(-l,l+1)
+
+def _get_llist(q, mol):
+    # TODO extend to other basis formats
+    if isinstance(q, numbers.Integral):
+        q = data.elements.ELEMENTS[q]
+    llist = []
+    for l, *prim in mol._basis[q]:
+        llist.extend([l]*(len(prim[0])-1))
+    return llist
+
 
 def vector_to_tensormap(mol, c):
 
@@ -33,8 +51,7 @@ def vector_to_tensormap(mol, c):
     # Create labels for TensorMap, lables for blocks, and empty blocks
 
     for q in elements:
-        qname = data.elements.ELEMENTS[q]
-        llist = [b[0] for b in mol._basis[qname]]
+        llist = _get_llist(q, mol)
         llists[q] = llist
         for l in sorted(set(llist)):
             label = (l, q)
@@ -89,28 +106,22 @@ def vector_to_tensormap(mol, c):
 
 def tensormap_to_vector(mol, tensor):
     # TODO check if the label names are correct?
-    i=0
+    i = 0
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
     for iat, q in enumerate(atom_charges):
-        qname = data.elements.ELEMENTS[q]
-        llist = [b[0] for b in mol._basis[qname]]
+        llist = _get_llist(q, mol)
         il = {l:0 for l in range(max(llist)+1)}
         for l in llist:
             block = tensor.block(spherical_harmonics_l=l, element=q)
             id_samp = block.samples.position((iat,))
             id_prop = block.properties.position((il[l],))
-            if l==1: # for l=1, the pyscf order is x,y,z (1,-1,0)
-                mrange = (1,-1,0)
-            else:
-                mrange = range(-l,l+1)
-            for m in mrange:
+            for m in _get_mrange(l):
                 id_comp = block.components[0].position((m,))
                 c[i] = block.values[id_samp,id_comp,id_prop]
                 i += 1
             il[l] += 1
     return c
-
 
 
 def matrix_to_tensormap(mol, dm):
@@ -127,14 +138,9 @@ def matrix_to_tensormap(mol, dm):
     block_comp_label_vals = {}
 
     blocks = {}
-    llists = {}
+    llists = {q: _get_llist(q, mol) for q in elements}
 
     # Create labels for TensorMap, lables for blocks, and empty blocks
-
-    for q in elements:
-        qname = data.elements.ELEMENTS[q]
-        llist = [b[0] for b in mol._basis[qname]]
-        llists[q] = llist
 
     for q1 in elements:
         for q2 in elements:
@@ -169,6 +175,7 @@ def matrix_to_tensormap(mol, dm):
 
     # Fill in the blocks
 
+    # TODO simplify if llist is sorted
     iq1 = {q1:0 for q1 in elements}
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):
@@ -206,3 +213,37 @@ def matrix_to_tensormap(mol, dm):
     tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensor
+
+
+def tensormap_to_matrix(mol, tensor):
+    # TODO check if the label names are correct?
+    dm = np.zeros((mol.nao, mol.nao))
+    atom_charges = mol.atom_charges()
+
+    i1 = 0
+    for iat1, q1 in enumerate(atom_charges):
+        llist1 = _get_llist(q1, mol)
+        il1 = {l1:0 for l1 in range(max(llist1)+1)}
+        for l1 in llist1:
+            for m1 in _get_mrange(l1):
+
+                i2 = 0
+                for iat2, q2 in enumerate(atom_charges):
+                    llist2 = _get_llist(q2, mol)
+                    il2 = {l2:0 for l2 in range(max(llist2)+1)}
+                    for l2 in llist2:
+
+                        block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, element1=q1, element2=q2)
+                        id_samp = block.samples.position((iat1,iat2))
+                        id_prop = block.properties.position((il1[l1],il2[l2]))
+
+                        for m2 in _get_mrange(l2):
+                            id_comp1 = block.components[0].position((m1,))
+                            id_comp2 = block.components[1].position((m2,))
+                            dm[i1,i2] = block.values[id_samp,id_comp1,id_comp2,id_prop]
+                            i2 += 1
+                        il2[l2] += 1
+                i1 += 1
+            il1[l1] += 1
+
+    return dm

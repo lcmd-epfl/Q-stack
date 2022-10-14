@@ -26,8 +26,8 @@ def test_equio_matrix():
     tmpfile = tempfile.mktemp()
     equistore.io.save(tmpfile+'.npz', dtensor)
     assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.dm.npz', tmpfile+'.npz'))
-    #dm1 = equio.tensormap_to_matrix(mol, dtensor)
-    #assert(np.linalg.norm(dm-dm1)==0)
+    dm1 = equio.tensormap_to_matrix(mol, dtensor)
+    assert(np.linalg.norm(dm-dm1)==0)
 
 
 if __name__ == '__main__':
