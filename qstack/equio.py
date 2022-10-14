@@ -10,6 +10,13 @@ vector_label_names = SimpleNamespace(
     block_comp = ['spherical_harmonics_m']
     )
 
+matrix_label_names = SimpleNamespace(
+    tm  = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'element1', 'element2'],
+    block_prop = ['radial_channel1', 'radial_channel2'],
+    block_samp = ['atom_id1', 'atom_id2'],
+    block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
+    )
+
 def vector_to_tensormap(mol, c):
 
     atom_charges = list(mol.atom_charges())
@@ -103,3 +110,99 @@ def tensormap_to_vector(mol, tensor):
                 i += 1
             il[l] += 1
     return c
+
+
+
+def matrix_to_tensormap(mol, dm):
+
+    def pairs(list1, list2):
+        return np.array([(i,j) for i in list1 for j in list2])
+
+    atom_charges = list(mol.atom_charges())
+    elements = sorted(set(atom_charges))
+
+    tm_label_vals = []
+    block_prop_label_vals = {}
+    block_samp_label_vals = {}
+    block_comp_label_vals = {}
+
+    blocks = {}
+    llists = {}
+
+    # Create labels for TensorMap, lables for blocks, and empty blocks
+
+    for q in elements:
+        qname = data.elements.ELEMENTS[q]
+        llist = [b[0] for b in mol._basis[qname]]
+        llists[q] = llist
+
+    for q1 in elements:
+        for q2 in elements:
+            llist1 = llists[q1]
+            llist2 = llists[q2]
+            for l1 in sorted(set(llist1)):
+                for l2 in sorted(set(llist2)):
+                    label = (l1, l2, q1, q2)
+                    tm_label_vals.append(label)
+
+                    samples_count1    = atom_charges.count(q1)
+                    components_count1 = 2*l1+1
+                    properties_count1 = llist1.count(l1)
+
+                    samples_count2    = atom_charges.count(q2)
+                    components_count2 = 2*l2+1
+                    properties_count2 = llist2.count(l2)
+
+                    blocks[label] = np.zeros((samples_count1*samples_count2, components_count1, components_count2, properties_count1*properties_count2))
+                    block_comp_label_vals[label] = (np.arange(-l1, l1+1).reshape(-1,1), np.arange(-l2, l2+1).reshape(-1,1))
+                    block_prop_label_vals[label] = pairs(np.arange(properties_count1), np.arange(properties_count2))
+                    block_samp_label_vals[label] = pairs(np.where(atom_charges==q1)[0],np.where(atom_charges==q2)[0])
+
+    tm_labels = equistore.Labels(matrix_label_names.tm, np.array(tm_label_vals))
+
+    block_prop_labels = {key: equistore.Labels(matrix_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
+    block_samp_labels = {key: equistore.Labels(matrix_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
+    block_comp_labels = {key: [equistore.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key])] for key in blocks}
+
+    # Build tensor blocks
+    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+
+    # Fill in the blocks
+
+    iq1 = {q1:0 for q1 in elements}
+    i1 = 0
+    for iat1, q1 in enumerate(atom_charges):
+        il1 = {l1:0 for l1 in range(max(llists[q1])+1)}
+        for l1 in llists[q1]:
+            msize1 = 2*l1+1
+
+            iq2 = {q2:0 for q2 in elements}
+            i2 = 0
+            for iat2, q2 in enumerate(atom_charges):
+                il2 = {l2:0 for l2 in range(max(llists[q2])+1)}
+                for l2 in llists[q2]:
+                    msize2 = 2*l2+1
+
+                    dmslice = dm[i1:i1+msize1,i2:i2+msize2]
+                    # for l=1, the pyscf order is x,y,z (1,-1,0)
+                    if l1==1:
+                        dmslice = dmslice[[1,2,0]]
+                    if l2==1:
+                        dmslice = dmslice[:,[1,2,0]]
+
+                    block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
+                    at_p = block.samples.position((iat1,iat2))
+                    n_p  = block.properties.position((il1[l1],il2[l2]))
+                    blocks [(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
+
+                    i2 += msize2
+                    il2[l2] += 1
+                iq2[q2] += 1
+            i1 += msize1
+            il1[l1] += 1
+        iq1[q1] += 1
+
+    # Build tensor map
+    tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+
+    return tensor
