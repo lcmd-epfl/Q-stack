@@ -1,4 +1,5 @@
 import numpy
+import sysconfig
 from types import SimpleNamespace
 import qstack
 
@@ -34,7 +35,10 @@ def my_laplacian_kernel_c(X, Y, gamma):
   import os,sys
   import ctypes
   array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
-  manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
+  try:
+      manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
+  except:
+      manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
   manh.manh.restype = ctypes.c_int
   manh.manh.argtypes = [
     ctypes.c_int,
