@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 
 setup(
     name='qstack',
@@ -7,5 +7,6 @@ setup(
     url='https://github.com/lcmd-epfl/Q-stack',
     install_requires=[],
     packages=find_packages(),
+    ext_modules=[Extension('manh', ['qstack/regression/lib/manh.c'])],
 )
 
