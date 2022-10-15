@@ -1,7 +1,8 @@
 import os
 import sys
 import numpy as np
-import qtsack
+import qstack
+from qstack.regression import kernel as k
 
 import argparse
 parser = argparse.ArgumentParser(description='Script to regresse global molecular properties from atomic environnments descriptor (RHO-SPAHM).')
@@ -32,13 +33,13 @@ def get_covariance(mol1, mol2, max_sizes):
     for s in species:
         n1 = len(mol1_dict[s])
         n2 = len(mol2_dict[s])
+        s_size = max_sizes[s]
         if n1 == 0 or n2 == 0:
             idx += s_size
             continue
-        s_size = max_sizes[s]
         x1 = np.pad(mol1_dict[s], ((0, s_size - n1),(0,0)), 'constant')
         x2 = np.pad(mol2_dict[s], ((0, s_size - n2),(0,0)), 'constant')
-        K_covar[idx:idx+s_size, idx:idx+s_size] = kernel(x1, x2)
+        K_covar[idx:idx+s_size, idx:idx+s_size] = k.kernel(x1, x2)
         idx += s_size
     return K_covar
 
@@ -47,7 +48,7 @@ def avg_kernel(kernel):
     return avg
 
 
-def get_global_K(mol):
+def get_global_K(mol_files):
     mol = [np.load(m, allow_pickle=True) for m in mol_files]
     n_mol = len(mol)
     species = sorted(list(set([s[0] for m in mol for s in m])))
@@ -66,15 +67,16 @@ def get_global_K(mol):
     max_size = sum(max_atoms.values())
     print(max_atoms, max_size)
     K_global = np.zeros((n_mol, n_mol))
+    print("Computing global kernel elements:\n[", sep='', end='')
     for m in range(0, len(mol)):
         for n in range(0, len(mol)):
             K_pair = get_covariance(mol[m], mol[n], max_atoms)
             K_global[m][n] = avg_kernel(K_pair)
-
-
-
-
-    print(len(mol_files))
+        if ((m+1) / len(mol) * 100)%10 == 0:
+            print(f"##### {(m+1) / len(mol) * 100}% #####", sep='', end='')
+    print("]")
+    print(f"Final global kernel has size : {K_global.shape}")
+    return K_global
 
 
 
@@ -83,10 +85,16 @@ def get_global_K(mol):
 def main():
     X_dir = args.Xdir
     mol_files = [os.path.join(X_dir, f) for f in os.listdir(X_dir) if os.path.isfile(os.path.join(X_dir, f))]
+    print("Found {len(mol_files)} mol. representations")
+    print(mol_files[:10])
+    exit()
     
     if DEBUG:
-        print("Using sub-set = 1000 molecules")
-        mol_files = mol_files[:1000]
+        print("Using sub-set = 10 molecules")
+        mol_files = mol_files[:10]
+    K = get_global_K(mol_files)
+
+
 
 
 
