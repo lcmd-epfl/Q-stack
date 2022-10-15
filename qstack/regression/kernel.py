@@ -3,8 +3,8 @@ import numpy as np
 from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
-def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel):
-    if Y == None :
+def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel):
+    if len(Y) == 0 :
         Y = X
     kernel = get_kernel(akernel)
     K = kernel(X, Y, 1.0/sigma)
