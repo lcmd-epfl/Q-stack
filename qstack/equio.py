@@ -26,7 +26,7 @@ def _get_mrange(l):
         return range(-l,l+1)
 
 def _get_llist(q, mol):
-    # TODO extend to other basis formats
+    # TODO other basis formats?
     if isinstance(q, numbers.Integral):
         q = data.elements.ELEMENTS[q]
     llist = []
@@ -34,6 +34,8 @@ def _get_llist(q, mol):
         llist.extend([l]*(len(prim[0])-1))
     return llist
 
+def _get_tsize(tensor):
+    return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
 
 def vector_to_tensormap(mol, c):
 
@@ -105,10 +107,15 @@ def vector_to_tensormap(mol, c):
 
 
 def tensormap_to_vector(mol, tensor):
-    # TODO check if the label names are correct?
-    i = 0
+
+    nao = _get_tsize(tensor)
+    if mol.nao != nao:
+        errstr = f'Tensor size mismatch ({nao} instead of {mol.nao})'
+        raise Exception(errstr)
+
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
+    i = 0
     for iat, q in enumerate(atom_charges):
         llist = _get_llist(q, mol)
         il = {l:0 for l in range(max(llist)+1)}
@@ -238,10 +245,14 @@ def matrix_to_tensormap(mol, dm):
 
 
 def tensormap_to_matrix(mol, tensor):
-    # TODO check if the label names are correct?
+
+    nao2 = _get_tsize(tensor)
+    if mol.nao*mol.nao != nao2:
+        errstr = f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})'
+        raise Exception(errstr)
+
     dm = np.zeros((mol.nao, mol.nao))
     atom_charges = mol.atom_charges()
-
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):
         llist1 = _get_llist(q1, mol)
