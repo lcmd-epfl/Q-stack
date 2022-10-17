@@ -45,3 +45,4 @@ dependencies:
     - pytest==6.2.5
     - scipy==1.7.3
     - toml==0.10.2
+    - git+https://github.com/lab-cosmo/equistore.git
