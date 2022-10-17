@@ -18,6 +18,8 @@ matrix_label_names = SimpleNamespace(
     block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
     )
 
+_pyscf2gpr_l1_order = [1,2,0]
+
 
 def _get_mrange(l):
     # for l=1, the pyscf order is x,y,z (1,-1,0)
@@ -87,7 +89,7 @@ def vector_to_tensormap(mol, c):
                 nsize = blocks[(l,q)].shape[-1]
                 cslice = c[i:i+nsize*msize].reshape(nsize,msize).T
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    cslice = cslice[[1,2,0]]
+                    cslice = cslice[_pyscf2gpr_l1_order]
                 blocks[(l,q)][iq[q],:,:] = cslice
                 i += msize*nsize
         else:
@@ -96,7 +98,7 @@ def vector_to_tensormap(mol, c):
                 msize = 2*l+1
                 cslice = c[i:i+msize]
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    cslice = cslice[[1,2,0]]
+                    cslice = cslice[_pyscf2gpr_l1_order]
                 blocks[(l,q)][iq[q],:,il[l]] = cslice
                 i     += msize
                 il[l] += 1
@@ -237,9 +239,9 @@ def matrix_to_tensormap(mol, dm):
     for key in blocks:
         l1,l2 = key[:2]
         if l1==1:
-            blocks[key] = np.ascontiguousarray(blocks[key][:,[1,2,0],:,:])
+            blocks[key] = np.ascontiguousarray(blocks[key][:,_pyscf2gpr_l1_order,:,:])
         if l2==1:
-            blocks[key] = np.ascontiguousarray(blocks[key][:,:,[1,2,0],:])
+            blocks[key] = np.ascontiguousarray(blocks[key][:,:,_pyscf2gpr_l1_order,:])
 
     # Build tensor map
     tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
