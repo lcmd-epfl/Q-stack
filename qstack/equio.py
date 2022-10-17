@@ -5,18 +5,19 @@ import equistore
 import numbers
 
 vector_label_names = SimpleNamespace(
-    tm  = ['spherical_harmonics_l', 'element'],
+    tm = ['spherical_harmonics_l', 'element'],
     block_prop = ['radial_channel'],
     block_samp = ['atom_id'],
     block_comp = ['spherical_harmonics_m']
     )
 
 matrix_label_names = SimpleNamespace(
-    tm  = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'element1', 'element2'],
+    tm = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'element1', 'element2'],
     block_prop = ['radial_channel1', 'radial_channel2'],
     block_samp = ['atom_id1', 'atom_id2'],
     block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
     )
+
 
 def _get_mrange(l):
     # for l=1, the pyscf order is x,y,z (1,-1,0)
@@ -24,6 +25,7 @@ def _get_mrange(l):
         return (1,-1,0)
     else:
         return range(-l,l+1)
+
 
 def _get_llist(q, mol):
     # TODO other basis formats?
@@ -34,8 +36,10 @@ def _get_llist(q, mol):
         llist.extend([l]*(len(prim[0])-1))
     return llist
 
+
 def _get_tsize(tensor):
     return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
+
 
 def vector_to_tensormap(mol, c):
 
@@ -81,19 +85,19 @@ def vector_to_tensormap(mol, c):
             for l in set(llists[q]):
                 msize = 2*l+1
                 nsize = blocks[(l,q)].shape[-1]
-                cslice =  c[i:i+nsize*msize].reshape(nsize,msize).T
-                if l==1: # for l=1, the pyscf order is x,y,z (1,-1,0)
+                cslice = c[i:i+nsize*msize].reshape(nsize,msize).T
+                if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
                     cslice = cslice[[1,2,0]]
-                blocks [(l,q)] [ iq[q] , : , : ] = cslice
+                blocks[(l,q)][iq[q],:,:] = cslice
                 i += msize*nsize
         else:
             il = {l:0 for l in range(max(llists[q])+1)}
             for l in llists[q]:
                 msize = 2*l+1
                 cslice = c[i:i+msize]
-                if l==1: # for l=1, the pyscf order is x,y,z (1,-1,0)
+                if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
                     cslice = cslice[[1,2,0]]
-                blocks [(l,q)] [ iq[q] , : , il[l] ] = cslice
+                blocks[(l,q)][iq[q],:,il[l]] = cslice
                 i     += msize
                 il[l] += 1
         iq[q] += 1
@@ -118,7 +122,7 @@ def tensormap_to_vector(mol, tensor):
     i = 0
     for iat, q in enumerate(atom_charges):
         llist = _get_llist(q, mol)
-        il = {l:0 for l in range(max(llist)+1)}
+        il = {l: 0 for l in range(max(llist)+1)}
         for l in llist:
             block = tensor.block(spherical_harmonics_l=l, element=q)
             id_samp = block.samples.position((iat,))
@@ -183,13 +187,13 @@ def matrix_to_tensormap(mol, dm):
     # Fill in the blocks
 
     if all([llists[q]==sorted(llists[q]) for q in llists]):
-        iq1 = {q1:0 for q1 in elements}
+        iq1 = {q1: 0 for q1 in elements}
         i1 = 0
         for iat1, q1 in enumerate(atom_charges):
             for l1 in set(llists[q1]):
                 msize1 = 2*l1+1
                 nsize1 = llists[q1].count(l1)
-                iq2 = {q2:0 for q2 in elements}
+                iq2 = {q2: 0 for q2 in elements}
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     for l2 in set(llists[q2]):
@@ -199,35 +203,35 @@ def matrix_to_tensormap(mol, dm):
                         dmslice = np.transpose(dmslice, axes=[1,3,0,2]).reshape(msize1,msize2,-1)
                         block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
                         at_p = block.samples.position((iat1,iat2))
-                        blocks [(l1,l2,q1,q2)][at_p,:,:,:] = dmslice
+                        blocks[(l1,l2,q1,q2)][at_p,:,:,:] = dmslice
                         i2 += msize2*nsize2
                     iq2[q2] += 1
                 i1 += msize1*nsize1
             iq1[q1] += 1
     else:
-       iq1 = {q1:0 for q1 in elements}
-       i1 = 0
-       for iat1, q1 in enumerate(atom_charges):
-           il1 = {l1:0 for l1 in range(max(llists[q1])+1)}
-           for l1 in llists[q1]:
-               msize1 = 2*l1+1
-               iq2 = {q2:0 for q2 in elements}
-               i2 = 0
-               for iat2, q2 in enumerate(atom_charges):
-                   il2 = {l2:0 for l2 in range(max(llists[q2])+1)}
-                   for l2 in llists[q2]:
-                       msize2 = 2*l2+1
-                       dmslice = dm[i1:i1+msize1,i2:i2+msize2]
-                       block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
-                       at_p = block.samples.position((iat1,iat2))
-                       n_p  = block.properties.position((il1[l1],il2[l2]))
-                       blocks [(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
-                       i2 += msize2
-                       il2[l2] += 1
-                   iq2[q2] += 1
-               i1 += msize1
-               il1[l1] += 1
-           iq1[q1] += 1
+        iq1 = {q1: 0 for q1 in elements}
+        i1 = 0
+        for iat1, q1 in enumerate(atom_charges):
+            il1 = {l1: 0 for l1 in range(max(llists[q1])+1)}
+            for l1 in llists[q1]:
+                msize1 = 2*l1+1
+                iq2 = {q2: 0 for q2 in elements}
+                i2 = 0
+                for iat2, q2 in enumerate(atom_charges):
+                    il2 = {l2: 0 for l2 in range(max(llists[q2])+1)}
+                    for l2 in llists[q2]:
+                        msize2 = 2*l2+1
+                        dmslice = dm[i1:i1+msize1,i2:i2+msize2]
+                        block = tensor_blocks[tm_label_vals.index((l1, l2, q1, q2))]
+                        at_p = block.samples.position((iat1, iat2))
+                        n_p = block.properties.position((il1[l1], il2[l2]))
+                        blocks[(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
+                        i2 += msize2
+                        il2[l2] += 1
+                    iq2[q2] += 1
+                i1 += msize1
+                il1[l1] += 1
+            iq1[q1] += 1
 
     # Fix the m order (for l=1, the pyscf order is x,y,z (1,-1,0))
     for key in blocks:
@@ -256,24 +260,24 @@ def tensormap_to_matrix(mol, tensor):
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):
         llist1 = _get_llist(q1, mol)
-        il1 = {l1:0 for l1 in range(max(llist1)+1)}
+        il1 = {l1: 0 for l1 in range(max(llist1)+1)}
         for l1 in llist1:
             for m1 in _get_mrange(l1):
 
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     llist2 = _get_llist(q2, mol)
-                    il2 = {l2:0 for l2 in range(max(llist2)+1)}
+                    il2 = {l2: 0 for l2 in range(max(llist2)+1)}
                     for l2 in llist2:
 
                         block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, element1=q1, element2=q2)
-                        id_samp = block.samples.position((iat1,iat2))
-                        id_prop = block.properties.position((il1[l1],il2[l2]))
+                        id_samp = block.samples.position((iat1, iat2))
+                        id_prop = block.properties.position((il1[l1], il2[l2]))
 
                         for m2 in _get_mrange(l2):
                             id_comp1 = block.components[0].position((m1,))
                             id_comp2 = block.components[1].position((m2,))
-                            dm[i1,i2] = block.values[id_samp,id_comp1,id_comp2,id_prop]
+                            dm[i1, i2] = block.values[id_samp, id_comp1, id_comp2, id_prop]
                             i2 += 1
                         il2[l2] += 1
                 i1 += 1
