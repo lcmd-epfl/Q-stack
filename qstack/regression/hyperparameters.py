@@ -8,7 +8,7 @@ from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
 def hyperparameters(X, y,
-           sigma=defaults.sigmaarr, eta=defaults.etaarr,
+           sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel,
            akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits,
            printlevel=0, adaptive=False, read_kernel=False):
 
@@ -47,7 +47,7 @@ def hyperparameters(X, y,
                 errors.append((mean, std, e, s))
         return errors
 
-    kernel = get_kernel(akernel)
+    kernel = get_kernel(akernel, gkernel)
     if read_kernel is False:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
     else:

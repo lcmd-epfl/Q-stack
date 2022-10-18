@@ -6,9 +6,9 @@ from sklearn.model_selection import train_test_split
 from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
-def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep, debug=False):
+def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, gkernel=defaults.gkernel, test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep, debug=False):
     if read_kernel is False:
-        kernel = get_kernel(akernel)
+        kernel = get_kernel(akernel, gkernel)
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
         K_all  = kernel(X_train, X_train, 1.0/sigma)
         Ks_all = kernel(X_test,  X_train, 1.0/sigma)
