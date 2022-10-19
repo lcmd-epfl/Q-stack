@@ -18,6 +18,8 @@ matrix_label_names = SimpleNamespace(
     block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
     )
 
+_molid_name = 'mol_id'
+
 _pyscf2gpr_l1_order = [1,2,0]
 
 
@@ -334,9 +336,55 @@ def join(tensors):
     for key in blocks:
         blocks[key] = np.concatenate(blocks[key])
         block_samp_label_vals[key] = np.array(block_samp_label_vals[key])
-        block_samp_labels[key] = equistore.Labels(('mol_id', *tensor.sample_names), block_samp_label_vals[key])
+        block_samp_labels[key] = equistore.Labels((_molid_name, *tensor.sample_names), block_samp_label_vals[key])
 
     tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
     tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensor
+
+
+def split(tensor):
+
+    if tensor.sample_names[0]!=_molid_name:
+        raise Exception(f'Tensor does not seem to contain several molecules')
+
+    # Check if the molecule indices are continuous
+    mollist = sorted(set(np.hstack([np.array(tensor.block(keys).samples.tolist())[:,0] for keys in tensor.keys])))
+    if mollist==list(range(len(mollist))):
+        tensors = [None] * len(mollist)
+    else:
+        tensors = {}
+
+    # Common labels
+    block_comp_labels = {}
+    block_prop_labels = {}
+    for label in tensor.keys:
+        key = label.tolist()
+        block = tensor.block(label)
+        block_comp_labels[key] = block.components
+        block_prop_labels[key] = block.properties
+
+    # Tensors for each molecule
+    for imol in mollist:
+        blocks = {}
+        block_samp_labels = {}
+
+        for label in tensor.keys:
+            key = label.tolist()
+            block = tensor.block(label)
+
+            samplelbl = [lbl for lbl in block.samples.tolist() if lbl[0]==imol]
+            if len(samplelbl)==0:
+                continue
+            sampleidx = [block.samples.position(lbl) for lbl in samplelbl]
+
+            blocks[key] = block.values[sampleidx]
+            block_samp_labels[key] = equistore.Labels(tensor.sample_names[1:], np.array(samplelbl)[:,1:])
+
+        tm_label_vals = sorted(list(blocks.keys()))
+        tm_labels = equistore.Labels(tensor.keys.names, np.array(tm_label_vals))
+        tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+        tensors[imol] = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+
+    return tensors
