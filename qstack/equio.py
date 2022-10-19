@@ -303,3 +303,40 @@ def tensormap_to_array(mol, tensor):
         raise Exception(f'Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
 
 
+def join(tensors):
+
+    if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
+        raise Exception(f'Cannot merge tensors with different label names')
+    tm_label_vals = sorted(list(set().union(*[set(tensor.keys.tolist()) for tensor in tensors])))
+    tm_labels = equistore.Labels(tensors[0].keys.names, np.array(tm_label_vals))
+
+    blocks = {}
+    block_comp_labels = {}
+    block_prop_labels = {}
+    block_samp_labels = {}
+    block_samp_label_vals = {}
+
+    for label in tm_labels:
+        key = tuple(label.tolist())
+        blocks[key] = []
+        block_samp_label_vals[key] = []
+        for imol,tensor in enumerate(tensors):
+            if not label in tensor.keys:
+                continue
+            block = tensor.block(label)
+            blocks[key].append(block.values)
+            block_samp_label_vals[key].extend([(imol, *s) for s in block.samples])
+
+            if not key in block_comp_labels:
+                block_comp_labels[key] = block.components
+                block_prop_labels[key] = block.properties
+
+    for key in blocks:
+        blocks[key] = np.concatenate(blocks[key])
+        block_samp_label_vals[key] = np.array(block_samp_label_vals[key])
+        block_samp_labels[key] = equistore.Labels(('mol_id', *tensor.sample_names), block_samp_label_vals[key])
+
+    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+    tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+
+    return tensor
