@@ -116,8 +116,7 @@ def tensormap_to_vector(mol, tensor):
 
     nao = _get_tsize(tensor)
     if mol.nao != nao:
-        errstr = f'Tensor size mismatch ({nao} instead of {mol.nao})'
-        raise Exception(errstr)
+        raise Exception(f'Tensor size mismatch ({nao} instead of {mol.nao})')
 
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
@@ -254,8 +253,7 @@ def tensormap_to_matrix(mol, tensor):
 
     nao2 = _get_tsize(tensor)
     if mol.nao*mol.nao != nao2:
-        errstr = f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})'
-        raise Exception(errstr)
+        raise Exception(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
 
     dm = np.zeros((mol.nao, mol.nao))
     atom_charges = mol.atom_charges()
@@ -286,3 +284,22 @@ def tensormap_to_matrix(mol, tensor):
             il1[l1] += 1
 
     return dm
+
+def array_to_tensormap(mol, v):
+    if v.ndim==1:
+        return vector_to_tensormap(mol, v)
+    elif v.ndim==2:
+        return matrix_to_tensormap(mol, v)
+    else:
+        raise Exception(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
+
+
+def tensormap_to_array(mol, tensor):
+    if tensor.keys.names==tuple(vector_label_names.tm):
+        return tensormap_to_vector(mol, tensor)
+    elif tensor.keys.names==tuple(matrix_label_names.tm):
+        return tensormap_to_matrix(mol, tensor)
+    else:
+        raise Exception(f'Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
+
+
