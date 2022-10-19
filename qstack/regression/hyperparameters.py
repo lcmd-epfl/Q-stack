@@ -33,7 +33,7 @@ def hyperparameters(X, y,
         errors = []
         for s in sigma:
             if read_kernel is False:
-                K_all = kernel(X_train, X_train, 1.0/s, rem_alpha)
+                K_all = kernel(X_train, X_train, 1.0/s)
             else:
                 K_all = X_train
 
@@ -47,7 +47,7 @@ def hyperparameters(X, y,
                 errors.append((mean, std, e, s))
         return errors
 
-    kernel = get_kernel(akernel, gkernel)
+    kernel = get_kernel(akernel, [gkernel, {'alpha':rem_alpha}])
     if read_kernel is False:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
     else:

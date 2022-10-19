@@ -29,22 +29,17 @@ def mol_to_dict(mol, species):
         mol_dict[k] = numpy.array(mol_dict[k])
     return mol_dict
 
-def avg_kernel(kernel, alpha):
+def avg_kernel(kernel, options):
     avg = numpy.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
     return avg
 
 
-def rematch_kernel(kernel, alpha):
+def rematch_kernel(kernel, options):
     from  dscribe.kernels import REMatchKernel as rematchkernel
-    rem = rematchkernel(alpha=alpha)
+    rem = rematchkernel(alpha=options['alpha'])
     K_rem = rem.get_global_similarity(kernel)
     return K_rem
 
-def get_gkernel(gkernel):
-    if gkernel == 'avg':
-        return avg_kernel
-    elif gkernel == 'rem':
-        return rematch_kernel
 
 def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     from qstack.regression.kernel_utils import get_kernel
@@ -68,7 +63,7 @@ def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     return K_covar
 
 
-def get_global_K(X, Y, sigma, local_kernel, global_kernel, alpha_rem):
+def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
     n_x = len(X)
     n_y = len(Y)
     species = sorted(list(set([s[0] for m in numpy.concatenate((X, Y), axis=0) for s in m])))
@@ -91,7 +86,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, alpha_rem):
     for m in range(0, n_x):
         for n in range(0, n_y):
             K_pair = get_covariance(X[m], Y[n], max_atoms, local_kernel, sigma=sigma)
-            K_global[m][n] = global_kernel(K_pair, alpha_rem)
+            K_global[m][n] = global_kernel(K_pair, options)
         if ((m+1) / len(X) * 100)%10 == 0:
             print(f"##### {(m+1) / len(X) * 100}% #####", sep='', end='', flush=True)
     print("]", flush=True)
@@ -139,24 +134,37 @@ def my_laplacian_kernel_c(X, Y, gamma):
 
 
 
+def get_local_kernel(arg):
+    if arg=='G':
+        from sklearn.metrics.pairwise import rbf_kernel
+        local_kernel = rbf_kernel
+    elif arg=='L':
+        from sklearn.metrics.pairwise import laplacian_kernel
+        local_kernel = laplacian_kernel
+    elif arg=='myL':
+        local_kernel = my_laplacian_kernel
+    elif arg=='myLfast':
+        local_kernel = my_laplacian_kernel_c
+    else:
+        raise Exception(f'{arg} kernel is not implemented') # TODO
+
+def get_global_kernel(arg, local_kernel):
+    gkernel, options = arg
+    if gkernel == 'avg':
+        global_kernel = avg_kernel
+    elif gkernel == 'rem':
+        global_kernel = rematch_kernel
+    else:
+        raise Exception(f'{gkernel} kernel is not implemented') # TODO
+    return lambda x, y, s, a: get_global_K(x, y, s, local_kernel, global_kernel, options)
+
+
 def get_kernel(arg, arg2=None):
   """ Returns the kernel function depending on the cli argument """
 
-  if arg=='G':
-      from sklearn.metrics.pairwise import rbf_kernel
-      local_kernel = rbf_kernel
-  elif arg=='L':
-      from sklearn.metrics.pairwise import laplacian_kernel
-      local_kernel = laplacian_kernel
-  elif arg=='myL':
-      local_kernel = my_laplacian_kernel
-  elif arg=='myLfast':
-      local_kernel = my_laplacian_kernel_c
+  local_kernel = get_local_kernel(arg)
 
-  if arg2 == None:
+  if arg2 is None:
       return local_kernel
   else:
-      if arg2 == 'avg':
-          return lambda x, y, s, a: get_global_K(x, y, s, local_kernel, avg_kernel, a)
-      elif arg2 == 'rem':
-          return lambda x, y, s, a: get_global_K(x, y, s, local_kernel, rematch_kernel, a)
+      return get_global_kernel(arg2, local_kernel)

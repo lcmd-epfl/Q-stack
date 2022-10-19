@@ -8,10 +8,10 @@ from qstack.tools import correct_num_threads
 
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, gkernel=defaults.gkernel, rem_alpha=defaults.rem_alpha, test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep, debug=False):
     if read_kernel is False:
-        kernel = get_kernel(akernel, gkernel)
+        kernel = get_kernel(akernel, [gkernel, {'alpha':rem_alpha}])
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
-        K_all  = kernel(X_train, X_train, 1.0/sigma, rem_alpha)
-        Ks_all = kernel(X_test,  X_train, 1.0/sigma, rem_alpha)
+        K_all  = kernel(X_train, X_train, 1.0/sigma)
+        Ks_all = kernel(X_test,  X_train, 1.0/sigma)
     else:
         idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=0)
         K_all  = X[np.ix_(idx_train,idx_train)]
