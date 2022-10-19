@@ -8,6 +8,7 @@ defaults = SimpleNamespace(
   eta=1e-5,
   kernel='L',
   gkernel='avg',
+  rem_alpha=0.1,
   test_size=0.2,
   n_rep=5,
   splits=5,
@@ -28,12 +29,12 @@ def mol_to_dict(mol, species):
         mol_dict[k] = numpy.array(mol_dict[k])
     return mol_dict
 
-def avg_kernel(kernel):
+def avg_kernel(kernel, alpha):
     avg = numpy.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
     return avg
 
 
-def rematch_kernel(kernel, alpha=0.1):
+def rematch_kernel(kernel, alpha):
     from  dscribe.kernels import REMatchKernel as rematchkernel
     rem = rematchkernel(alpha=alpha)
     K_rem = rem.get_global_similarity(kernel)
@@ -67,7 +68,7 @@ def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     return K_covar
 
 
-def get_global_K(X, Y, sigma, local_kernel, global_kernel):
+def get_global_K(X, Y, sigma, local_kernel, global_kernel, alpha_rem):
     n_x = len(X)
     n_y = len(Y)
     species = sorted(list(set([s[0] for m in numpy.concatenate((X, Y), axis=0) for s in m])))
@@ -90,7 +91,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel):
     for m in range(0, n_x):
         for n in range(0, n_y):
             K_pair = get_covariance(X[m], Y[n], max_atoms, local_kernel, sigma=sigma)
-            K_global[m][n] = global_kernel(K_pair)
+            K_global[m][n] = global_kernel(K_pair, alpha_rem)
         if ((m+1) / len(X) * 100)%10 == 0:
             print(f"##### {(m+1) / len(X) * 100}% #####", sep='', end='', flush=True)
     print("]", flush=True)
@@ -156,6 +157,6 @@ def get_kernel(arg, arg2=None):
       return local_kernel
   else:
       if arg2 == 'avg':
-          return lambda x, y, s: get_global_K(x, y, s, local_kernel, avg_kernel)
+          return lambda x, y, s, a: get_global_K(x, y, s, local_kernel, avg_kernel, a)
       elif arg2 == 'rem':
-          return lambda x, y, s: get_global_K(x, y, s, local_kernel, rematch_kernel)
+          return lambda x, y, s, a: get_global_K(x, y, s, local_kernel, rematch_kernel, a)
