@@ -2,13 +2,30 @@ import numpy
 import sysconfig
 from types import SimpleNamespace
 import qstack
+import argparse
+
+class ParseKwargs(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+                    setattr(namespace, self.dest, dict())
+                    for value in values:
+                        key, value = value.split('=')
+                        for t in [int, float]:
+                            try:
+                                value = t(value)
+                                break
+                            except:
+                                continue
+                        getattr(namespace, self.dest)[key] = value
+
+
+
 
 defaults = SimpleNamespace(
   sigma=32.0,
   eta=1e-5,
   kernel='L',
   gkernel='avg',
-  rem_alpha=0.1,
+  gdict={'alpha':1.0, 'normalize':1},
   test_size=0.2,
   n_rep=5,
   splits=5,
@@ -36,7 +53,7 @@ def avg_kernel(kernel, options):
 
 def rematch_kernel(kernel, options):
     from  dscribe.kernels import REMatchKernel as rematchkernel
-    rem = rematchkernel(alpha=options['alpha'])
+    rem = rematchkernel(alpha=options['alpha'], normalize_kernel=bool(options['normalize']))
     K_rem = rem.get_global_similarity(kernel)
     return K_rem
 
@@ -137,14 +154,17 @@ def my_laplacian_kernel_c(X, Y, gamma):
 def get_local_kernel(arg):
     if arg=='G':
         from sklearn.metrics.pairwise import rbf_kernel
-        local_kernel = rbf_kernel
+        return rbf_kernel
+    elif arg=='dot':
+        from sklearn.metrics.pairwise import linear_kernel
+        return lambda x,y,s: linear_kernel(x, y)
     elif arg=='L':
         from sklearn.metrics.pairwise import laplacian_kernel
-        local_kernel = laplacian_kernel
+        return laplacian_kernel
     elif arg=='myL':
-        local_kernel = my_laplacian_kernel
+        return my_laplacian_kernel
     elif arg=='myLfast':
-        local_kernel = my_laplacian_kernel_c
+        return my_laplacian_kernel_c
     else:
         raise Exception(f'{arg} kernel is not implemented') # TODO
 
@@ -156,7 +176,7 @@ def get_global_kernel(arg, local_kernel):
         global_kernel = rematch_kernel
     else:
         raise Exception(f'{gkernel} kernel is not implemented') # TODO
-    return lambda x, y, s, a: get_global_K(x, y, s, local_kernel, global_kernel, options)
+    return lambda x, y, s: get_global_K(x, y, s, local_kernel, global_kernel, options)
 
 
 def get_kernel(arg, arg2=None):
