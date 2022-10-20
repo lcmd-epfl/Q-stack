@@ -48,10 +48,6 @@ def mol_to_dict(mol, species):
 
 def avg_kernel(kernel, options):
     avg = numpy.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
-    print(kernel)
-    print(numpy.sum(kernel))
-    print(kernel.shape[0] * kernel.shape[1])
-    print(avg)
     return avg
 
 
@@ -63,7 +59,7 @@ def rematch_kernel(kernel, options):
 
 def normalize_kernel(kernel):
     print("Normalizing kernel.")
-    self_cov = numpy.diag(kernel)
+    self_cov = numpy.diag(kernel).copy()
     for n in range(kernel.shape[0]):
         for m in range(kernel.shape[1]):
             kernel[n][m] /= numpy.sqrt(self_cov[n]*self_cov[m])
