@@ -31,8 +31,7 @@ def main():
         x_files = [os.path.join(args.repr, f) for f in os.listdir(args.repr) if os.path.isfile(os.path.join(args.repr, f))]
         X = [np.load(f, allow_pickle=True) for f in x_files]
     K = kernel(X, sigma=args.sigma, akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict)
-    print(K)
-#    np.save(args.dir+'/K_'+os.path.splitext(os.path.basename(args.repr))[0]+'_'+args.akernel+'_'+f"{args.gkernel}"+f"_norm{'_'.join([str(v) for v in args.gdict.values()])}_"+"%e"%args.sigma, K)
+    np.save(args.dir+'/K_'+os.path.splitext(os.path.basename(args.repr))[0]+'_'+args.akernel+'_'+f"{args.gkernel}"+f"_norm{'_'.join([str(v) for v in args.gdict.values()])}_"+"%e"%args.sigma, K)
 
 if __name__ == "__main__":
     main()
