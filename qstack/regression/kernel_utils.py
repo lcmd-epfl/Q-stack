@@ -48,6 +48,10 @@ def mol_to_dict(mol, species):
 
 def avg_kernel(kernel, options):
     avg = numpy.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
+    print(kernel)
+    print(numpy.sum(kernel))
+    print(kernel.shape[0] * kernel.shape[1])
+    print(avg)
     return avg
 
 
@@ -57,6 +61,13 @@ def rematch_kernel(kernel, options):
     K_rem = rem.get_global_similarity(kernel)
     return K_rem
 
+def normalize_kernel(kernel):
+    print("Normalizing kernel.")
+    self_cov = numpy.diag(kernel)
+    for n in range(kernel.shape[0]):
+        for m in range(kernel.shape[1]):
+            kernel[n][m] /= numpy.sqrt(self_cov[n]*self_cov[m])
+    return kernel
 
 def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     from qstack.regression.kernel_utils import get_kernel
@@ -107,6 +118,8 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
         if ((m+1) / len(X) * 100)%10 == 0:
             print(f"##### {(m+1) / len(X) * 100}% #####", sep='', end='', flush=True)
     print("]", flush=True)
+    if options['normalize'] == True:
+        K_global = normalize_kernel(K_global)
     print(f"Final global kernel has size : {K_global.shape}", flush=True)
     return K_global
 
