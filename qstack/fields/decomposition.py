@@ -1,5 +1,6 @@
 import numpy as np
 import scipy
+from pyscf import scf
 import qstack
 
 def decompose(mol, dm, auxbasis):
@@ -44,6 +45,16 @@ def get_integrals(mol, auxmol):
     eri3c = eri3c.reshape(mol.nao_nr(), mol.nao_nr(), -1)
 
     return S, eri2c, eri3c
+
+def get_self_repulsion(mol, dm):
+    try:
+        j, k = mol.get_jk()
+    except:
+        j, k = scf.hf.get_jk(mol, dm)
+    return np.einsum('ij,ij', j, dm)
+
+def decomposition_error(self_repulsion, c, eri2c):
+    return self_repulsion - c @ eri2c @ c
 
 def get_coeff(dm, eri2c, eri3c):
     """Computes the density expansion coefficients.
