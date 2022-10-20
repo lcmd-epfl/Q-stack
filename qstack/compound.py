@@ -1,8 +1,9 @@
 """
-Module containing all the operations to load, transform, and save molecular objects. 
+Module containing all the operations to load, transform, and save molecular objects.
 """
 
 import pickle
+import numpy as np
 from pyscf import gto
 from qstack import constants
 from qstack.tools import rotate_euler
@@ -215,3 +216,34 @@ def rotate_molecule(mol, a, b, g, rad=False):
     rotated_mol.build()
 
     return rotated_mol
+
+
+
+def fragments_read(frag_file):
+    with open(frag_file, 'r') as f:
+        fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f.readlines()]
+    return fragments
+
+def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
+    if type(prop_atom_inp)==list:
+        props_atom = prop_atom_inp
+    else:
+        props_atom = [prop_atom_inp]
+
+    props_frag = []
+    for prop_atom in props_atom:
+        prop_frag = np.zeros(len(fragments))
+        for i, k in enumerate(fragments):
+            prop_frag[i] = prop_atom[k].sum()
+            prop_frag[i] = prop_atom[k].sum()
+        props_frag.append(prop_frag)
+
+    if normalize:
+        for i, prop_frag in enumerate(props_frag):
+            tot = prop_frag.sum()
+            props_frag[i] *= 100.0 / tot
+
+    if type(prop_atom_inp)==list:
+        return props_frag
+    else:
+        return props_frag[0]
