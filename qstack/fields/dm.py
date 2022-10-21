@@ -1,4 +1,4 @@
-from pyscf import dft
+from pyscf import dft, scf
 from qstack import constants
 import numpy as np
 
@@ -85,3 +85,12 @@ def sphericalize_density_matrix(mol, dm):
                         spherical_dm[idx+m,jdx+m] = trace / (2*l+1)
 
     return spherical_dm
+
+# TODO merge with get_converged_dm()
+def get_converged_mf(mol, func, dm0=None):
+    mf = scf.RKS(mol)
+    mf.xc = func
+    mf.kernel(dm0=dm0)
+    dm = mf.make_rdm1()
+    return (mf, dm)
+
