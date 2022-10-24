@@ -52,17 +52,45 @@ def avg_kernel(kernel, options):
 
 
 def rematch_kernel(kernel, options):
-    from  dscribe.kernels import REMatchKernel as rematchkernel
-    rem = rematchkernel(alpha=options['alpha'], normalize_kernel=bool(options['normalize']))
-    K_rem = rem.get_global_similarity(kernel)
+    alpha = options['alpha']
+    thresh = 1e-6
+    n, m = kernel.shape
+
+    K = numpy.exp(-(1 - kernel) / alpha)
+
+    en = numpy.ones((n,)) / float(n)
+    em = numpy.ones((m,)) / float(m)
+
+    u = en.copy()
+    v = em.copy()
+
+    niter = 0
+    error = 1
+
+    while error > thresh:
+        v_prev = v
+        u_prev = u
+
+        u = numpy.divide(en, numpy.dot(K, v))
+        v = numpy.divide(em, numpy.dot(K.T, u))
+
+        if niter % 5:
+            error = numpy.sum((u - u_prev) ** 2) / numpy.sum(u ** 2) + numpy.sum((v - v_prev) ** 2) / numpy.sum(v **2)
+
+        niter += 1
+    p_alpha = numpy.multiply(numpy.multiply(K, u.reshape((-1, 1))) , v)
+    K_rem = numpy.sum(numpy.multiply(p_alpha, kernel))
     return K_rem
 
-def normalize_kernel(kernel):
+def normalize_kernel(kernel, self_x=None, self_y=None):
     print("Normalizing kernel.")
-    self_cov = numpy.diag(kernel).copy()
+    if self_x == None and self_y == None:
+        self_cov = numpy.diag(kernel).copy()
+        self_x = self_cov
+        self_y = self_cov
     for n in range(kernel.shape[0]):
         for m in range(kernel.shape[1]):
-            kernel[n][m] /= numpy.sqrt(self_cov[n]*self_cov[m])
+            kernel[n][m] /= numpy.sqrt(self_x[n]*self_y[m])
     return kernel
 
 def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
@@ -107,15 +135,30 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
     print(max_atoms, max_size, flush=True)
     K_global = numpy.zeros((n_x, n_y))
     print("Computing global kernel elements:\n[", sep='', end='', flush=True)
+    if X[0] == Y[0]:
+        self = True
+    else:
+        self = False
+        self_X = []
+        self_Y = []
     for m in range(0, n_x):
+        if not self:
+            K_self = get_covariance(X[m], X[m], max_atoms, local_kernel, sigma=sigma)
+            self_X.append(global_kernel(K_self, options))
         for n in range(0, n_y):
+            if not self:
+                K_self = get_covariance(Y[m], Y[m], max_atoms, local_kernel, sigma=sigma)
+                self_Y.append(global_kernel(K_self, options))
             K_pair = get_covariance(X[m], Y[n], max_atoms, local_kernel, sigma=sigma)
             K_global[m][n] = global_kernel(K_pair, options)
         if ((m+1) / len(X) * 100)%10 == 0:
             print(f"##### {(m+1) / len(X) * 100}% #####", sep='', end='', flush=True)
     print("]", flush=True)
     if options['normalize'] == True:
-        K_global = normalize_kernel(K_global)
+        if self :
+            K_global = normalize_kernel(K_global, self_x=None, self_y=None)
+        else:
+            K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y)
     print(f"Final global kernel has size : {K_global.shape}", flush=True)
     return K_global
 
