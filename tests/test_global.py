@@ -25,9 +25,9 @@ def test_rem_kernel():
     mols = [np.load(os.path.join(X_dir, f), allow_pickle=True) for f in os.listdir(X_dir) if os.path.isfile(os.path.join(X_dir,f))]
     K = kernel.kernel(mols, akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1})
 
-    true_K = np.array(  [[1.      ,  1.      ,  0.6528238], \
-                        [1.       , 1.       , 0.6528238] , \
-                        [0.6528238, 0.6528238, 1.       ]])
+    true_K = np.array(  [[1.      , 0.6528238, 1.      ], \
+                        [0.6528238,1.        ,0.6528238], \
+                        [1.       ,0.6528238 ,1.       ]])
 
     assert(K.shape == (3,3))
     assert(np.abs(np.sum(K-true_K)) < 1e-05)
