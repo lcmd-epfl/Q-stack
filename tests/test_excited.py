@@ -34,13 +34,23 @@ def test_excited():
     dist, hole_extent, part_extent = fields.excited.exciton_properties(auxmol, hole_c, part_c)
     assert(np.linalg.norm(np.array([dist, hole_extent, part_extent])-np.array([2.59940378, 7.8477511,  5.67541635]))<1e-7)
 
+
+
+def test_excited_frag():
+
+    path = os.path.dirname(os.path.realpath(__file__))
+    xyzfile = path+'/data/excited/C1-13-2-3.xyz'
+    auxmol  = compound.xyz_to_mol(xyzfile, 'ccpvqz jkfit')
+    hole_c  = np.load(xyzfile+'.st2_dm_hole_fit.npy')
+    part_c  = np.load(xyzfile+'.st2_dm_part_fit.npy')
     fragments = compound.fragments_read(xyzfile+'.frag')
-    omega_hole_atom, omega_part_atom = fields.hirshfeld.hirshfeld_charges(auxmol, [hole_c, part_c], atm_bas='ccpvqz jkfit', dominant=True, occupations=True)
+    omega_hole_atom, omega_part_atom = fields.hirshfeld.hirshfeld_charges(auxmol, [hole_c, part_c], atm_bas='def2svp', dominant=True, occupations=True, grid_level=1)
     omega_hole_frag, omega_part_frag = compound.fragment_partitioning(fragments, [omega_hole_atom, omega_part_atom], normalize=True)
-    omega_hole_frag0 = np.array([ 4.24084976, 25.1807491 ,  7.80248335, 32.88807132, 29.88784647])
-    omega_part_frag0 = np.array([ 1.86411961, 20.01950396, 37.24669826, 36.80446935,  4.06520882])
+    omega_hole_frag0 = np.array([ 4.24465477, 25.17476403,  7.80532138, 32.88857084, 29.88668899])
+    omega_part_frag0 = np.array([ 1.86936435, 20.01021326, 37.31393462, 36.74049231,  4.06599547])
     assert(np.linalg.norm(omega_hole_frag-omega_hole_frag0)<1e-8)
     assert(np.linalg.norm(omega_part_frag-omega_part_frag0)<1e-8)
 
 if __name__ == '__main__':
     test_excited()
+    test_excited_frag()
