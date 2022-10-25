@@ -5,17 +5,17 @@ import qstack
 import argparse
 
 class ParseKwargs(argparse.Action):
-        def __call__(self, parser, namespace, values, option_string=None):
-                    setattr(namespace, self.dest, dict())
-                    for value in values:
-                        key, value = value.split('=')
-                        for t in [int, float]:
-                            try:
-                                value = t(value)
-                                break
-                            except:
-                                continue
-                        getattr(namespace, self.dest)[key] = value
+   def __call__(self, parser, namespace, values, option_string=None):
+       setattr(namespace, self.dest, defaults.gdict)
+       for value in values:
+           key, value = value.split('=')
+           for t in [int, float]:
+               try:
+                   value = t(value)
+                   break
+               except:
+                   continue
+           getattr(namespace, self.dest)[key] = value
 
 
 
