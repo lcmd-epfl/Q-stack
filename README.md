@@ -3,14 +3,16 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 ==============================================
 Q-stack
 ==============================================
-![qstack logo](./images/logo.png)
+<p align="center"><img alt="qstack logo" align="center" src="./images/logo.png" width=66%></p>
+
 
 ## Contents
 * [Contents](#Contents-)
 * [About](#about-)
 * [Install](#install-)
 * [Examples](#examples-)
-* [Acknowledgements](#Acknowledgements-)
+* [References](#references-)
+* [Acknowledgements](#acknowledgements-)
 
 ## About [↑](#contents)
 
@@ -53,7 +55,38 @@ python example_SPAHM.py
 ```
 
 
-## Acknowledgements [↑](#contents)
-The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR) "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" of the Swiss National Science Foundation (SNSF, grant number 182892) and the European Research Council (ERC, grant agreement no 817977).
+## References [↑](#contents)
 
-![ackw logo](./images/ackw.png)
+* A. Fabrizio, A. Grisafi, B. Meyer, M. Ceriotti, and C. Corminboeuf,
+“Electron density learning of non-covalent systems”,
+Chem. Sci. **10**, 9492 (2019)
+[![DOI](https://img.shields.io/badge/DOI-10.1039%2FC9SC02696G-blue)](https://doi.org/10.1039/C9SC02696G)
+
+* A. Fabrizio, K. R. Briling, D. D. Girardier, and C. Corminboeuf,
+“Learning on-top: regressing the on-top pair density for real-space visualization of electron correlation”,
+J. Chem. Phys. **153**, 204111 (2020)
+[![DOI](https://img.shields.io/badge/DOI-10.1063%2F5.0033326-blue)](https://doi.org/10.1063/5.0033326)
+
+* S. Vela, A. Fabrizio, K. R. Briling, and C. Corminboeuf,
+“Machine-learning the transition density of the productive excited states of azo-dyes”
+J. Phys. Chem. Lett. **12**, 5957–5962 (2021).
+[![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jpclett.1c01425-blue)](https://doi.org/10.1021/acs.jpclett.1c01425)
+
+* K. R. Briling, A. Fabrizio, and C. Corminboeuf,
+“Impact of quantum-chemical metrics on the machine learning prediction of electron density”,
+J. Chem. Phys. **155**, 024107 (2021)
+[![DOI](https://img.shields.io/badge/DOI-10.1063/5.0055393-blue)](https://doi.org/10.1063/5.0055393)
+
+* A. Fabrizio, K. R. Briling, and C. Corminboeuf,
+“SPAHM: the Spectrum of Approximated Hamiltonian Matrices representations”,
+Digital Discovery, *1*, 286–294 (2022)
+[![DOI](https://img.shields.io/badge/DOI-10.1039/D1DD00050K-blue)](https://doi.org/10.1039/D1DD00050K)
+
+
+## Acknowledgements [↑](#contents)
+The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR)
+"Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" 
+of the Swiss National Science Foundation (SNSF, grant number 182892)
+and the European Research Council (ERC, grant agreement no 817977).
+
+![acknowledgements logos](./images/ackw.png)
