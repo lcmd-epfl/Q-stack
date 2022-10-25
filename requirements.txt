@@ -13,4 +13,5 @@ pytest==6.2.5
 numpy===1.22.3
 scipy==1.7.3
 toml==0.10.2
+scikit-learn
 git+https://github.com/lab-cosmo/equistore.git#egg=equistore

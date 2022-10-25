@@ -33,6 +33,7 @@ dependencies:
   - wheel=0.37.0=pyhd3eb1b0_1
   - xz=5.2.5=h7b6447c_0
   - zlib=1.2.11=h7f8727e_4
+  - scikit-learn
   - pip:
     - attrs==21.4.0
     - h5py==3.6.0
