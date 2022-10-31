@@ -8,19 +8,6 @@ import pyscf
 from  qstack import compound, spahm
 from modules import utils, dmb_rep_atom as dmba
 
-parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
-parser.add_argument('--mol',       dest='pathToMol',    required=True,                       type=str,            help="The path to the xyz file with the molecular structure")
-parser.add_argument('--guess',     dest='initialGuess', default='LB',                        type=str,            help="The initial guess Hamiltonian to be used. Default: LB")
-parser.add_argument('--basis-set', dest='basisSet',     default='minao',                     type=str,            help="Basis set for computing density matrix (default : minao)")
-parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
-parser.add_argument('--model',     dest='modelRep',     default='Lowdin-long-x',             type=str,            help="The model to use when creating the representation" )
-parser.add_argument('--dm',        dest='dm',           default=None,                        type=str,            help="The density matrix to load instead of computing the guess" )
-parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
-parser.add_argument('--charge',    dest='charge',       default=0,                           type=int,            help='total charge of the system (default=0)')
-parser.add_argument('--spin',      dest='spin',         default=None,                        type=int,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
-parser.add_argument('--omod',      type=str,            dest='omod',      default=['alpha','beta'], nargs='+',  help='model for open-shell systems (alpha, beta, sum, diff')
-args = parser.parse_args()
-print(vars(args))
 
 
 def check_file(mol_file):
@@ -30,6 +17,23 @@ def check_file(mol_file):
     return mol_file
 
 def main() :
+
+    parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
+    parser.add_argument('--mol',       dest='pathToMol',    required=True,                       type=str,            help="The path to the xyz file with the molecular structure")
+    parser.add_argument('--guess',     dest='initialGuess', default='LB',                        type=str,            help="The initial guess Hamiltonian to be used. Default: LB")
+    parser.add_argument('--basis-set', dest='basisSet',     default='minao',                     type=str,            help="Basis set for computing density matrix (default : minao)")
+    parser.add_argument('--aux-basis', dest='auxBasisSet',  default='ccpvdzjkfit',               type=str,            help="Auxiliary basis set for density fitting the density-matrix (default: ccpdvz-jkfit")
+    parser.add_argument('--model',     dest='modelRep',     default='Lowdin-long-x',             type=str,            help="The model to use when creating the representation" )
+    parser.add_argument('--dm',        dest='dm',           default=None,                        type=str,            help="The density matrix to load instead of computing the guess" )
+    parser.add_argument('--species',   dest='Species',      default = ["C", "H", "O", "N", "S"], type=str, nargs='+', help="The elements contained in the database")
+    parser.add_argument('--charge',    dest='charge',       default=0,                           type=int,            help='total charge of the system (default=0)')
+    parser.add_argument('--spin',      dest='spin',         default=None,                        type=int,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
+    parser.add_argument('--pathout',      dest='PathOut',         default=None,                        type=str,            help='number of unpaired electrons (default=None) (use 0 to treat a closed-shell system in a UHF manner)')
+    parser.add_argument('--omod',      type=str,            dest='omod',      default=['alpha','beta'], nargs='+',  help='model for open-shell systems (alpha, beta, sum, diff')
+    args = parser.parse_args()
+    print(vars(args))
+
+
 
     # User-defined options
     guess         = spahm.guesses.get_guess(args.initialGuess)
@@ -48,8 +52,8 @@ def main() :
 
     # output dir
     cwd = os.getcwd()
-    dir_out = 'X_' + (cwd+'/'+mol_file).split('/')[-2]
-    if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
+#    dir_out = 'X_' + (cwd+'/'+mol_file).split('/')[-2]
+#    if not isdir(join(cwd, dir_out)) : os.mkdir(join(cwd, dir_out))
 
     # Compute density matrices
     print("Computing DM...")
@@ -74,7 +78,10 @@ def main() :
             name_out = 'X_'+mol_name
         else:
             name_out = 'X_'+mol_name+'_'+omod
-        path_out = join(cwd, dir_out, name_out)
+        if args.PathOut != None:
+            path_out = args.PathOut
+        else:
+            path_out = join(cwd, dir_out, name_out)
         np.save(path_out, vectors)
 
         print(f"Generated density-based representation for {mol_name} with")
