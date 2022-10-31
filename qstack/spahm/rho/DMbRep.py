@@ -55,8 +55,9 @@ def generate_ROHSPAHM(mol_file, atom_types, charge, spin, open_mod=defaults.omod
         rep.append(vectors)
 
         if spin == None:
+            rep = vectors
             break
-    
+    rep = np.array(rep, dtype=object)
     return rep
 
 
