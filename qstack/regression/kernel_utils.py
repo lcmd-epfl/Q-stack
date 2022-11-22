@@ -24,7 +24,7 @@ defaults = SimpleNamespace(
   sigma=32.0,
   eta=1e-5,
   kernel='L',
-  gkernel='avg',
+  gkernel=None,
   gdict={'alpha':1.0, 'normalize':1},
   test_size=0.2,
   n_rep=5,
@@ -161,6 +161,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
             K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y)
     print(f"Final global kernel has size : {K_global.shape}", flush=True)
     return K_global
+
 
 def my_laplacian_kernel(X, Y, gamma):
   """ Compute Laplacian kernel between X and Y """
