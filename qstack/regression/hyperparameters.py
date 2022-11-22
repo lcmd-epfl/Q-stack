@@ -110,7 +110,7 @@ def main():
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.kernel, test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
+    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel, test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
 
     print()
     print('error        stdev          eta          sigma')
