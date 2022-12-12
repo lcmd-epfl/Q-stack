@@ -88,6 +88,24 @@ def vec_from_cs(z, cs, lmax, idx):
     return v
 
 
+def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
+    q0, q1 = q[i0], q[i1]
+    r0, r1 = r[i0], r[i1]
+    z = r1-r0
+    if np.linalg.norm(z)>cutoff:
+        #1e-12: 6 A
+        #1e-10: 5 A
+        #1e-8 : 4 A
+        #1e-6 : 3 A
+        return None
+    dm1   = L.get_bond(i0,i1)
+    bname = make_bname(q0,q1)
+    cs    = fit_dm(dm1, L.mol, mybasis[bname], r0, r1)
+    lmax  = max([ c[0] for c in cs])
+    v0    = vec_from_cs(+z, cs, lmax, idx[bname])
+    v1    = vec_from_cs(-z, cs, lmax, idx[bname])
+    return [v0, v1], bname
+
 
 def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff):
 
@@ -98,25 +116,12 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff):
   mybonds = [bonds_dict_init(qqs[q0], M) for q0 in q]
 
   for i0 in range(mol.natm):
-    for i1 in range(i0):
-      q0, q1 = q[i0], q[i1]
-      r0, r1 = r[i0], r[i1]
-      z = r1-r0
-      if np.linalg.norm(z)>cutoff:
-        #1e-12: 6 A
-        #1e-10: 5 A
-        #1e-8 : 4 A
-        #1e-6 : 3 A
-        continue
-
-      dm1   = L.get_bond(i0,i1)
-      bname = make_bname(q0,q1)
-      cs    = fit_dm(dm1, mol, mybasis[bname], r0, r1)
-      lmax  = max([ c[0] for c in cs])
-      v0    = vec_from_cs(+z, cs, lmax, idx[bname])
-      v1    = vec_from_cs(-z, cs, lmax, idx[bname])
-      mybonds[i0][0][bname] += v0
-      mybonds[i1][0][bname] += v1
+      for i1 in range(i0):
+          v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff)
+          if v is None:
+              continue
+          mybonds[i0][0][bname] += v[0]
+          mybonds[i1][0][bname] += v[1]
 
   vec = [None]*mol.natm
   for i0 in range(mol.natm):
