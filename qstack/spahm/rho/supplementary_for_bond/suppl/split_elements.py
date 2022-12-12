@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import argparse
 import numpy as np
 
@@ -23,9 +24,10 @@ for q in sorted(list(set(qs))):
 for q,d in zip(qs,data):
   mydict[q].append(d)
 
+model = os.path.splitext(os.path.basename(args.dfile))[0]
 for q in mydict:
   if txt:
-    np.savetxt(str(q)+'.dat', np.array(mydict[q]))
+    np.savetxt(str(q)+'_'+model+'.dat', np.array(mydict[q]))
   else:
-    np.save(str(q), np.array(mydict[q]))
+    np.save(str(q)+'_'+model, np.array(mydict[q]))
 
