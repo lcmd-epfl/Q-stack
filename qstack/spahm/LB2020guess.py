@@ -314,3 +314,29 @@ class LB2020guess:
       self.Hcore = mol.intor('int1e_nuc_sph') + mol.intor('int1e_kin_sph')
       self.H    = self.Hcore + self.HLB20(mol)
       return self.H
+
+
+  def HLB20_ints_generator(self, mol, auxmol):
+      pmol  = mol + auxmol
+      shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
+      eri3c2e_ip1 = pmol.intor('int3c2e_ip1', shls_slice=shls_slice) # (nabla \, \| \)
+      eri3c2e_ip2 = pmol.intor('int3c2e_ip2', shls_slice=shls_slice) # ( \, \| nabla\)
+      aoslices = mol.aoslice_by_atom()[:,2:]
+      auxaoslices = auxmol.aoslice_by_atom()[:,2:]
+      def HLB20_ints_deriv(iat):
+          p0, p1 = aoslices[iat]
+          P0, P1 = auxaoslices[iat]
+          eri3c2e_ip = numpy.zeros_like(eri3c2e_ip1)
+          eri3c2e_ip[:,p0:p1,:,:] += eri3c2e_ip1[:,p0:p1,:,:]
+          eri3c2e_ip[:,:,p0:p1,:] += eri3c2e_ip1[:,p0:p1,:,:].transpose((0,2,1,3))
+          eri3c2e_ip[:,:,:,P0:P1] += eri3c2e_ip2[:,:,:,P0:P1]
+          return -eri3c2e_ip
+      return HLB20_ints_deriv
+
+  def HLB20_generator(self, mol):
+      acbasis = self.use_charge(mol)
+      auxmol  = pyscf.df.make_auxmol(mol, acbasis)
+      eri3c   = self.HLB20_ints_generator(mol, auxmol)
+      def HLB20_deriv(iat):
+          return self.merge_caps(auxmol, eri3c(iat))
+      return HLB20_deriv
