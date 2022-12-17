@@ -277,30 +277,40 @@ class LB2020guess:
 'No': [[0, [9692.47931286, 489.2442112346279]], [0, [672.034303671, 214.23197488829172]], [0, [105.988550516, 117.63038685999115]], [0, [18.5442146559, 70.92646079341314]], [0, [2.7932429022, 16.425417198806798]], [0, [0.577107028367, 2.4645969790388342]], [0, [0.0432042120982, 0.07161106318788321]]]}
       self.parameters = 'HFS'
 
-  def HLB20(self, mol):
-    if self.parameters == 'HF':
-      acbasis = copy.deepcopy(self.acbasis)
-      factor = 1.0-mol.charge/mol.natm
-      for q in acbasis.keys():
-        acbasis[q][-1][1][1] *= factor
-    else:
-      acbasis = self.acbasis
 
-    auxmol = pyscf.df.make_auxmol(mol, acbasis)
-    pmol  = mol + auxmol
-    eri3c = pmol.intor('int3c2e_sph', shls_slice=(0,mol.nbas,0,mol.nbas,mol.nbas,mol.nbas+auxmol.nbas))
-    eri3c = eri3c.reshape(mol.nao_nr(), mol.nao_nr(), -1)
-    iao = 0
-    for iat in range(auxmol.natm):
-      q = auxmol._atom[iat][0]
-      for prim in auxmol._basis[q]:
-        eri3c[:,:,iao] *= prim[1][1]
-        iao+=1
-    return numpy.einsum('pqi->pq', eri3c)
+  def use_charge(self, mol):
+      if self.parameters == 'HF':
+          acbasis = copy.deepcopy(self.acbasis)
+          factor = 1.0-mol.charge/mol.natm
+          for q in acbasis.keys():
+              acbasis[q][-1][1][1] *= factor
+      else:
+          acbasis = self.acbasis
+      return acbasis
+
+  def merge_caps(self, auxmol, eri3c):
+      iao = 0
+      for iat in range(auxmol.natm):
+          q = auxmol._atom[iat][0]
+          for prim in auxmol._basis[q]:
+              eri3c[...,iao] *= prim[1][1]
+              iao+=1
+      return numpy.einsum('...i->...', eri3c)
+
+  def get_eri3c(self, mol, auxmol):
+      pmol       = mol + auxmol
+      shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
+      eri3c      = pmol.intor('int3c2e_sph', shls_slice=shls_slice)
+      return eri3c
+
+  def HLB20(self, mol):
+      acbasis = self.use_charge(mol)
+      auxmol  = pyscf.df.make_auxmol(mol, acbasis)
+      eri3c   = self.get_eri3c(mol, auxmol)
+      return self.merge_caps(auxmol, eri3c)
 
   def Heff(self, mol):
-    self.mol = mol
-    self.Hcore = mol.intor('int1e_nuc_sph') + mol.intor('int1e_kin_sph')
-    self.H    = self.Hcore + self.HLB20(mol)
-    return self.H
-
+      self.mol = mol
+      self.Hcore = mol.intor('int1e_nuc_sph') + mol.intor('int1e_kin_sph')
+      self.H    = self.Hcore + self.HLB20(mol)
+      return self.H
