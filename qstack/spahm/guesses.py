@@ -58,15 +58,15 @@ def get_guess(arg):
   return guesses[arg]
 
 def get_occ(e, nelec, spin):
-  if spin==None:
-    nocc = nelec[0]
-    return e[:nocc]
-  else:
-    nocc = nelec
-    e1 = numpy.zeros((2, nocc[0]))
-    e1[0,:nocc[0]] = e[:nocc[0]]
-    e1[1,:nocc[1]] = e[:nocc[1]]
-    return e1
+    if spin==None:
+        nocc = nelec[0]
+        return e[:nocc,...]
+    else:
+        nocc = nelec
+        e1 = numpy.zeros((2, *e.shape))[:,:nocc[0],...]
+        e1[0,:nocc[0],...] = e[:nocc[0],...]
+        e1[1,:nocc[1],...] = e[:nocc[1],...]
+        return e1
 
 def get_dm(v, nelec, spin):
   if spin==None:

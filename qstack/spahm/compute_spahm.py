@@ -1,5 +1,5 @@
 from pyscf import scf, grad
-from qstack.spahm.guesses import solveF, get_guess, get_occ, get_dm, eigenvalue_grad
+from qstack.spahm.guesses import solveF, get_guess, get_occ, get_dm, eigenvalue_grad, get_guess_g
 
 def get_guess_orbitals(mol, guess, xc="pbe"):
     if guess == 'huckel':
@@ -22,6 +22,11 @@ def get_guess_dm(mol, guess, xc="pbe", openshell=None):
 
 def get_spahm_representation(mol, guess_in, xc="pbe"):
     guess = get_guess(guess_in)
-    e,v   = get_guess_orbitals(mol, guess, xc)
+    e, v  = get_guess_orbitals(mol, guess, xc)
     e1    = get_occ(e, mol.nelec, mol.spin)
     return e1
+
+def get_spahm_representation_grad(mol, guess_in):
+    guess = get_guess_g(guess_in)
+    agrad = get_guess_orbitals_grad(mol, guess)
+    return get_occ(agrad, mol.nelec, mol.spin)
