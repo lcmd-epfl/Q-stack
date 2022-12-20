@@ -20,13 +20,13 @@ def build_mol(mol, r):
 def grad_num(func, mol, guess, eps=1e-4):
     r = mol.atom_coords(unit='ang').flatten()
     g = []
-    for i,ri in enumerate(r):
-        r[i] = ri+eps
-        e1 = func(r, mol, guess)
-        r[i] = ri-eps
-        e2 = func(r, mol, guess)
-        r[i] = ri
-        g.append((e1-e2)*0.5/eps)
+    for i, ri in enumerate(r):
+        u   = np.eye(1, len(r), i)  # unit vector || ith dimension
+        e1  = func(r+eps*u, mol, guess)
+        e2  = func(r-eps*u, mol, guess)
+        e11 = func(r+2*eps*u, mol, guess)
+        e22 = func(r-2*eps*u, mol, guess)
+        g.append((8.0*e1-8.0*e2 + e22-e11) / (12.0*eps))
     return np.array(g)*data.nist.BOHR
 
 def test_spahm_ev_grad():
