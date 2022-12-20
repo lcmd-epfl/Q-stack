@@ -55,6 +55,4 @@ def dm_open_mod(dm, omod):
 
 
 def get_xyzlist(xyzlistfile):
-  xyzlist = np.loadtxt(xyzlistfile, dtype=str)
-  if xyzlist.shape==(): return [str(xyzlist)]
-  else:                 return list(xyzlist)
+  return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
