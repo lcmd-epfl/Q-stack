@@ -38,7 +38,7 @@ def main():
   spin    = utils.get_chsp(args.spin,   len(xyzlist))
 
   mols, dms = utils.mols_guess(xyzlist, charge, spin, args)
-  elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements)
+  elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements, cutoff=args.cutoff)
   qqs = qqs0 if args.zeros else qqs4q
 
   maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements ])

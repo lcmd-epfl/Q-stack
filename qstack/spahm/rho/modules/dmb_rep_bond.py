@@ -34,28 +34,51 @@ def read_df_basis(bnames, bpath):
 
 
 def get_element_pairs(elements):
-    qqs0  = []
+    qqs   = []
     qqs4q = {}
     for q1 in elements:
         qqs4q[q1] = []
         for q2 in elements:
             qq = make_bname(q1,q2)
             qqs4q[q1].append(qq)
-            qqs0.append(qq)
+            qqs.append(qq)
         qqs4q[q1].sort()
-    qqs0 = sorted(set(qqs0))
-    qqs = {}
-    for q in elements:
-        qqs[q] = qqs0
+    qqs = sorted(set(qqs))
     return qqs, qqs4q
 
-def read_basis_wrapper(mols, bpath, only_m0, printlevel, elements=None):
+
+def get_element_pairs_cutoff(elements, mols, cutoff):
+    qqs4q = {q : [] for q in elements}
+    qqs = []
+    for mol in mols:
+        q = [mol.atom_symbol(i) for i in range(mol.natm)]
+        r = mol.atom_coords(unit='ANG')
+        for i0, q0 in enumerate(q):
+            if q0 not in elements: continue
+            for i1, q1 in enumerate(q[:i0]):
+                if q1 not in elements: continue
+                if np.linalg.norm(r[i1]-r[i0])<=cutoff:
+                    qq = make_bname(q1,q0)
+                    qqs4q[q0].append(qq)
+                    qqs4q[q1].append(qq)
+                    qqs.append(qq)
+    qqs4q = {q: sorted(set(qqs4q[q])) for q in elements}
+    qqs   = sorted(set(qqs))
+    return qqs, qqs4q
+
+
+def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None):
     if elements is None:
         elements  = sorted(list(set([q for mol in mols for q in mol.elements])))
-    qqs,qqs4q = get_element_pairs(elements)
-    qqs0      = qqs[list(qqs.keys())[0]]
-    mybasis   = read_df_basis(qqs0, bpath)
-    idx, M    = get_basis_info(qqs0, mybasis, only_m0, printlevel)
+    if cutoff is None:
+        qqs0, qqs4q = get_element_pairs(elements)
+    else:
+        qqs0, qqs4q = get_element_pairs_cutoff(elements, mols, cutoff)
+    qqs = {q: qqs0 for q in elements}
+    if printlevel>=2:
+        print(qqs0)
+    mybasis = read_df_basis(qqs0, bpath)
+    idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return elements, mybasis, qqs, qqs4q, idx, M
 
 
