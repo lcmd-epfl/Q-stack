@@ -2,9 +2,7 @@ import operator
 import numpy as np
 from pyscf import gto
 from qstack import fields
-
-from . import repre
-from . import lowdin
+from . import repre, lowdin
 from .Dmatrix import Dmatrix_for_z, c_split, rotate_c
 
 
@@ -97,7 +95,6 @@ def fit_dm(dm, mol, mybasis, ri0, ri1):
     rm = (ri0+ri1)*0.5
     atom = "No  % f % f % f" % (rm[0], rm[1], rm[2])
     auxmol = gto.M(atom=atom, basis=mybasis)
-
     e2c, e3c = fields.decomposition.get_integrals(mol, auxmol)[1:]
     c = fields.decomposition.get_coeff(dm, e2c, e3c)
     cs = c_split(auxmol, c)
@@ -116,7 +113,7 @@ def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
     r0, r1 = r[i0], r[i1]
     z = r1-r0
     if np.linalg.norm(z) > cutoff:
-        return None
+        return None, None
     dm1   = L.get_bond(i0, i1)
     bname = make_bname(q0, q1)
     cs    = fit_dm(dm1, L.mol, mybasis[bname], r0, r1)

@@ -2,7 +2,7 @@
 
 import argparse
 import numpy as np
-from modules import utils, dmb_rep_bond as dmbb, lowdin
+from . import utils, dmb_rep_bond as dmbb, lowdin
 from qstack.tools import correct_num_threads
 
 parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
@@ -24,25 +24,25 @@ if args.print>0: print(vars(args))
 
 
 def main():
-  correct_num_threads()
+    correct_num_threads()
 
-  xyzlistfile = args.filename
-  xyzlist = np.loadtxt(xyzlistfile, usecols=[0],   dtype=str, ndmin=1)
-  bondidx = np.loadtxt(xyzlistfile, usecols=[1,2], dtype=int, ndmin=2)-1
-  charge  = utils.get_chsp(args.charge, len(xyzlist))
-  spin    = utils.get_chsp(args.spin,   len(xyzlist))
+    xyzlistfile = args.filename
+    xyzlist = np.loadtxt(xyzlistfile, usecols=[0],   dtype=str, ndmin=1)
+    bondidx = np.loadtxt(xyzlistfile, usecols=[1,2], dtype=int, ndmin=2)-1
+    charge  = utils.get_chsp(args.charge, len(xyzlist))
+    spin    = utils.get_chsp(args.spin,   len(xyzlist))
 
-  mols, dms = utils.mols_guess(xyzlist, charge, spin, args)
-  elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements)
+    mols, dms = utils.mols_guess(xyzlist, charge, spin, args)
+    elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements)
 
-  for i,(bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
-      if args.print>0: print('mol', i, flush=True)
-      if args.spin: dm = utils.dm_open_mod(dm, omod)
-      L = lowdin.Lowdin_split(mol, dm)
-      q = [mol.atom_symbol(i) for i in range(mol.natm)]
-      r = mol.atom_coords(unit='ANG')
-      vec = dmbb.repr_for_bond(*bondij, L, mybasis, idx, q, r, args.cutoff)[0][0]
-      np.save(fname, vec)
+    for i,(bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
+        if args.print>0: print('mol', i, flush=True)
+        if args.spin: dm = utils.dm_open_mod(dm, omod)
+        L = lowdin.Lowdin_split(mol, dm)
+        q = [mol.atom_symbol(i) for i in range(mol.natm)]
+        r = mol.atom_coords(unit='ANG')
+        vec = dmbb.repr_for_bond(*bondij, L, mybasis, idx, q, r, args.cutoff)[0][0]
+        np.save(fname, vec)
 
 
 if __name__ == "__main__":

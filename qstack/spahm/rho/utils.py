@@ -11,7 +11,10 @@ defaults = SimpleNamespace(
     basis='minao',
     auxbasis='ccpvdzjkfit',
     omod=['alpha', 'beta'],
-    elements=["H", "C", "N", "O", "S"]
+    elements=["H", "C", "N", "O", "S"],
+    cutoff=5.0,
+    xc='hf',
+    bpath=os.path.dirname(__file__)+'/basis_opt',
   )
 
 
@@ -26,36 +29,29 @@ def get_chsp(f, n):
         chsp = np.zeros(n, dtype=int)
     return chsp
 
-def mols_guess(xyzlist, charge, spin, args):
+def load_mols(xyzlist, charge, spin, basis, printlevel=0):
+    mols = []
+    for xyzfile, ch, sp in zip(xyzlist, charge, spin):
+        if printlevel>0: print(xyzfile, flush=True)
+        mols.append(compound.xyz_to_mol(xyzfile, basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp)) #TODO
+    if printlevel>0: print()
+    return mols
 
-  mols  = []
-  for xyzfile,ch,sp in zip(xyzlist, charge, spin):
-      if args.print>0: print(xyzfile, flush=True)
-      mols.append(compound.xyz_to_mol(xyzfile, args.basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp))
-  if args.print>0: print()
-
-  dms  = []
-
-  if not args.readdm:
-      guess = guesses.get_guess(args.guess)
-      for xyzfile,mol in zip(xyzlist,mols):
-          if args.print>0: print(xyzfile, flush=True)
-          e,v = spahm.get_guess_orbitals(mol, guess)
-          dm  = guesses.get_dm(v, mol.nelec, mol.spin if args.spin else None)
-          dms.append(dm)
-          if args.save:
-              np.save(os.path.basename(xyzfile)+'.npy', dm)
-  else:
-      for xyzfile,mol in zip(xyzlist,mols):
-          if args.print>0: print(xyzfile, flush=True)
-          dm = np.load(args.readdm+'/'+os.path.basename(xyzfile)+'.npy')
-          if args.spin and dm.ndim==3:
-              dm = np.arrag((dm/2,dm/2))
-          dms.append(dm)
-  if args.print>0: print()
-
-  return mols, dms
-
+def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, printlevel=0):
+    dms = []
+    guess = guesses.get_guess(guess)
+    for xyzfile, mol in zip(xyzlist, mols):
+        if printlevel>0: print(xyzfile, flush=True)
+        if not readdm:
+            e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
+            dm   = guesses.get_dm(v, mol.nelec, mol.spin if spin else None)
+        else:
+            dm = np.load(readdm+'/'+os.path.basename(xyzfile)+'.npy')
+            if spin and dm.ndim==2:
+                dm = np.array((dm/2,dm/2))
+        dms.append(dm)
+        if printlevel>0: print()
+    return dms
 
 
 def dm_open_mod(dm, omod):

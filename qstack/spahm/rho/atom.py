@@ -18,7 +18,7 @@ def check_file(mol_file):
 
 def get_repr(mol, elements, charge, spin,
              open_mod=defaults.omod, dm=None,
-             guess=defaults.guess, model=defaults.model,
+             guess=defaults.guess, model=defaults.model, xc=defaults.xc,
              auxbasis=defaults.auxbasis):
 
     # User-defined options
@@ -29,7 +29,7 @@ def get_repr(mol, elements, charge, spin,
 
     # Compute density matrices
     if dm is None:
-        dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin)
+        dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin, xc=xc)
 
     rep = []
     for omod in open_mod:
@@ -55,6 +55,7 @@ def main():
     parser.add_argument('--species',   dest='elements',  default=defaults.elements, nargs='+', type=str, help="The elements contained in the database")
     parser.add_argument('--charge',    dest='charge',    default=0,                            type=int, help='total charge of the system (default: 0)')
     parser.add_argument('--spin',      dest='spin',      default=None,                         type=int, help='number of unpaired electrons (default: None) (use 0 to treat a closed-shell system in a UHF manner)')
+    parser.add_argument('--xc',        dest='xc',        default=defaults.xc,                  type=str, help='DFT functional for the SAD guess (default=HF)')
     parser.add_argument('--out',       dest='NameOut',   default=None,                         type=str, help='name of the outpute representations file.')
     parser.add_argument('--omod',      dest='omod',      default=defaults.omod,     nargs='+', type=str, help='model(s) for open-shell systems (alpha, beta, sum, diff')
     args = parser.parse_args()
@@ -66,7 +67,7 @@ def main():
 
     representations = get_repr(mol, elements, args.charge, args.spin,
                                dm=dm, guess=args.guess, model=args.model,
-                               auxbasis=args.auxbasis)
+                               xc=args.xc, auxbasis=args.auxbasis)
 
     # output dir
     cwd = os.getcwd()
