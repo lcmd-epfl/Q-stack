@@ -2,8 +2,8 @@ import sys
 import numpy as np
 import pyscf
 from qstack import compound,fields
-import modules.repr as repre
-from modules import make_atomic_DF, lowdin
+from . import repre
+from . import make_atomic_DF, lowdin
 
 def get_basis_info(atom_types, aux_basis_set):
     ao = {}

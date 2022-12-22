@@ -7,7 +7,7 @@ from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
 from  qstack import compound, spahm
-from modules import utils, dmb_rep_atom as dmba
+from .modules import utils, dmb_rep_atom as dmba
 
 
 defaults = SimpleNamespace(
@@ -78,7 +78,7 @@ def main() :
     parser.add_argument('--omod',      type=str,            dest='omod',      default=['alpha','beta'], nargs='+',  help='model for open-shell systems (alpha, beta, sum, diff')
     args = parser.parse_args()
     print(vars(args))
-    
+
 
     # Generate list of species account for in the representation
     atom_types    = sorted(list(set(args.Species)))
