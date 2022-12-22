@@ -4,7 +4,7 @@ Module containing all the operations to load, transform, and save molecular obje
 
 import pickle
 import numpy as np
-from pyscf import gto
+from pyscf import gto, data
 from qstack import constants
 from qstack.tools import rotate_euler
 
@@ -247,3 +247,13 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
         return props_frag
     else:
         return props_frag[0]
+
+
+def make_atom(q, basis):
+    mol = gto.Mole()
+    mol.atom = q + " 0.0 0.0 0.0"
+    mol.charge = 0
+    mol.spin = data.elements.ELEMENTS_PROTON[q] % 2
+    mol.basis = basis
+    mol.build()
+    return mol

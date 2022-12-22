@@ -2,7 +2,7 @@ import operator
 import numpy as np
 from pyscf import gto
 from qstack import fields
-from . import repre, lowdin
+from . import sym, lowdin
 from .Dmatrix import Dmatrix_for_z, c_split, rotate_c
 
 
@@ -15,12 +15,12 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
     M   = {}
     for qq in qqs:
         if printlevel>1: print(qq)
-        S, ao, _ = repre.get_S('No', mybasis[qq])
+        S, ao, _ = sym.get_S('No', mybasis[qq])
         if not only_m0:
-            idx[qq] = repre.store_pair_indices_z(ao)
+            idx[qq] = sym.store_pair_indices_z(ao)
         else:
-            idx[qq] = repre.store_pair_indices_z_only0(ao)
-        M[qq] = repre.metric_matrix_z('No', idx[qq], ao, S)
+            idx[qq] = sym.store_pair_indices_z_only0(ao)
+        M[qq] = sym.metric_matrix_z('No', idx[qq], ao, S)
     return idx, M
 
 
@@ -104,7 +104,7 @@ def fit_dm(dm, mol, mybasis, ri0, ri1):
 def vec_from_cs(z, cs, lmax, idx):
     D = Dmatrix_for_z(z, lmax)
     c_new = rotate_c(D, cs)
-    v = repre.vectorize_c('No', idx, c_new)
+    v = sym.vectorize_c('No', idx, c_new)
     return v
 
 

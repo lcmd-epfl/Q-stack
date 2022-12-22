@@ -6,7 +6,7 @@ class Lowdin_split:
 
   def __init__(self, mol, dm):
     S = mol.intor_symmetric('int1e_ovlp')
-    S12,S12i = self._mysqrtm(S)
+    S12,S12i = self.sqrtm(S)
     self.S    = S
     self.S12  = S12
     self.S12i = S12i
@@ -14,7 +14,7 @@ class Lowdin_split:
     self.dm   = dm
     self.dmL  = S12 @ dm @ S12
 
-  def _mysqrtm(self, m):
+  def sqrtm(self, m):
     e,b = np.linalg.eigh(m)
     e   = np.sqrt(e)
     sm  = b @ np.diag(e    ) @ b.T

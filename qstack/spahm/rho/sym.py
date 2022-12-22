@@ -2,14 +2,8 @@
 
 import numpy as np
 from pyscf import gto, data
-
-
-def mysqrtm(m):
-    # TODO -> maths
-    e, b = np.linalg.eigh(m)
-    e[abs(e) < 1e-13] = 0.0
-    sm = b @ np.diag(np.sqrt(e)) @ b.T
-    return (sm+sm.T)*0.5
+from qstack import compound
+from qstack.math.matrix import sqrtm
 
 
 def idxl0(i, l, ao):
@@ -21,13 +15,7 @@ def idxl0(i, l, ao):
 
 
 def get_S(q, basis):
-    # TODO -> compound
-    mol = gto.Mole()
-    mol.atom = q + " 0.0 0.0 0.0"
-    mol.charge = 0
-    mol.spin = data.elements.ELEMENTS_PROTON[q] % 2
-    mol.basis = basis
-    mol.build()
+    mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
 
     i0 = 0
@@ -80,7 +68,7 @@ def metric_matrix(q, idx, ao, S):
             A[p1,p] = A[p,p1] = 1.0/(2*l+1) \
                                 * S[idxl0(i, l, ao[q]), idxl0(i1, l, ao[q])] \
                                 * S[idxl0(j, l, ao[q]), idxl0(j1, l, ao[q])]
-    return mysqrtm(A)
+    return sqrtm(A)
 
 
 def metric_matrix_short(q, idx, ao, S):
@@ -94,7 +82,7 @@ def metric_matrix_short(q, idx, ao, S):
             l1 = ao['l'][i1]
             if(l!=l1): continue
             A[p1,p] = A[p,p1] = S[i,i1] * S[j,j1] / (2*l+1)
-    return mysqrtm(A)
+    return sqrtm(A)
 
 
 def vectorize_c(q, idx, c):
@@ -165,4 +153,4 @@ def metric_matrix_z(q, idx, ao, S):
                                 * S[idxl0(i,  li,  ao), idxl0(j,  li,  ao)] \
                                 * S[idxl0(i1, li1, ao), idxl0(j1, li1, ao)]
 
-    return mysqrtm(A)
+    return sqrtm(A)
