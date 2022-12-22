@@ -6,7 +6,7 @@ from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
 from  qstack import compound, spahm
-from modules import dmb_rep_atom as dmba
+from . import dmb_rep_atom as dmba
 
 #temporary script to generate all the models
 

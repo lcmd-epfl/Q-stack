@@ -1,8 +1,20 @@
 import sys, os
 import numpy as np
+from types import SimpleNamespace
 import qstack.spahm.compute_spahm as spahm
 import qstack.spahm.guesses as guesses
 from qstack import compound
+
+defaults = SimpleNamespace(
+    guess='LB',
+    model='Lowdin-long-x',
+    basis='minao',
+    auxbasis='ccpvdzjkfit',
+    omod=['alpha', 'beta'],
+    elements=["H", "C", "N", "O", "S"]
+  )
+
+
 
 def get_chsp(f, n):
     if f:

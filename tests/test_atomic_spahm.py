@@ -2,20 +2,16 @@
 
 import os
 import numpy as np
-from qstack.spahm.rho import DMbRep
+from qstack import compound
+from qstack.spahm.rho import atom
 
 
 def test_water():
     path = os.path.dirname(os.path.realpath(__file__))
-    molpath = path+'/data/H2O.xyz'
+    mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'minao', charge=0, spin=None)
 
-    X = DMbRep.generate_ROHSPAHM(molpath, ["H", "O"], 0, None,
-                                 dm=None,
-                                 guess='LB',
-                                 model='Lowdin-long-x',
-                                 basis_set='minao',
-                                 aux_basis_set='ccpvdzjkfit'
-                                 )
+    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+                      guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
 
     X_true = np.load(path+'/data/SPAHM_a_H2O/X_H2O.npy', allow_pickle=True)
     assert(X.shape == X_true.shape)

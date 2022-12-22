@@ -7,7 +7,7 @@ from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
 from  qstack import compound, spahm
-from modules import utils, dmb_rep_atom as dmba
+from . import utils, dmb_rep_atom as dmba
 
 def print_elem(vector,  pattern, atoms, extract=False):
     if type(atoms) != list:
@@ -100,7 +100,7 @@ def main():
         pool.close()
         pool.join()
 
-    
+
     else:
         for atom, v in vectors:
             new_vec = transform(v, args.AtomsIn, args.AtomsOut, args.BasisSet)
@@ -121,11 +121,11 @@ def main():
 
         v_feat = get_vpattern(atom_types, aux_basis_set)
         print(v_feat.items())
-        
+
         C = []
         i=0
         for a, v in vectors:
-            if a == 'C' : 
+            if a == 'C' :
                 print(i, end='    ')
                 C.append([i, print_elem(v,  v_feat, 'O')])
             i+=1

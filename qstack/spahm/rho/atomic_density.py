@@ -1,9 +1,9 @@
 import numpy as np
-from scipy.linalg import sqrtm
 from qstack import compound, fields
 from . import lowdin
 
-def get_a_DF(mol, dm, basis, aux_basis, short=False, w_slicing=True):
+
+def fit(mol, dm, aux_basis, short=False, w_slicing=True):
 
     L = lowdin.Lowdin_split(mol, dm)
 
@@ -14,13 +14,13 @@ def get_a_DF(mol, dm, basis, aux_basis, short=False, w_slicing=True):
     if w_slicing:
         fit_slices = auxmol.aoslice_nr_by_atom()[:,2:]
         J = np.zeros_like(eri2c)
-        for s0,s1 in fit_slices :
+        for s0,s1 in fit_slices:
             J[s0:s1, s0:s1] = eri2c[s0:s1, s0:s1]
     else:
         J = eri2c
 
     a_dfs = []
-    for (start,stop) in dm_slices:
+    for (start, stop) in dm_slices:
         a_dm1 = np.zeros_like(L.dmL)
         a_dm1[start:stop,:] += L.dmL[start:stop,:]*0.5
         a_dm1[:,start:stop] += L.dmL[:,start:stop]*0.5
@@ -31,9 +31,8 @@ def get_a_DF(mol, dm, basis, aux_basis, short=False, w_slicing=True):
 
     if short:
         cc = []
-        for i,c in zip(auxmol.aoslice_by_atom()[:,2:], a_dfs):
+        for i, c in zip(auxmol.aoslice_by_atom()[:,2:], a_dfs):
             cc.append(c[i[0]:i[1]])
         return np.hstack(cc)
 
     return a_dfs
-
