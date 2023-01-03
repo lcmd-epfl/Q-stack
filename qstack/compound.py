@@ -3,13 +3,14 @@ Module containing all the operations to load, transform, and save molecular obje
 """
 
 import pickle
+import warnings
 import numpy as np
-from pyscf import gto
+from pyscf import gto, data
 from qstack import constants
 from qstack.tools import rotate_euler
 
 
-def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0):
+def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
@@ -31,10 +32,18 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0):
     mol = gto.Mole()
     mol.atom = molxyz
     mol.basis = basis
-    mol.charge = charge
-    mol.spin = spin
-    mol.build()
 
+    if not ignore:  # use the user-defined values
+        mol.charge = charge
+        mol.spin = spin
+    else:
+        if charge not in [0, None] or spin not in [0, None]:
+            warnings.warn("Spin and charge values are overwritten", RuntimeWarning)
+        elements = np.array(molxyz.split()).reshape(-1,4)[:,0]
+        mol.charge = -(sum(map(data.elements.charge, elements))%2)
+        mol.spin = 0
+
+    mol.build()
     return mol
 
 
