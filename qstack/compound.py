@@ -34,12 +34,12 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'
     mol.basis = basis
 
     # Check the units for the pyscf driver
-    unit = units.upper()[0]
+    unit = unit.upper()[0]
     if unit not in ['B', 'A']:
         print("Unrecognized poistion's units (Angstrom or Bohr).\nExiting!")
         exit(1)
     else:
-        mol.unit = units
+        mol.unit = unit
 
     if not ignore:  # use the user-defined values
         mol.charge = charge
