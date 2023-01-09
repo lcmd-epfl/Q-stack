@@ -10,7 +10,7 @@ from qstack import constants
 from qstack.tools import rotate_euler
 
 
-def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False):
+def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
@@ -32,6 +32,14 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False):
     mol = gto.Mole()
     mol.atom = molxyz
     mol.basis = basis
+
+    # Check the units for the pyscf driver
+    unit = units.upper()[0]
+    if unit not in ['B', 'A']:
+        print("Unrecognized poistion's units (Angstrom or Bohr).\nExiting!")
+        exit(1)
+    else:
+        mol.unit = units
 
     if not ignore:  # use the user-defined values
         mol.charge = charge
