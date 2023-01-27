@@ -72,7 +72,7 @@ def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, M, _):
     i0 = 0
     for q in mol.elements:
         n = ao_len[q]
-        v.append([q, sym.vectorize_c_MR2021(q, idx[q], ao[q], c[i0:i0+n])])
+        v.append(sym.vectorize_c_MR2021(q, idx[q], ao[q], c[i0:i0+n]))
         i0 += n
     return v
 
@@ -83,7 +83,7 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
     i0 = 0
     for q in mol.elements:
         n = ao_len[q]
-        v.append([q, M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c[i0:i0+n])])
+        v.append(M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c[i0:i0+n]))
         i0 += n
     return v
 
@@ -101,5 +101,5 @@ def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
             v_atom[q] += M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n])
             i0 += n
         v_a = np.hstack([v_atom[q] for q in atom_types])
-        vectors.append([e, v_a])
+        vectors.append(v_a)
     return vectors
