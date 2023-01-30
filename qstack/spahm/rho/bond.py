@@ -67,20 +67,17 @@ def main():
                    spin=args.spin, elements=args.elements,
                    only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print)
 
-    if args.print>1: print(allvec[i].shape)
+    if args.print>1: print(allvec.shape)
 
     if args.spin:
         if args.merge is False:
             for omod, vec in zip(args.omod, allvec):
                 np.save(args.dir+'/mygreatrepresentation_'+omod, vec)
         else:
-            allvec = allvec.transpose(list(range(allvec.ndim))[1:]+[0])
-            allvec = allvec.reshape(list(allvec.shape[:-2])+[-1])
-            np.save(args.dir+'/mygreatrepresentation_'+'_'.join(args.omod), allvec)
+            np.save(args.dir+'/mygreatrepresentation_'+'_'.join(args.omod), np.hstack(allvec))
     else:
         np.save(args.dir+'/mygreatrepresentation', allvec[0])
 
 
 if __name__ == "__main__":
     main()
-
