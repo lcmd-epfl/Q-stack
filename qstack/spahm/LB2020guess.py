@@ -288,14 +288,18 @@ class LB2020guess:
           acbasis = self.acbasis
       return acbasis
 
-  def merge_caps(self, auxmol, eri3c):
+  def get_auxweights(self, auxmol):
+      w = numpy.zeros(auxmol.nao)
       iao = 0
       for iat in range(auxmol.natm):
           q = auxmol._atom[iat][0]
           for prim in auxmol._basis[q]:
-              eri3c[...,iao] *= prim[1][1]
+              w[iao] = prim[1][1]
               iao+=1
-      return numpy.einsum('...i->...', eri3c)
+      return w
+
+  def merge_caps(self, w, eri3c):
+      return numpy.einsum('...i,i->...', eri3c, w)
 
   def get_eri3c(self, mol, auxmol):
       pmol       = mol + auxmol
@@ -307,7 +311,8 @@ class LB2020guess:
       acbasis = self.use_charge(mol)
       auxmol  = pyscf.df.make_auxmol(mol, acbasis)
       eri3c   = self.get_eri3c(mol, auxmol)
-      return self.merge_caps(auxmol, eri3c)
+      auxw    = self.get_auxweights(auxmol)
+      return self.merge_caps(auxw, eri3c)
 
   def Heff(self, mol):
       self.mol = mol
@@ -337,6 +342,7 @@ class LB2020guess:
       acbasis = self.use_charge(mol)
       auxmol  = pyscf.df.make_auxmol(mol, acbasis)
       eri3c   = self.HLB20_ints_generator(mol, auxmol)
+      auxw    = self.get_auxweights(auxmol)
       def HLB20_deriv(iat):
-          return self.merge_caps(auxmol, eri3c(iat))
+          return self.merge_caps(auxw, eri3c(iat))
       return HLB20_deriv
