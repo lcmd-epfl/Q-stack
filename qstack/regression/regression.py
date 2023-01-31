@@ -25,7 +25,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta, 
 
     maes_all = []
     for size in train_size:
-        size_train = int(np.floor(len(y_train)*size)) if size < 1.0 else size
+        size_train = int(np.floor(len(y_train)*size)) if size <= 1.0 else size
         maes = []
         for rep in range(n_rep):
             train_idx = np.random.choice(all_indices_train, size = size_train, replace=False)
@@ -47,7 +47,7 @@ def main():
     parser.add_argument('--eta',        type=float, dest='eta',        default=defaults.eta,       help='eta hyperparameter (default='+str(defaults.eta)+')')
     parser.add_argument('--sigma',      type=float, dest='sigma',      default=defaults.sigma,     help='sigma hyperparameter (default='+str(defaults.sigma)+')')
     parser.add_argument('--akernel',     type=str,   dest='akernel',     default=defaults.kernel,    help='local kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
-    parser.add_argument('--gkernel',     type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default '+defaults.gkernel+')')
+    parser.add_argument('--gkernel',     type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default '+str(defaults.gkernel)+')')
     parser.add_argument('--gdict',     nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
     parser.add_argument('--splits',     type=int,   dest='splits',     default=defaults.n_rep,     help='number of splits (default='+str(defaults.n_rep)+')')
     parser.add_argument('--train',      type=float, dest='train_size', default=defaults.train_size, nargs='+', help='training set fractions')
@@ -59,7 +59,7 @@ def main():
     if(args.ll): correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.kernel,
+    maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, debug=args.debug)
     for size_train, meanerr, stderr in maes_all:
         print("%d\t%e\t%e" % (size_train, meanerr, stderr))
