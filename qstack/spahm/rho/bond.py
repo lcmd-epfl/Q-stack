@@ -32,6 +32,7 @@ def bond(mols, dms,
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
     return allvec
 
+
 def main():
     parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
     parser.add_argument('--mol',      type=str,            dest='filename',  required=True,                    help='file containing a list of molecular structures in xyz format')
@@ -52,6 +53,7 @@ def main():
     parser.add_argument('--savedm',   action='store_true', dest='savedm',    default=False,                    help='if save dms')
     parser.add_argument('--readdm',   type=str,            dest='readdm',    default=None,                     help='dir to read dms from')
     parser.add_argument('--elements', type=str,            dest='elements',  default=None,  nargs='+',         help="the elements contained in the database")
+    parser.add_argument('--name',       dest='name_out',   required=True,                         type=str, help='name of the output files (for timing).')
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
@@ -67,7 +69,9 @@ def main():
                    spin=args.spin, elements=args.elements,
                    only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print)
 
-    if args.print>1: print(allvec[i].shape)
+    if args.print>1: print(allvec[0].shape)
+    
+    
 
     if args.spin:
         if args.merge is False:
