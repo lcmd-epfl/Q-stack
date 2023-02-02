@@ -6,8 +6,8 @@ import os
 import numpy as np
 from qstack import compound, spahm
 from qstack.tools import unix_time_decorator
-import utils, dmb_rep_atom as dmba
-from utils import defaults
+from . import utils, dmb_rep_atom as dmba
+from .utils import defaults
 
 
 def check_file(mol_file):
