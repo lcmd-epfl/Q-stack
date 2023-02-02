@@ -5,7 +5,6 @@ import sys
 import os
 import numpy as np
 from qstack import compound, spahm
-from qstack.tools import unix_time_decorator
 from . import utils, dmb_rep_atom as dmba
 from .utils import defaults
 
@@ -41,8 +40,14 @@ def get_repr(mol, elements, charge, spin,
             rep = vectors
             break
         rep.append(vectors)
-    rep = np.array(rep, dtype=object)
-    return rep
+    rep = np.array(rep)
+    if spin is not None:
+        rep = np.hstack(rep)
+
+    mrep = []
+    for q, v in zip(mol.elements, rep):
+        mrep.append(np.array((q, v)))
+    return np.array(mrep)
 
 
 def main():
@@ -68,6 +73,7 @@ def main():
     dm = None if args.dm is None else np.load(args.dm)
 
     representations = get_repr(mol, elements, args.charge, args.spin,
+                               open_mod=args.omod,
                                dm=dm, guess=args.guess, model=args.model,
                                xc=args.xc, auxbasis=args.auxbasis)
 
@@ -76,24 +82,15 @@ def main():
 
     # save the output
     mol_name = args.mol.split('/')[-1].split('.')[0]
-
-    if args.spin != None:
-        for omod, representations in zip(args.omod, representations):
-            if args.NameOut is not None:
-                name_out = args.NameOut
-            else:
-                name_out = 'X_'+mol_name
-            name_out = name_out+'_'+omod
-            path_out = os.path.join(cwd, name_out)
-            np.save(path_out, representations)
+    if args.NameOut is not None:
+        name_out = args.NameOut
     else:
-        if args.NameOut is not None:
-            name_out = args.NameOut
-        else:
-            name_out = 'X_'+mol_name
-        path_out = os.path.join(cwd, name_out)
-        np.save(path_out, representations)
+        name_out = 'X_'+mol_name
+    if args.spin:
+        name_out = name_out+'_'+'_'.join(args.omod)
 
+    path_out = os.path.join(cwd, dir_out, name_out)
+    np.save(path_out, representations)
 
     print(f"Generated density-based representation for {mol_name} with")
     print("Type.\tlength")

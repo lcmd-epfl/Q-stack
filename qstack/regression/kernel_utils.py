@@ -237,7 +237,7 @@ def get_kernel(arg, arg2=None):
 
   local_kernel = get_local_kernel(arg)
 
-  if arg2 is None:
+  if arg2 is None or arg2[0] is None:
       return local_kernel
   else:
       return get_global_kernel(arg2, local_kernel)
