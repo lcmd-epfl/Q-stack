@@ -9,7 +9,7 @@ from qstack import constants
 from qstack.tools import rotate_euler
 
 
-def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0):
+def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, unit='A'):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
@@ -30,6 +30,7 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0):
     # Define attributes to the Mole object and build it
     mol = gto.Mole()
     mol.atom = molxyz
+    mol.unit = unit
     mol.basis = basis
     mol.charge = charge
     mol.spin = spin
