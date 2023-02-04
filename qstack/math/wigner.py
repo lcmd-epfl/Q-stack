@@ -3,7 +3,7 @@
 import sys
 import sympy as sp
 from sympy import symbols, Symbol, simplify, expand, cancel, expand_trig, Ynm, Ynm_c, Matrix, poly, zeros
-from xyz_integrals_sym import xyz as xyzint
+from .xyz_integrals_sym import xyz as xyzint
 
 
 # variables
