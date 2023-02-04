@@ -89,7 +89,7 @@ def main():
     if args.spin:
         name_out = name_out+'_'+'_'.join(args.omod)
 
-    path_out = os.path.join(cwd, dir_out, name_out)
+    path_out = os.path.join(cwd, name_out)
     np.save(path_out, representations)
 
     print(f"Generated density-based representation for {mol_name} with")
