@@ -35,7 +35,7 @@ def bond(mols, dms,
 
 def main():
     parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
-    parser.add_argument('--mol',      type=str,            dest='filename',  required=True,                    help='file containing a list of molecular structures in xyz format')
+    parser.add_argument('--mol',      type=str,            dest='filename',  required=True,                    help='file containing a list of molecular structures in xyz format (single xyz file also accepted)')
     parser.add_argument('--guess',    type=str,            dest='guess',     default=defaults.guess,           help='initial guess type')
     parser.add_argument('--basis',    type=str,            dest='basis'  ,   default=defaults.basis,           help='AO basis set (default=MINAO)')
     parser.add_argument('--charge',   type=str,            dest='charge',    default=None,                     help='file with a list of charges')
@@ -53,12 +53,12 @@ def main():
     parser.add_argument('--savedm',   action='store_true', dest='savedm',    default=False,                    help='if save dms')
     parser.add_argument('--readdm',   type=str,            dest='readdm',    default=None,                     help='dir to read dms from')
     parser.add_argument('--elements', type=str,            dest='elements',  default=None,  nargs='+',         help="the elements contained in the database")
-    parser.add_argument('--name',       dest='name_out',   required=True,                         type=str, help='name of the output files (for timing).')
+    parser.add_argument('--name',       dest='name_out',   required=True,                         type=str, help='name of the output file.')
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
 
-    xyzlistfile = args.filename
+    xyzlistfile = [args.filename] if args.filename.split('.')[-1] == 'xyz' else args.filename
     xyzlist = utils.get_xyzlist(xyzlistfile)
     charge  = utils.get_chsp(args.charge, len(xyzlist))
     spin    = utils.get_chsp(args.spin,   len(xyzlist))
@@ -68,19 +68,19 @@ def main():
     allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
                    spin=args.spin, elements=args.elements,
                    only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print)
+    if len(allvec) == 1:
+        allvec = allvec[0]
 
     if args.print>1: print(allvec.shape)
     
-    
-
     if args.spin:
         if args.merge is False:
             for omod, vec in zip(args.omod, allvec):
-                np.save(args.dir+'/mygreatrepresentation_'+omod, vec)
+                np.save(args.name_out+omod, vec)
         else:
-            np.save(args.dir+'/mygreatrepresentation_'+'_'.join(args.omod), allvec)
+            np.save(args.name_out+'_'.join(args.omod), allvec)
     else:
-        np.save(args.dir+'/mygreatrepresentation', allvec[0])
+        np.save(args.name_out, allvec)
 
 
 if __name__ == "__main__":
