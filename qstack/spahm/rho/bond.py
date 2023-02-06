@@ -8,10 +8,12 @@ from .utils import defaults
 
 def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
-         spin=None, elements=None, only_m0=False, zeros=False, split=False, printlevel=0):
+         spin=None, elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
+         pairfile=None, dump_and_exit=False):
 
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
-                                                                     elements=elements, cutoff=cutoff)
+                                                                     elements=elements, cutoff=cutoff,
+                                                                     pairfile=pairfile, dump_and_exit=dump_and_exit)
     if spin is None:
         omods = [None]
     qqs = qqs0 if zeros else qqs4q
@@ -48,12 +50,14 @@ def main():
     parser.add_argument('--print',    type=int,            dest='print',     default=0,                        help='printlevel')
     parser.add_argument('--zeros',    action='store_true', dest='zeros',     default=False,                    help='if use a version with more padding zeros')
     parser.add_argument('--split',    action='store_true', dest='split',     default=False,                    help='if split into molecules')
-    parser.add_argument('--merge',    action='store_true', dest='merge',     default=False,                    help='if merge different omods')
+    parser.add_argument('--merge',    action='store_true', dest='merge',     default=True,                     help='if merge different omods')
     parser.add_argument('--onlym0',   action='store_true', dest='only_m0',   default=False,                    help='if use only fns with m=0')
     parser.add_argument('--savedm',   action='store_true', dest='savedm',    default=False,                    help='if save dms')
     parser.add_argument('--readdm',   type=str,            dest='readdm',    default=None,                     help='dir to read dms from')
     parser.add_argument('--elements', type=str,            dest='elements',  default=None,  nargs='+',         help="the elements contained in the database")
     parser.add_argument('--name',       dest='name_out',   required=True,                         type=str, help='name of the output file.')
+    parser.add_argument('--pairfile',      type=str,            dest='pairfile',         default=None,                     help='file with atom pairs')
+    parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit',    default=False,                    help='if write the pairfile (and exit)')
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
@@ -67,18 +71,19 @@ def main():
                                xc=defaults.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print)
     allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
                    spin=args.spin, elements=args.elements,
-                   only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print)
+                   only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print,
+                   pairfile=args.pairfile, dump_and_exit=args.dump_and_exit)
     if len(allvec) == 1:
         allvec = allvec[0]
 
     if args.print>1: print(allvec.shape)
-    
+
     if args.spin:
         if args.merge is False:
             for omod, vec in zip(args.omod, allvec):
-                np.save(args.name_out+omod, vec)
+                np.save(args.name_out+'_'+omod, vec)
         else:
-            np.save(args.name_out+'_'.join(args.omod), allvec)
+            np.save(args.name_out+'_'+'_'.join(args.omod), np.hstack(allvec))
     else:
         np.save(args.name_out, allvec)
 

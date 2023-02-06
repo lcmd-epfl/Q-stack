@@ -67,13 +67,22 @@ def get_element_pairs_cutoff(elements, mols, cutoff):
     return qqs, qqs4q
 
 
-def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None):
+def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None, pairfile=None, dump_and_exit=False):
     if elements is None:
         elements = sorted(list(set([q for mol in mols for q in mol.elements])))
-    if cutoff is None:
-        qqs0, qqs4q = get_element_pairs(elements)
+
+    if pairfile and not dump_and_exit:
+        qqs0, qqs4q = np.load(pairfile, allow_pickle=True)
     else:
-        qqs0, qqs4q = get_element_pairs_cutoff(elements, mols, cutoff)
+        if cutoff is None:
+            qqs0, qqs4q = get_element_pairs(elements)
+        else:
+            qqs0, qqs4q = get_element_pairs_cutoff(elements, mols, cutoff)
+
+    if pairfile and dump_and_exit:
+        np.save(pairfile, np.asanyarray((qqs0, qqs4q), dtype=object))
+        exit(0)
+
     qqs = {q: qqs0 for q in elements}
     if printlevel>1: print(qqs0)
     mybasis = read_df_basis(qqs0, bpath)
