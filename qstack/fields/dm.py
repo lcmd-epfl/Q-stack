@@ -88,7 +88,10 @@ def sphericalize_density_matrix(mol, dm):
 
 # TODO merge with get_converged_dm()
 def get_converged_mf(mol, func, dm0=None):
-    mf = scf.RKS(mol)
+    if mol.multiplicity == 1:
+        mf = dft.RKS(mol)
+    else:
+        mf = dft.UKS(mol)
     mf.xc = func
     mf.kernel(dm0=dm0)
     dm = mf.make_rdm1()
