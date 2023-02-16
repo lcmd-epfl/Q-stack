@@ -7,7 +7,10 @@ from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
 from  qstack import compound, spahm
-from . import utils, dmb_rep_atom as dmba
+import qstack.tools as tls
+from . import utils, dmb_rep_atom as dmba, dmb_rep_bond as dmbb
+
+
 
 def print_elem(vector,  pattern, atoms, extract=False):
     if type(atoms) != list:
@@ -45,6 +48,18 @@ def transform(vector, source_atoms, dest_atoms, aux_basis_set, atom_id=None):
     else:
         return atom_id, dest_vector
 
+def transform_bond(atom_type, vector, source_bonds, dest_bonds, bpath):
+    print(atom_type)
+    source_idx, source_len = get_vpattern_bond(source_bonds, bpath)
+    dest_idx, dest_len = get_vpattern_bond(dest_bonds, bpath)
+    dest_vector = np.zeros((dest_len, ))
+    for k, idx in dest_idx[atom_type].items():
+        if k in source_idx[atom_type].keys():
+            source_start = source_idx[atom_type][k][0]
+            source_stop = source_idx[atom_type][k][1]
+            dest_vector[idx[0]:idx[1]] += vector[source_start:source_stop]
+#    return dest_vector if atom_id == None else [atom_id, dest_vector]
+    return atom_type, dest_vector
 
 def get_vpattern(atom_set, aux_basis_set):
     atom_set = sorted(atom_set)
@@ -57,6 +72,26 @@ def get_vpattern(atom_set, aux_basis_set):
         v_feat[k] = [start, total]
     return v_feat
 
+def get_vpattern_bond(bonds_dict, bpath):
+    bond_pairs = []
+    for q, qq in bonds_dict.items():
+        bond_pairs.extend(qq)
+    bond_pairs = set(bond_pairs)
+    mybasis = dmbb.read_df_basis(bond_pairs, bpath)
+    idx, M  = dmbb.get_basis_info(bond_pairs, mybasis, False, 0)
+    qq_sizes = {qq:len(idx[qq]) for qq in idx.keys()}
+    max_bonds = max([len(val) for val in bonds_dict.values()])
+    max_length = max(qq_sizes.values()) * max_bonds
+    v_atoms = {}
+    for q, qq in bonds_dict.items():
+        v_feat = {}
+        start = 0
+        for iqq in qq:
+            end = start +  qq_sizes[iqq]
+            v_feat[iqq] =  [start, end]
+            start = end
+        v_atoms[q] = v_feat
+    return v_atoms, max_length
 
 def test_equivalence(old_vectors, new_vectors):
     correspondances = []
@@ -67,6 +102,61 @@ def test_equivalence(old_vectors, new_vectors):
         correspondances.append(l_corr)
     print([sum(loc) for loc in correspondances])
     return 0
+
+_func=None
+def worker_init(func):
+    global _func
+    _func = func 
+
+def worker(*args):
+    return _func(*args)
+
+def get_transformer(mode):
+    if mode == 'bond':
+        return lambda v, rin, rout, bp, q : transform_bond(q, v, rin, rout, bp)
+    elif mode == 'atom':
+        return lambda v, rin, rout, aux, q : transform(v, rin, rout, aux, atom_id=q)
+    else:
+        print('Mode : '+mode+' not known ! Exiting.')
+        exit(1)
+
+
+def fromr1tor2(vectors, r1_info, r2_info, atom_type=None, bond=False, bpath=None, aux_basis=None, multi=False):
+    tls.correct_num_threads()
+
+    new_vectors = []
+    if bond :
+        if bpath == None:
+            print("Missing atom_type or bond-basis path for bond-representation conversion")
+            exit(1)
+        mode = 'bond'
+        aux = bpath
+    else:
+        aux = aux_basis
+        mode = 'atom'
+    mytransform = get_transformer(mode)
+    if multi:
+        import multiprocessing as mp
+        count = len(os.sched_getaffinity(0))
+        pool = mp.Pool(count, initializer=worker_init, initargs=(mytransform,))
+        print(f"Entering parrallel mode [Using {count} cores] !", flush=True)
+
+        def collect(result):
+            new_vectors.extend(result)
+        def collect_error(result):
+            print(result)
+
+        results = pool.starmap_async(worker, [(v, r1_info, r2_info, aux, a) for a, v in vectors], callback=collect, error_callback=collect_error)
+        pool.close()
+        pool.join()
+
+
+    else:
+        for atom, v in vectors:
+            new_vec = mytransform(v, r1_info, r2_info, aux, atom)
+            new_vectors.append([atom, new_vec])
+    new_vectors= np.array(new_vectors, dtype=object, like=vectors)
+    return new_vectors
 
 
 
@@ -85,6 +175,9 @@ def main():
 
     vectors = np.load(args.XREP, allow_pickle=True)
     new_vectors = []
+
+    tranformers = {'atom': transform, 'bond': transform_bond}
+
 
 
     if args.PARA:
