@@ -72,7 +72,8 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
         elements = sorted(list(set([q for mol in mols for q in mol.elements])))
 
     if pairfile and not dump_and_exit:
-        qqs0, qqs4q = np.load(pairfile, allow_pickle=True)
+        bond_pairs = np.load(pairfile, allow_pickle=True)
+        qqs0, qqs4q = bond_pairs['qqs0'], bond_pairs['qqs4q'][()]
     else:
         if cutoff is None:
             qqs0, qqs4q = get_element_pairs(elements)
