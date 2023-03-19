@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -37,30 +38,33 @@ def bond(mols, dms,
 
 def main():
     parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
-    parser.add_argument('--mol',      type=str,            dest='filename',  required=True,                    help='file containing a list of molecular structures in xyz format (single xyz file also accepted)')
-    parser.add_argument('--guess',    type=str,            dest='guess',     default=defaults.guess,           help='initial guess type')
-    parser.add_argument('--basis',    type=str,            dest='basis'  ,   default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--charge',   type=str,            dest='charge',    default=None,                     help='file with a list of charges')
-    parser.add_argument('--spin',     type=str,            dest='spin',      default=None,                     help='file with a list of numbers of unpaired electrons')
-    parser.add_argument('--xc',       type=str,            dest='xc',        default=defaults.xc,              help='DFT functional for the SAD guess (default=HF)')
-    parser.add_argument('--dir',      type=str,            dest='dir',       default='./',                     help='directory to save the output in (default=current dir)')
-    parser.add_argument('--cutoff',   type=float,          dest='cutoff',    default=defaults.cutoff,          help='bond length cutoff (A)')
-    parser.add_argument('--bpath',    type=str,            dest='bpath',     default=defaults.bpath,           help='dir with basis sets')
-    parser.add_argument('--omod',     type=str,            dest='omod',      default=defaults.omod, nargs='+', help='model for open-shell systems (alpha, beta, sum, diff')
-    parser.add_argument('--print',    type=int,            dest='print',     default=0,                        help='printlevel')
-    parser.add_argument('--zeros',    action='store_true', dest='zeros',     default=False,                    help='if use a version with more padding zeros')
-    parser.add_argument('--split',    action='store_true', dest='split',     default=False,                    help='if split into molecules')
-    parser.add_argument('--merge',    action='store_true', dest='merge',     default=True,                     help='if merge different omods')
-    parser.add_argument('--onlym0',   action='store_true', dest='only_m0',   default=False,                    help='if use only fns with m=0')
-    parser.add_argument('--savedm',   action='store_true', dest='savedm',    default=False,                    help='if save dms')
-    parser.add_argument('--readdm',   type=str,            dest='readdm',    default=None,                     help='dir to read dms from')
-    parser.add_argument('--elements', type=str,            dest='elements',  default=None,  nargs='+',         help="the elements contained in the database")
-    parser.add_argument('--name',       dest='name_out',   required=True,                         type=str, help='name of the output file.')
-    parser.add_argument('--pairfile',      type=str,            dest='pairfile',         default=None,                     help='file with atom pairs')
-    parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit',    default=False,                    help='if write the pairfile (and exit)')
+    parser.add_argument('--mol',           type=str,            dest='filename',      required=True,                    help='file containing a list of molecular structures in xyz format (single xyz file also accepted)')
+    parser.add_argument('--guess',         type=str,            dest='guess',         default=defaults.guess,           help='initial guess type')
+    parser.add_argument('--basis',         type=str,            dest='basis'  ,       default=defaults.basis,           help='AO basis set (default=MINAO)')
+    parser.add_argument('--charge',        type=str,            dest='charge',        default=None,                     help='file with a list of charges')
+    parser.add_argument('--spin',          type=str,            dest='spin',          default=None,                     help='file with a list of numbers of unpaired electrons')
+    parser.add_argument('--xc',            type=str,            dest='xc',            default=defaults.xc,              help='DFT functional for the SAD guess (default=HF)')
+    parser.add_argument('--dir',           type=str,            dest='dir',           default='./',                     help='directory to save the output in (default=current dir)')
+    parser.add_argument('--cutoff',        type=float,          dest='cutoff',        default=defaults.cutoff,          help='bond length cutoff (A)')
+    parser.add_argument('--bpath',         type=str,            dest='bpath',         default=defaults.bpath,           help='dir with basis sets')
+    parser.add_argument('--omod',          type=str,            dest='omod',          default=defaults.omod, nargs='+', help='model for open-shell systems (alpha, beta, sum, diff')
+    parser.add_argument('--print',         type=int,            dest='print',         default=0,                        help='printlevel')
+    parser.add_argument('--zeros',         action='store_true', dest='zeros',         default=False,                    help='if use a version with more padding zeros')
+    parser.add_argument('--split',         action='store_true', dest='split',         default=False,                    help='if split into molecules')
+    parser.add_argument('--merge',         action='store_true', dest='merge',         default=True,                     help='if merge different omods')
+    parser.add_argument('--onlym0',        action='store_true', dest='only_m0',       default=False,                    help='if use only fns with m=0')
+    parser.add_argument('--savedm',        action='store_true', dest='savedm',        default=False,                    help='if save dms')
+    parser.add_argument('--readdm',        type=str,            dest='readdm',        default=None,                     help='dir to read dms from')
+    parser.add_argument('--elements',      type=str,            dest='elements',      default=None,  nargs='+',         help="the elements contained in the database")
+    parser.add_argument('--name',          type=str,            dest='name_out',      default=None,                     help='name of the output file')
+    parser.add_argument('--pairfile',      type=str,            dest='pairfile',      default=None,                     help='file with atom pairs')
+    parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit', default=False,                    help='if write the pairfile (and exit)')
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
+
+    if args.name_out is None:
+        args.name_out = os.path.splitext(args.filename)[0]
 
     xyzlistfile = [args.filename] if args.filename.split('.')[-1] == 'xyz' else args.filename
     xyzlist = utils.get_xyzlist(xyzlistfile)
