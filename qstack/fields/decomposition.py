@@ -4,18 +4,17 @@ from pyscf import scf
 import qstack
 
 def decompose(mol, dm, auxbasis):
-    """Fit molecular density onto an atom-centered basis.
+    """Fit molecular density onto an atom-centered basis. 
 
     Args:
-        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
-        dm (numpy 2d ndarray): density matrix.
-        auxbasis (string / pyscf basis dictionary): atom-centered basis to decompose on.
+        mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
+        dm (2D numpy array): Density matrix.
+        auxbasis (string / pyscf basis dictionary): Atom-centered basis to decompose on.
 
     Returns:
-        pyscf Mole : copy of the pyscf Mole object but with the auxbasis basis.
-        numpy 1d ndarray: Decomposition coefficients
-
+        A copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object, and a 1D numpy array containing the decomposition coefficients. 
     """
+
     auxmol = qstack.compound.make_auxmol(mol, auxbasis)
     S, eri2c, eri3c = qstack.fields.decomposition.get_integrals(mol, auxmol)
     c = get_coeff(dm, eri2c, eri3c)
@@ -29,8 +28,7 @@ def get_integrals(mol, auxmol):
         auxmol (pyscf Mole): pyscf Mole object holding molecular structure, composition and the auxiliary basis set.
 
     Returns:
-        numpy ndarray: Overlap matrix, 2-centers and 3-centers ERI matrices.
-
+        Three numpy ndarray containing: the overlap matrix, the 2-centers ERI matrix, and the 3-centers ERI matrix respectively.
     """
 
     # Get overlap integral in the auxiliary basis
@@ -47,6 +45,16 @@ def get_integrals(mol, auxmol):
     return S, eri2c, eri3c
 
 def get_self_repulsion(mol, dm):
+    """Computes the Einstein summation of the Coulumb matrix and the density matrix.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        dm (numpy ndarray): Density matrix.
+
+    Returns:
+        A nummpy ndarray result of the Einstein summation of the J matrix and the Density matrix.
+    """
+
     try:
         j, k = mol.get_jk()
     except:
@@ -54,19 +62,23 @@ def get_self_repulsion(mol, dm):
     return np.einsum('ij,ij', j, dm)
 
 def decomposition_error(self_repulsion, c, eri2c):
+    """Computes the decomposition error.
+
+    .. todo::
+        Write the complete docstring
+    """
     return self_repulsion - c @ eri2c @ c
 
 def get_coeff(dm, eri2c, eri3c):
     """Computes the density expansion coefficients.
 
     Args:
-        dm (numpy ndarray): density matrix.
+        dm (numpy ndarray): Density matrix.
         eri2c (numpy ndarray): 2-centers ERI matrix.
         eri3c (numpy ndarray): 3-centers ERI matrix.
 
     Returns:
-        numpy ndarray: Expansion coefficients of the density onto the auxiliary basis.
-
+        A numpy ndarray containing the expansion coefficients of the density onto the auxiliary basis.
     """
 
     # Compute the projection of the density onto auxiliary basis using a Coulomb metric
@@ -78,6 +90,13 @@ def get_coeff(dm, eri2c, eri3c):
     return c
 
 def _get_inv_metric(mol, metric, v):
+  """
+
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+    metric (str): unit, overlap or coulomb.
+    v (numpy ndarray): Number of electrons decomposed into a vector.
+  """
   if isinstance(metric, str):
       metric = metric.lower()
       if metric == 'u' or metric == 'unit' or metric == '1' :
@@ -92,7 +111,20 @@ def _get_inv_metric(mol, metric, v):
 
 
 def correct_N_atomic(mol, N, c0, metric='u'):
-    # TODO write the readme
+    """
+
+    Args:
+        mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
+        N (int): Number of electrons. Defaults to None.
+        c0 (1D numpy array): Decomposition coefficients.
+        metric (str): .Defaults to 'u'.
+
+    Returns:
+
+    .. todo::
+        Write the complete docstring.
+    """
+
     Q   = number_of_electrons_deco_vec(mol, per_atom=True)
     N0  = c0 @ Q
     O1q = _get_inv_metric(mol, metric, Q)
@@ -102,7 +134,21 @@ def correct_N_atomic(mol, N, c0, metric='u'):
 
 
 def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
-    # TODO write the readme
+    """
+
+    Args:
+        mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
+        c0 (1D numpy array): Decomposition coefficients.
+        N (int): Number of electrons. Defaults to None.
+        mode (str): Defaults to Lagrange.
+        metric (str): Defaults to u.
+
+    Returns:
+        A numpy ndarray containing a set of expansion coefficients taking into account the correct total number of electrons.
+
+    .. todo::
+        Write the complete docstring.
+    """
 
     mode = mode.lower()
     q = number_of_electrons_deco_vec(mol)
@@ -122,6 +168,11 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
 
 
 def number_of_electrons_deco_vec(mol, per_atom=False):
+    """
+
+    .. todo::
+        Write the complete docstring.
+    """
     if per_atom:
         Q = np.zeros((mol.nao,mol.natm))
     else:
@@ -150,7 +201,7 @@ def number_of_electrons_deco(auxmol, c):
         c (numpy ndarray): expansion coefficients of the density onto the auxiliary basis.
 
     Returns:
-        int: number of electrons.
+        The number of electrons as an integer value.
     """
 
     q = number_of_electrons_deco_vec(auxmol)

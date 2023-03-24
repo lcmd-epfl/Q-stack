@@ -7,21 +7,32 @@ def spherical_atoms(elements, atm_bas):
     """Get density matrices for spherical atoms.
 
     Args:
-        elements (list of str): elements to compute the DM for.
-        atm_bas (string / pyscf basis dictionary): basis to use.
+        elements (list of str): Elements to compute the DM for.
+        atm_bas (string / pyscf basis dictionary): Basis to use.
 
     Returns:
-        dict of numpy 2d ndarrays: atomic density matrices for each element with its name as a key.
-
+        A dict of numpy 2d ndarrays which contains the atomic density matrices for each element with its name as a key.
     """
+    
     dm_atoms = {}
     for q in elements:
         mol_atm = pyscf.gto.M(atom=[[q, [0,0,0]]], spin=pyscf.data.elements.ELEMENTS_PROTON[q]%2, basis=atm_bas)
         dm_atoms[q] = pyscf.scf.hf.init_guess_by_atom(mol_atm)
     return dm_atoms
 
-
 def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
+    """ Computes the Hirshfeld weights.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        grid_coord (numpy ndarray): Coordinates of the grid.
+        dm_atoms (dict of numpy 2d ndarrays): Atomic density matrices (output of the `spherical_atoms` fn).
+        atm_bas (string / pyscf basis dictionary): Basis set used to compute dm_atoms.
+        dominant (bool): Whether to use dominant or classical partitioning.
+
+    Returns:
+        A numpy ndarray containing the computed Hirshfeld weights.
+    """
 
     # promolecular density
     grid_n = len(grid_coord)
@@ -51,23 +62,21 @@ def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
 def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
                       dominant=True,
                       occupations=False, grid_level=3):
-
     """Fit molecular density onto an atom-centered basis.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        cd (numpy 1d or 2d ndarray or list of arrays): density-fitting coefficients / density matrices.
-        dm_atoms (dict of numpy 2d ndarrays): atomic density matrices (output of the `spherical_atoms` fn).
+        cd (1D or 2D numpy ndarray or list of arrays): Density-fitting coefficients / density matrices.
+        dm_atoms (dict of numpy 2d ndarrays): Atomic density matrices (output of the `spherical_atoms` fn).
                                               If None, is computed on-the-fly.
-        atm_bas (string / pyscf basis dictionary): basis set used to compute dm_atoms.
+        atm_bas (string / pyscf basis dictionary): Basis set used to compute dm_atoms.
                                                    If None, is taken from mol.
-        dominant (bool): whether to use dominant or classical partitioning.
-        occupations (bool): whether to return atomic occupations or charges.
-        grid level (int): grid level for numerical integration.
+        dominant (bool): Whether to use dominant or classical partitioning.
+        occupations (bool): Whether to return atomic occupations or charges.
+        grid level (int): Grid level for numerical integration.
 
     Returns:
-        numpy 1d ndarray or list of them: computed atomic charges or occupations.
-
+        A numpy 1d ndarray or list of them containing the computed atomic charges or occupations.
     """
 
     def atom_contributions(cd, ao, tot_weights):

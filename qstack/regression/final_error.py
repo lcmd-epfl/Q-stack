@@ -6,6 +6,11 @@ from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
 def final_error(X, y, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, test_size=defaults.test_size, save_alpha=None):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     kernel = get_kernel(akernel)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)
     K_all  = kernel(X_train, X_train, 1.0/sigma)

@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>qstack.fields package &mdash; Q-stack 1.0.0 documentation</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    
+
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" id="current-theme" href="_static/css/bootstrap3/bootswatch-cerulean.css" type="text/css" />
+<link rel="stylesheet" id="current-adjust-theme" href="_static/css/adjust_theme/bootswatch-cerulean.css" type="text/css" />
+
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+</style>
+
+<link rel="stylesheet" href="_static/css/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/basicstrap.css" type="text/css" />
+    
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    './',
+            VERSION:     '1.0.0',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sphinx_highlight.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="text/javascript" src="_static/js/bootstrap3.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery.cookie.min.js"></script>
+<script type="text/javascript" src="_static/js/basicstrap.js"></script>
+<script type="text/javascript">
+</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Q-stack 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="qstack package" href="qstack.html" />
+    <link rel="next" title="qstack.regression package" href="qstack.regression.html" />
+    <link rel="prev" title="qstack.basis_opt package" href="qstack.basis_opt.html" /> 
+  </head>
+  <body role="document">
+    <div id="navbar-top" class="navbar navbar-fixed-top navbar-default" role="navigation" aria-label="top navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">Q-stack 1.0.0 documentation</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown visible-xs">
+                <a role="button" id="localToc" data-toggle="dropdown" data-target="#" href="#">Table Of Contents <b class="caret"></b></a>
+                <ul class="dropdown-menu localtoc sp-localtoc" role="menu" aria-labelledby="localToc">
+                <ul>
+<li><a class="reference internal" href="#">qstack.fields package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qstack.fields.decomposition">qstack.fields.decomposition module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.decomposition.correct_N"><code class="docutils literal notranslate"><span class="pre">correct_N()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.correct_N_atomic"><code class="docutils literal notranslate"><span class="pre">correct_N_atomic()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.decompose"><code class="docutils literal notranslate"><span class="pre">decompose()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.decomposition_error"><code class="docutils literal notranslate"><span class="pre">decomposition_error()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.get_coeff"><code class="docutils literal notranslate"><span class="pre">get_coeff()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.get_integrals"><code class="docutils literal notranslate"><span class="pre">get_integrals()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.get_self_repulsion"><code class="docutils literal notranslate"><span class="pre">get_self_repulsion()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.number_of_electrons_deco"><code class="docutils literal notranslate"><span class="pre">number_of_electrons_deco()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.number_of_electrons_deco_vec"><code class="docutils literal notranslate"><span class="pre">number_of_electrons_deco_vec()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.density2file">qstack.fields.density2file module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.density2file.coeffs_to_cube"><code class="docutils literal notranslate"><span class="pre">coeffs_to_cube()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.density2file.coeffs_to_molden"><code class="docutils literal notranslate"><span class="pre">coeffs_to_molden()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.dm">qstack.fields.dm module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.dm.get_converged_dm"><code class="docutils literal notranslate"><span class="pre">get_converged_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.dm.get_converged_mf"><code class="docutils literal notranslate"><span class="pre">get_converged_mf()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.dm.make_grid_for_rho"><code class="docutils literal notranslate"><span class="pre">make_grid_for_rho()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.dm.sphericalize_density_matrix"><code class="docutils literal notranslate"><span class="pre">sphericalize_density_matrix()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.excited">qstack.fields.excited module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.excited.exciton_properties"><code class="docutils literal notranslate"><span class="pre">exciton_properties()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.exciton_properties_c"><code class="docutils literal notranslate"><span class="pre">exciton_properties_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.exciton_properties_dm"><code class="docutils literal notranslate"><span class="pre">exciton_properties_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_cis"><code class="docutils literal notranslate"><span class="pre">get_cis()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_cis_tdm"><code class="docutils literal notranslate"><span class="pre">get_cis_tdm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_holepart"><code class="docutils literal notranslate"><span class="pre">get_holepart()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_transition_dm"><code class="docutils literal notranslate"><span class="pre">get_transition_dm()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.hf_otpd">qstack.fields.hf_otpd module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.hf_otpd.hf_otpd"><code class="docutils literal notranslate"><span class="pre">hf_otpd()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.hf_otpd.save_OTPD"><code class="docutils literal notranslate"><span class="pre">save_OTPD()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.hirshfeld">qstack.fields.hirshfeld module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.hirshfeld.hirshfeld_charges"><code class="docutils literal notranslate"><span class="pre">hirshfeld_charges()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.hirshfeld.spherical_atoms"><code class="docutils literal notranslate"><span class="pre">spherical_atoms()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.moments">qstack.fields.moments module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.moments.first"><code class="docutils literal notranslate"><span class="pre">first()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.moments.r2_c"><code class="docutils literal notranslate"><span class="pre">r2_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.moments.r_c"><code class="docutils literal notranslate"><span class="pre">r_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.moments.r_dm"><code class="docutils literal notranslate"><span class="pre">r_dm()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+                </ul>
+              </li>
+
+            
+              <li><a href="qstack.basis_opt.html" title="qstack.basis_opt package" accesskey="P">previous </a></li>
+              <li><a href="qstack.regression.html" title="qstack.regression package" accesskey="N">next </a></li>
+              <li><a href="py-modindex.html" title="Python Module Index" >modules </a></li>
+              <li><a href="genindex.html" title="General Index" accesskey="I">index </a></li>
+              <li><a href="modules.html" >qstack</a></li>
+              <li><a href="qstack.html" accesskey="U">qstack package</a></li>
+            
+            <li class="visible-xs"><a href="_sources/qstack.fields.rst.txt" rel="nofollow">Show Source</a></li>
+
+            <li class="visible-xs">
+                <form class="search form-search form-inline navbar-form navbar-right sp-searchbox" action="search.html" method="get">
+                  <div class="input-append input-group">
+                    <input type="text" class="search-query form-control" name="q" placeholder="Search...">
+                    <span class="input-group-btn">
+                    <input type="submit" class="btn" value="Go" />
+                    </span>
+                  </div>
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </li>
+
+            
+
+          </ul>
+
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- container -->
+    <div class="container">
+
+      <!-- row -->
+      <div class="row">
+         
+<div class="col-md-3 hidden-xs" id="sidebar-wrapper">
+  <div class="sidebar hidden-xs" role="navigation" aria-label="main navigation">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">qstack.fields package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qstack.fields.decomposition">qstack.fields.decomposition module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.decomposition.correct_N"><code class="docutils literal notranslate"><span class="pre">correct_N()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.correct_N_atomic"><code class="docutils literal notranslate"><span class="pre">correct_N_atomic()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.decompose"><code class="docutils literal notranslate"><span class="pre">decompose()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.decomposition_error"><code class="docutils literal notranslate"><span class="pre">decomposition_error()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.get_coeff"><code class="docutils literal notranslate"><span class="pre">get_coeff()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.get_integrals"><code class="docutils literal notranslate"><span class="pre">get_integrals()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.get_self_repulsion"><code class="docutils literal notranslate"><span class="pre">get_self_repulsion()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.number_of_electrons_deco"><code class="docutils literal notranslate"><span class="pre">number_of_electrons_deco()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.decomposition.number_of_electrons_deco_vec"><code class="docutils literal notranslate"><span class="pre">number_of_electrons_deco_vec()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.density2file">qstack.fields.density2file module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.density2file.coeffs_to_cube"><code class="docutils literal notranslate"><span class="pre">coeffs_to_cube()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.density2file.coeffs_to_molden"><code class="docutils literal notranslate"><span class="pre">coeffs_to_molden()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.dm">qstack.fields.dm module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.dm.get_converged_dm"><code class="docutils literal notranslate"><span class="pre">get_converged_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.dm.get_converged_mf"><code class="docutils literal notranslate"><span class="pre">get_converged_mf()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.dm.make_grid_for_rho"><code class="docutils literal notranslate"><span class="pre">make_grid_for_rho()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.dm.sphericalize_density_matrix"><code class="docutils literal notranslate"><span class="pre">sphericalize_density_matrix()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.excited">qstack.fields.excited module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.excited.exciton_properties"><code class="docutils literal notranslate"><span class="pre">exciton_properties()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.exciton_properties_c"><code class="docutils literal notranslate"><span class="pre">exciton_properties_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.exciton_properties_dm"><code class="docutils literal notranslate"><span class="pre">exciton_properties_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_cis"><code class="docutils literal notranslate"><span class="pre">get_cis()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_cis_tdm"><code class="docutils literal notranslate"><span class="pre">get_cis_tdm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_holepart"><code class="docutils literal notranslate"><span class="pre">get_holepart()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.excited.get_transition_dm"><code class="docutils literal notranslate"><span class="pre">get_transition_dm()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.hf_otpd">qstack.fields.hf_otpd module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.hf_otpd.hf_otpd"><code class="docutils literal notranslate"><span class="pre">hf_otpd()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.hf_otpd.save_OTPD"><code class="docutils literal notranslate"><span class="pre">save_OTPD()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.hirshfeld">qstack.fields.hirshfeld module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.hirshfeld.hirshfeld_charges"><code class="docutils literal notranslate"><span class="pre">hirshfeld_charges()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.hirshfeld.spherical_atoms"><code class="docutils literal notranslate"><span class="pre">spherical_atoms()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields.moments">qstack.fields.moments module</a><ul>
+<li><a class="reference internal" href="#qstack.fields.moments.first"><code class="docutils literal notranslate"><span class="pre">first()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.moments.r2_c"><code class="docutils literal notranslate"><span class="pre">r2_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.moments.r_c"><code class="docutils literal notranslate"><span class="pre">r_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.fields.moments.r_dm"><code class="docutils literal notranslate"><span class="pre">r_dm()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.fields">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="qstack.basis_opt.html"
+                          title="previous chapter">qstack.basis_opt package</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="qstack.regression.html"
+                          title="next chapter">qstack.regression package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qstack.fields.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" role="search">
+  <h3>Quick search</h3>
+  <form class="search form-inline" action="search.html" method="get">
+      <div class="input-append input-group">
+        <input type="text" class="search-query form-control" name="q" placeholder="Search...">
+        <span class="input-group-btn">
+        <input type="submit" class="btn" value="Go" />
+        </span>
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="col-md-9" id="content-wrapper">
+          <div class="document" role="main">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
+  <section id="qstack-fields-package">
+<h1>qstack.fields package<a class="headerlink" href="#qstack-fields-package" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-qstack.fields.decomposition">
+<span id="qstack-fields-decomposition-module"></span><h2>qstack.fields.decomposition module<a class="headerlink" href="#module-qstack.fields.decomposition" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.correct_N">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">correct_N</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Lagrange'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'u'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.correct_N" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole objec used for the computation of the density matrix.</p></li>
+<li><p><strong>c0</strong> (<em>1D numpy array</em>) – Decomposition coefficients.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Number of electrons. Defaults to None.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – Defaults to Lagrange.</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – Defaults to u.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing a set of expansion coefficients taking into account the correct total number of electrons.</p>
+</dd>
+</dl>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.correct_N_atomic">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">correct_N_atomic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'u'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.correct_N_atomic" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole objec used for the computation of the density matrix.</p></li>
+<li><p><strong>N</strong> (<em>int</em>) – Number of electrons. Defaults to None.</p></li>
+<li><p><strong>c0</strong> (<em>1D numpy array</em>) – Decomposition coefficients.</p></li>
+<li><p><strong>metric</strong> (<em>str</em>) – .Defaults to ‘u’.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Returns:</p>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.decompose">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">decompose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auxbasis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.decompose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit molecular density onto an atom-centered basis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole objec used for the computation of the density matrix.</p></li>
+<li><p><strong>dm</strong> (<em>2D numpy array</em>) – Density matrix.</p></li>
+<li><p><strong>auxbasis</strong> (<em>string / pyscf basis dictionary</em>) – Atom-centered basis to decompose on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object, and a 1D numpy array containing the decomposition coefficients.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.decomposition_error">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">decomposition_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self_repulsion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eri2c</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.decomposition_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the decomposition error.</p>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.get_coeff">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">get_coeff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eri2c</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eri3c</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.get_coeff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the density expansion coefficients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dm</strong> (<em>numpy ndarray</em>) – Density matrix.</p></li>
+<li><p><strong>eri2c</strong> (<em>numpy ndarray</em>) – 2-centers ERI matrix.</p></li>
+<li><p><strong>eri3c</strong> (<em>numpy ndarray</em>) – 3-centers ERI matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the expansion coefficients of the density onto the auxiliary basis.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.get_integrals">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">get_integrals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auxmol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.get_integrals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes overlap and 2-/3-centers ERI matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object used for the computation of the density matrix.</p></li>
+<li><p><strong>auxmol</strong> (<em>pyscf Mole</em>) – pyscf Mole object holding molecular structure, composition and the auxiliary basis set.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the overlap matrix, the 2-centers ERI matrix, and the 3-centers ERI matrix respectively.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Three numpy ndarray containing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.get_self_repulsion">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">get_self_repulsion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.get_self_repulsion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the Einstein summation of the Coulumb matrix and the density matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>dm</strong> (<em>numpy ndarray</em>) – Density matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A nummpy ndarray result of the Einstein summation of the J matrix and the Density matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.number_of_electrons_deco">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">number_of_electrons_deco</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auxmol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.number_of_electrons_deco" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the number of electrons of a molecule given a set of expansion coefficients and a Mole object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>auxmol</strong> (<em>pyscf Mole</em>) – pyscf mol object holding molecular structure, composition and the auxiliary basis set.</p></li>
+<li><p><strong>c</strong> (<em>numpy ndarray</em>) – expansion coefficients of the density onto the auxiliary basis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of electrons as an integer value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.decomposition.number_of_electrons_deco_vec">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.decomposition.</span></span><span class="sig-name descname"><span class="pre">number_of_electrons_deco_vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_atom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.decomposition.number_of_electrons_deco_vec" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields.density2file">
+<span id="qstack-fields-density2file-module"></span><h2>qstack.fields.density2file module<a class="headerlink" href="#module-qstack.fields.density2file" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.density2file.coeffs_to_cube">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.density2file.</span></span><span class="sig-name descname"><span class="pre">coeffs_to_cube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cubename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">80</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.density2file.coeffs_to_cube" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the density in a cube file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole.</p></li>
+<li><p><strong>coeffs</strong> (<em>numpy ndarray</em>) – Expansion coefficients.</p></li>
+<li><p><strong>cubename</strong> (<em>str</em>) – Name of the cubo file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new or overwrited file named &lt;cubename&gt;.cube</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.density2file.coeffs_to_molden">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.density2file.</span></span><span class="sig-name descname"><span class="pre">coeffs_to_molden</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">moldenname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.density2file.coeffs_to_molden" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the density in a molden file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole.</p></li>
+<li><p><strong>coeffs</strong> (<em>numpy ndarray</em>) – Expansion coefficients.</p></li>
+<li><p><strong>moldenname</strong> (<em>str</em>) – File name of the molden file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new or overwrited file named &lt;moldenname&gt;.molden</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields.dm">
+<span id="qstack-fields-dm-module"></span><h2>qstack.fields.dm module<a class="headerlink" href="#module-qstack.fields.dm" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.dm.get_converged_dm">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.dm.</span></span><span class="sig-name descname"><span class="pre">get_converged_dm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.dm.get_converged_dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs restricted SCF and returns density matrix, given pyscf mol object and an XC density functional.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>xc</strong> (<em>str</em>) – Exchange-correlation functional.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the density matrix in AO-basis.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.dm.get_converged_mf">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.dm.</span></span><span class="sig-name descname"><span class="pre">get_converged_mf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.dm.get_converged_mf" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring, and merge with get_converged_dm()</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.dm.make_grid_for_rho">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.dm.</span></span><span class="sig-name descname"><span class="pre">make_grid_for_rho</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.dm.make_grid_for_rho" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a grid of real space coordinates and weights for integration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>grid_level</strong> (<em>int</em>) – Controls the number of radial and angular points.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pyscf Grid object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.dm.sphericalize_density_matrix">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.dm.</span></span><span class="sig-name descname"><span class="pre">sphericalize_density_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.dm.sphericalize_density_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sphericalize the density matrix in the sense of an integral over all possible rotations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>dm</strong> (<em>2D numpy array</em>) – Density matrix in AO-basis.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray with the sphericalized density matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields.excited">
+<span id="qstack-fields-excited-module"></span><h2>qstack.fields.excited module<a class="headerlink" href="#module-qstack.fields.excited" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.exciton_properties">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">exciton_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hole</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.exciton_properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the ab initio or decomposed/predicted hole-particle distance, the hole size and the particle size according to the number of dimensions of the density matrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>hole</strong> (<em>numpy ndarray</em>) – Hole density matrix.</p></li>
+<li><p><strong>part</strong> (<em>numpy ndarray</em>) – Particle density matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The hole-particle distance, the hole size, and the particle size as floats.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.exciton_properties_c">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">exciton_properties_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hole</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.exciton_properties_c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the decomposed/predicted hole-particle distance, the hole size and the particle size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>hole</strong> (<em>numpy ndarray</em>) – Hole density matrix.</p></li>
+<li><p><strong>part</strong> (<em>numpy ndarray</em>) – Particle density matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the hole-particle distance, the hole size, and the particle size respectively.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Three floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.exciton_properties_dm">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">exciton_properties_dm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hole</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">part</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.exciton_properties_dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the ab initio hole-particle distance, the hole size and the particle size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>hole</strong> (<em>numpy ndarray</em>) – Hole density matrix.</p></li>
+<li><p><strong>part</strong> (<em>numpy ndarray</em>) – Particle density matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the hole-particle distance, the hole size, and the particle size respectively.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Three floats</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.get_cis">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">get_cis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nstates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.get_cis" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.get_cis_tdm">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">get_cis_tdm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.get_cis_tdm" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>Write the complete docstring.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.get_holepart">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">get_holepart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.get_holepart" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the hole and particle density matrices (atomic orbital basis) of selected states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>x</strong> (<em>numpy ndarray</em>) – Response vector (nstates×occ×virt) normalized to 1.</p></li>
+<li><p><strong>coeff</strong> (<em>numpy ndarray</em>) – Ground-state molecular orbital vectors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Two numpy ndarrays containing the hole density matrices and the particle density matrices respectively.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.excited.get_transition_dm">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.excited.</span></span><span class="sig-name descname"><span class="pre">get_transition_dm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_mo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeff</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.excited.get_transition_dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Transition Density Matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>x_mo</strong> (<em>numpy ndarray</em>) – Response vector (nstates×occ×virt) normalized to 1.</p></li>
+<li><p><strong>coeff</strong> (<em>numpy ndarray</em>) – Ground-state molecular orbital vectors.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the Transition Density Matrix.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields.hf_otpd">
+<span id="qstack-fields-hf-otpd-module"></span><h2>qstack.fields.hf_otpd module<a class="headerlink" href="#module-qstack.fields.hf_otpd" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.hf_otpd.hf_otpd">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.hf_otpd.</span></span><span class="sig-name descname"><span class="pre">hf_otpd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_otpd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_all</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.hf_otpd.hf_otpd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the uncorrelated on-top pair density on a grid.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>dm</strong> (<em>numpy ndarray</em>) – Density matrix in AO-basis.</p></li>
+<li><p><strong>grid_level</strong> (<em>int</em>) – Controls the number of radial and angular points.</p></li>
+<li><p><strong>save_otpd</strong> (<em>bool</em>) – If True, saves the input and output in a .npz file. Defaults to False</p></li>
+<li><p><strong>return_all</strong> (<em>bool</em>) – If true, returns the uncorrelated on-top pair density on a grid, and the cooresponding pyscf Grid object; if False, returns only the uncorrelated on-top pair density. Defaults to False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray with the uncorrelated on-top pair density on a grid. If ‘return_all’ = True, then it also returns the corresponding pyscf Grid object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.hf_otpd.save_OTPD">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.hf_otpd.</span></span><span class="sig-name descname"><span class="pre">save_OTPD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">otpd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.hf_otpd.save_OTPD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the information about an OTPD computation into a .npz file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>otpd</strong> (<em>numpy ndarray</em>) – On-top pair density on a grid.</p></li>
+<li><p><strong>grid</strong> (<em>pyscf Grid</em>) – Grid object</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields.hirshfeld">
+<span id="qstack-fields-hirshfeld-module"></span><h2>qstack.fields.hirshfeld module<a class="headerlink" href="#module-qstack.fields.hirshfeld" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.hirshfeld.hirshfeld_charges">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.hirshfeld.</span></span><span class="sig-name descname"><span class="pre">hirshfeld_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm_atoms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atm_bas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dominant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">occupations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.hirshfeld.hirshfeld_charges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit molecular density onto an atom-centered basis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>cd</strong> (<em>1D</em><em> or </em><em>2D numpy ndarray</em><em> or </em><em>list</em><em> of </em><em>arrays</em>) – Density-fitting coefficients / density matrices.</p></li>
+<li><p><strong>dm_atoms</strong> (<em>dict</em><em> of </em><em>numpy 2d ndarrays</em>) – Atomic density matrices (output of the <cite>spherical_atoms</cite> fn).
+If None, is computed on-the-fly.</p></li>
+<li><p><strong>atm_bas</strong> (<em>string / pyscf basis dictionary</em>) – Basis set used to compute dm_atoms.
+If None, is taken from mol.</p></li>
+<li><p><strong>dominant</strong> (<em>bool</em>) – Whether to use dominant or classical partitioning.</p></li>
+<li><p><strong>occupations</strong> (<em>bool</em>) – Whether to return atomic occupations or charges.</p></li>
+<li><p><strong>level</strong> (<em>grid</em>) – Grid level for numerical integration.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy 1d ndarray or list of them containing the computed atomic charges or occupations.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.hirshfeld.spherical_atoms">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.hirshfeld.</span></span><span class="sig-name descname"><span class="pre">spherical_atoms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elements</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atm_bas</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.hirshfeld.spherical_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get density matrices for spherical atoms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>elements</strong> (<em>list</em><em> of </em><em>str</em>) – Elements to compute the DM for.</p></li>
+<li><p><strong>atm_bas</strong> (<em>string / pyscf basis dictionary</em>) – Basis to use.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dict of numpy 2d ndarrays which contains the atomic density matrices for each element with its name as a key.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields.moments">
+<span id="qstack-fields-moments-module"></span><h2>qstack.fields.moments module<a class="headerlink" href="#module-qstack.fields.moments" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.moments.first">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.moments.</span></span><span class="sig-name descname"><span class="pre">first</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.moments.first" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the transition dipole moments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>rho</strong> (<em>numpy ndarray</em>) – Density Matrix (trnasition if given ) or fitting coefficnts for the same matrix.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray with the transition dipole moments. If rho is a 1D matrix, returns the Decomposed/predicted transition dipole moments; if rho is a 2D matrix, returns the ab initio transition dipole moments.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.moments.r2_c">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.moments.</span></span><span class="sig-name descname"><span class="pre">r2_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rho</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.moments.r2_c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the zeroth ( <span class="math notranslate nohighlight">\(&lt;1&gt;\)</span> ), first ( <span class="math notranslate nohighlight">\(&lt;r&gt;\)</span> ), and second ( <span class="math notranslate nohighlight">\(&lt;r^{2}&gt;\)</span>) moments of electron density distribution.</p>
+<div class="math notranslate nohighlight">
+\[&lt;1&gt; = \int \rho d r
+\quad
+;
+\quad
+&lt;r&gt; = \int \hat{r} \rho d r
+\quad
+;
+\quad
+&lt;r^{2}&gt; = \int \hat{r}^{2} \rho d r\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>scipy Mole</em>) – scipy Mole object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The zeroth, first, and second moments of electron density distribution.</p>
+</dd>
+</dl>
+<div class="admonition-todo admonition" id="id8">
+<p class="admonition-title">Todo</p>
+<p>Include uncontracted basis in code and verify formulas</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.moments.r_c">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.moments.</span></span><span class="sig-name descname"><span class="pre">r_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.moments.r_c" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id9">
+<p class="admonition-title">Todo</p>
+<p>Write docstring, and include uncontracted basis in code and verify formulas</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.fields.moments.r_dm">
+<span class="sig-prename descclassname"><span class="pre">qstack.fields.moments.</span></span><span class="sig-name descname"><span class="pre">r_dm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.fields.moments.r_dm" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id10">
+<p class="admonition-title">Todo</p>
+<p>write docstring.</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-qstack.fields">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qstack.fields" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+      </div><!-- /row -->
+
+      <!-- row -->
+      <div class="row footer-relbar">
+<div id="navbar-related" class=" related navbar navbar-default" role="navigation" aria-label="related navigation">
+  <div class="navbar-inner">
+    <ul class="nav navbar-nav ">
+        <li><a href="index.html">Q-stack 1.0.0 documentation</a></li>
+    </ul>
+<ul class="nav navbar-nav pull-right hidden-xs hidden-sm">
+      
+        <li><a href="qstack.basis_opt.html" title="qstack.basis_opt package" >previous</a></li>
+        <li><a href="qstack.regression.html" title="qstack.regression package" >next</a></li>
+        <li><a href="py-modindex.html" title="Python Module Index" >modules</a></li>
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="modules.html" >qstack</a></li>
+        <li><a href="qstack.html" >qstack package</a></li>
+        <li><a href="#">top</a></li> 
+      
+    </ul>
+  </div>
+</div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer role="contentinfo">
+          &copy; Copyright 2023, LCMD.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 5.3.0.
+      </footer>
+      <!-- /footer -->
+
+    </div>
+    <!-- /container -->
+
+  </body>
+</html>

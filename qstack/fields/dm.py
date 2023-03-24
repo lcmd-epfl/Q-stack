@@ -4,14 +4,13 @@ import numpy as np
 
 def get_converged_dm(mol, xc):
     """Performs restricted SCF and returns density matrix, given pyscf mol object and an XC density functional.
-
+    
     Args:
-        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
-        xc (str): XC functional for computation.
-
+        mol (pyscf Mole): pyscf Mole object.
+        xc (str): Exchange-correlation functional.
+    
     Returns:
-        numpy ndarray: density matrix in AO-basis.
-
+        A numpy ndarray containing the density matrix in AO-basis.
     """
 
     if mol.multiplicity == 1:
@@ -33,16 +32,16 @@ def get_converged_dm(mol, xc):
     return dm
 
 def make_grid_for_rho(mol, grid_level = 3):
-    """ Generates a grid of real space coordinates and weights for integration.
-
+    """Generates a grid of real space coordinates and weights for integration.
+    
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        grid_level (int): controls the number of radial and angular points.
-
+        grid_level (int): Controls the number of radial and angular points.
+    
     Returns:
-        object : pyscf DFT mesh grid object
-
+        pyscf Grid object.
     """
+
     grid = dft.gen_grid.Grids(mol)
     grid.level = grid_level
     grid.build()
@@ -51,14 +50,13 @@ def make_grid_for_rho(mol, grid_level = 3):
 
 def sphericalize_density_matrix(mol, dm):
     """Sphericalize the density matrix in the sense of an integral over all possible rotations.
-
+    
     Args:
-        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
-        dm (numpy ndarray): density matrix in AO-basis.
-
+        mol (pyscf Mole): pyscf Mole object.
+        dm (2D numpy array): Density matrix in AO-basis.
+    
     Returns:
-        numpy ndarray: sphericalized density matrix.
-
+        A numpy ndarray with the sphericalized density matrix.
     """
 
     idx_by_l = [[] for i in range(constants.MAX_L)]
@@ -86,8 +84,13 @@ def sphericalize_density_matrix(mol, dm):
 
     return spherical_dm
 
-# TODO merge with get_converged_dm()
 def get_converged_mf(mol, func, dm0=None):
+    """                                                                                                                           
+                                                                                                                                  
+    .. todo::                                                                                                                     
+        Write the complete docstring, and merge with get_converged_dm()                                                           
+    """
+
     if mol.multiplicity == 1:
         mf = dft.RKS(mol)
     else:

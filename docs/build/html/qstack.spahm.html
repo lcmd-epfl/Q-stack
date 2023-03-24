@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>qstack.spahm package &mdash; Q-stack 1.0.0 documentation</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    
+
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" id="current-theme" href="_static/css/bootstrap3/bootswatch-cerulean.css" type="text/css" />
+<link rel="stylesheet" id="current-adjust-theme" href="_static/css/adjust_theme/bootswatch-cerulean.css" type="text/css" />
+
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+</style>
+
+<link rel="stylesheet" href="_static/css/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/basicstrap.css" type="text/css" />
+    
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    './',
+            VERSION:     '1.0.0',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sphinx_highlight.js"></script>
+    <script type="text/javascript" src="_static/js/bootstrap3.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery.cookie.min.js"></script>
+<script type="text/javascript" src="_static/js/basicstrap.js"></script>
+<script type="text/javascript">
+</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Q-stack 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="qstack package" href="qstack.html" />
+    <link rel="prev" title="qstack.regression package" href="qstack.regression.html" /> 
+  </head>
+  <body role="document">
+    <div id="navbar-top" class="navbar navbar-fixed-top navbar-default" role="navigation" aria-label="top navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">Q-stack 1.0.0 documentation</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown visible-xs">
+                <a role="button" id="localToc" data-toggle="dropdown" data-target="#" href="#">Table Of Contents <b class="caret"></b></a>
+                <ul class="dropdown-menu localtoc sp-localtoc" role="menu" aria-labelledby="localToc">
+                <ul>
+<li><a class="reference internal" href="#">qstack.spahm package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qstack.spahm.LB2020guess">qstack.spahm.LB2020guess module</a><ul>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess"><code class="docutils literal notranslate"><span class="pre">LB2020guess</span></code></a><ul>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.HLB20"><code class="docutils literal notranslate"><span class="pre">LB2020guess.HLB20()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.Heff"><code class="docutils literal notranslate"><span class="pre">LB2020guess.Heff()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.acfile_default"><code class="docutils literal notranslate"><span class="pre">LB2020guess.acfile_default</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.add_caps"><code class="docutils literal notranslate"><span class="pre">LB2020guess.add_caps()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.get_basis"><code class="docutils literal notranslate"><span class="pre">LB2020guess.get_basis()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.read_ac"><code class="docutils literal notranslate"><span class="pre">LB2020guess.read_ac()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.renormalize"><code class="docutils literal notranslate"><span class="pre">LB2020guess.renormalize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.spahm.compute_spahm">qstack.spahm.compute_spahm module</a><ul>
+<li><a class="reference internal" href="#qstack.spahm.compute_spahm.get_guess_dm"><code class="docutils literal notranslate"><span class="pre">get_guess_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.compute_spahm.get_guess_orbitals"><code class="docutils literal notranslate"><span class="pre">get_guess_orbitals()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.compute_spahm.get_spahm_representation"><code class="docutils literal notranslate"><span class="pre">get_spahm_representation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.spahm.guesses">qstack.spahm.guesses module</a><ul>
+<li><a class="reference internal" href="#qstack.spahm.guesses.GWH"><code class="docutils literal notranslate"><span class="pre">GWH()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.LB"><code class="docutils literal notranslate"><span class="pre">LB()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.LB_HFS"><code class="docutils literal notranslate"><span class="pre">LB_HFS()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.SAD"><code class="docutils literal notranslate"><span class="pre">SAD()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.SAP"><code class="docutils literal notranslate"><span class="pre">SAP()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.get_dm"><code class="docutils literal notranslate"><span class="pre">get_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.get_guess"><code class="docutils literal notranslate"><span class="pre">get_guess()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.get_occ"><code class="docutils literal notranslate"><span class="pre">get_occ()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.hcore"><code class="docutils literal notranslate"><span class="pre">hcore()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.solveF"><code class="docutils literal notranslate"><span class="pre">solveF()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.spahm.spham_utils">qstack.spahm.spham_utils module</a></li>
+<li><a class="reference internal" href="#module-qstack.spahm">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+                </ul>
+              </li>
+
+            
+              <li><a href="qstack.regression.html" title="qstack.regression package" accesskey="P">previous </a></li>
+              <li><a href="py-modindex.html" title="Python Module Index" >modules </a></li>
+              <li><a href="genindex.html" title="General Index" accesskey="I">index </a></li>
+              <li><a href="modules.html" >qstack</a></li>
+              <li><a href="qstack.html" accesskey="U">qstack package</a></li>
+            
+            <li class="visible-xs"><a href="_sources/qstack.spahm.rst.txt" rel="nofollow">Show Source</a></li>
+
+            <li class="visible-xs">
+                <form class="search form-search form-inline navbar-form navbar-right sp-searchbox" action="search.html" method="get">
+                  <div class="input-append input-group">
+                    <input type="text" class="search-query form-control" name="q" placeholder="Search...">
+                    <span class="input-group-btn">
+                    <input type="submit" class="btn" value="Go" />
+                    </span>
+                  </div>
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </li>
+
+            
+
+          </ul>
+
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- container -->
+    <div class="container">
+
+      <!-- row -->
+      <div class="row">
+         
+<div class="col-md-3 hidden-xs" id="sidebar-wrapper">
+  <div class="sidebar hidden-xs" role="navigation" aria-label="main navigation">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">qstack.spahm package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qstack.spahm.LB2020guess">qstack.spahm.LB2020guess module</a><ul>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess"><code class="docutils literal notranslate"><span class="pre">LB2020guess</span></code></a><ul>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.HLB20"><code class="docutils literal notranslate"><span class="pre">LB2020guess.HLB20()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.Heff"><code class="docutils literal notranslate"><span class="pre">LB2020guess.Heff()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.acfile_default"><code class="docutils literal notranslate"><span class="pre">LB2020guess.acfile_default</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.add_caps"><code class="docutils literal notranslate"><span class="pre">LB2020guess.add_caps()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.get_basis"><code class="docutils literal notranslate"><span class="pre">LB2020guess.get_basis()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.read_ac"><code class="docutils literal notranslate"><span class="pre">LB2020guess.read_ac()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.LB2020guess.LB2020guess.renormalize"><code class="docutils literal notranslate"><span class="pre">LB2020guess.renormalize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.spahm.compute_spahm">qstack.spahm.compute_spahm module</a><ul>
+<li><a class="reference internal" href="#qstack.spahm.compute_spahm.get_guess_dm"><code class="docutils literal notranslate"><span class="pre">get_guess_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.compute_spahm.get_guess_orbitals"><code class="docutils literal notranslate"><span class="pre">get_guess_orbitals()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.compute_spahm.get_spahm_representation"><code class="docutils literal notranslate"><span class="pre">get_spahm_representation()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.spahm.guesses">qstack.spahm.guesses module</a><ul>
+<li><a class="reference internal" href="#qstack.spahm.guesses.GWH"><code class="docutils literal notranslate"><span class="pre">GWH()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.LB"><code class="docutils literal notranslate"><span class="pre">LB()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.LB_HFS"><code class="docutils literal notranslate"><span class="pre">LB_HFS()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.SAD"><code class="docutils literal notranslate"><span class="pre">SAD()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.SAP"><code class="docutils literal notranslate"><span class="pre">SAP()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.get_dm"><code class="docutils literal notranslate"><span class="pre">get_dm()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.get_guess"><code class="docutils literal notranslate"><span class="pre">get_guess()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.get_occ"><code class="docutils literal notranslate"><span class="pre">get_occ()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.hcore"><code class="docutils literal notranslate"><span class="pre">hcore()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.spahm.guesses.solveF"><code class="docutils literal notranslate"><span class="pre">solveF()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.spahm.spham_utils">qstack.spahm.spham_utils module</a></li>
+<li><a class="reference internal" href="#module-qstack.spahm">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="qstack.regression.html"
+                          title="previous chapter">qstack.regression package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qstack.spahm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" role="search">
+  <h3>Quick search</h3>
+  <form class="search form-inline" action="search.html" method="get">
+      <div class="input-append input-group">
+        <input type="text" class="search-query form-control" name="q" placeholder="Search...">
+        <span class="input-group-btn">
+        <input type="submit" class="btn" value="Go" />
+        </span>
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="col-md-9" id="content-wrapper">
+          <div class="document" role="main">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
+  <section id="qstack-spahm-package">
+<h1>qstack.spahm package<a class="headerlink" href="#qstack-spahm-package" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-qstack.spahm.LB2020guess">
+<span id="qstack-spahm-lb2020guess-module"></span><h2>qstack.spahm.LB2020guess module<a class="headerlink" href="#module-qstack.spahm.LB2020guess" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qstack.spahm.LB2020guess.</span></span><span class="sig-name descname"><span class="pre">LB2020guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'HF'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.HLB20">
+<span class="sig-name descname"><span class="pre">HLB20</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.HLB20" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.Heff">
+<span class="sig-name descname"><span class="pre">Heff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.Heff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.acfile_default">
+<span class="sig-name descname"><span class="pre">acfile_default</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'./parameters_HF.dat'</span></em><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.acfile_default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.add_caps">
+<span class="sig-name descname"><span class="pre">add_caps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">basis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.add_caps" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.get_basis">
+<span class="sig-name descname"><span class="pre">get_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.get_basis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.read_ac">
+<span class="sig-name descname"><span class="pre">read_ac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.read_ac" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qstack.spahm.LB2020guess.LB2020guess.renormalize">
+<span class="sig-name descname"><span class="pre">renormalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.LB2020guess.LB2020guess.renormalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-qstack.spahm.compute_spahm">
+<span id="qstack-spahm-compute-spahm-module"></span><h2>qstack.spahm.compute_spahm module<a class="headerlink" href="#module-qstack.spahm.compute_spahm" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.compute_spahm.get_guess_dm">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.compute_spahm.</span></span><span class="sig-name descname"><span class="pre">get_guess_dm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pbe'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">openshell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.compute_spahm.get_guess_dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the density matrix with the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>guess</strong> (<em>funct</em>) – Method used to compute the guess Hamiltonian. Output of get_guess.</p></li>
+<li><p><strong>xc</strong> (<em>str</em>) – Exchange-correlation functional. Defaults to pbe</p></li>
+<li><p><strong>openshell</strong> (<em>bool</em>) – . Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the density matrix computed using the guess Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.compute_spahm.get_guess_orbitals">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.compute_spahm.</span></span><span class="sig-name descname"><span class="pre">get_guess_orbitals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pbe'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.compute_spahm.get_guess_orbitals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>guess</strong> (<em>funct</em>) – Method used to compute the guess Hamiltonian. Output of get_guess.</p></li>
+<li><p><strong>xc</strong> (<em>str</em>) – Exchange-correlation functional. Defaults to pbe.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A 1D numpy array containing the eigenvalues and a 2D numpy array containing the eigenvectors of the guess Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.compute_spahm.get_spahm_representation">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.compute_spahm.</span></span><span class="sig-name descname"><span class="pre">get_spahm_representation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guess_in</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pbe'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.compute_spahm.get_spahm_representation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the SPAHM representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>guess_in</strong> (<em>str</em>) – Method used to obtain the guess Hamiltoninan.</p></li>
+<li><p><strong>xc</strong> (<em>str</em>) – Exchange-correlation functional. Defaults to pbe.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the SPAHM representation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.spahm.guesses">
+<span id="qstack-spahm-guesses-module"></span><h2>qstack.spahm.guesses module<a class="headerlink" href="#module-qstack.spahm.guesses" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.GWH">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">GWH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.GWH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the generalized Wolfsberg-Helmholtz to compute the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the computed approximate Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.LB">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">LB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.LB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the Laikov-Briling model with HF-based parameters to compute the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the computed approximate Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.LB_HFS">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">LB_HFS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.LB_HFS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Laikov-Briling using HFS-based parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the computed approximate Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.SAD">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">SAD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.SAD" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the superposition of atomic densities to compute the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>func</strong> (<em>str</em>) – Exchange-correlation functional.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the computed approximate Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.SAP">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">SAP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.SAP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the superposition of atomic potentials to compute the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the computed approximate Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.get_dm">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">get_dm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nelec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.get_dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the density matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>numpy ndarray</em>) – Eigenvectors of a previously solve Hamiltoinan.</p></li>
+<li><p><strong>nelec</strong> (<em>tuple</em>) – Number of alpha and beta electrons.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Spin.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the density matrix computed using the guess Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.get_guess">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">get_guess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.get_guess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the function of the method selected to compute the approximate hamiltoninan</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>arg</strong> (<em>str</em>) – Approximate Hamiltonian</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The function of the selected method.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.get_occ">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">get_occ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">e</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nelec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.get_occ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the occupancy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>e</strong> (<em>numpy ndarray</em>) – Energy eigenvalues.</p></li>
+<li><p><strong>nelec</strong> (<em>tuple</em>) – Number of alpha and beta electrons.</p></li>
+<li><p><strong>spin</strong> (<em>int</em>) – Spin.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the occupancy.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.hcore">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">hcore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.hcore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the diagonalization of the core to compute the guess Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the computed approximate Hamiltonian.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.spahm.guesses.solveF">
+<span class="sig-prename descclassname"><span class="pre">qstack.spahm.guesses.</span></span><span class="sig-name descname"><span class="pre">solveF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fock</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.spahm.guesses.solveF" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the eigenvalues and eigenvectors corresponding to the given Hamiltonian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<em>pyscf Mole</em>) – pyscf Mole object.</p></li>
+<li><p><strong>fock</strong> (<em>numpy ndarray</em>) – Approximate Hamiltonian.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-qstack.spahm.spham_utils">
+<span id="qstack-spahm-spham-utils-module"></span><h2>qstack.spahm.spham_utils module<a class="headerlink" href="#module-qstack.spahm.spham_utils" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-qstack.spahm">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qstack.spahm" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+      </div><!-- /row -->
+
+      <!-- row -->
+      <div class="row footer-relbar">
+<div id="navbar-related" class=" related navbar navbar-default" role="navigation" aria-label="related navigation">
+  <div class="navbar-inner">
+    <ul class="nav navbar-nav ">
+        <li><a href="index.html">Q-stack 1.0.0 documentation</a></li>
+    </ul>
+<ul class="nav navbar-nav pull-right hidden-xs hidden-sm">
+      
+        <li><a href="qstack.regression.html" title="qstack.regression package" >previous</a></li>
+        <li><a href="py-modindex.html" title="Python Module Index" >modules</a></li>
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="modules.html" >qstack</a></li>
+        <li><a href="qstack.html" >qstack package</a></li>
+        <li><a href="#">top</a></li> 
+      
+    </ul>
+  </div>
+</div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer role="contentinfo">
+          &copy; Copyright 2023, LCMD.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 5.3.0.
+      </footer>
+      <!-- /footer -->
+
+    </div>
+    <!-- /container -->
+
+  </body>
+</html>

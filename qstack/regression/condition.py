@@ -5,6 +5,11 @@ from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
 def condition(X, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, test_size=defaults.test_size):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     kernel = get_kernel(akernel)
     X_train, X_test, y_train, y_test = train_test_split(X, np.arange(len(X)), test_size=test_size, random_state=0)
     K_all  = kernel(X_train, X_train, 1.0/sigma)

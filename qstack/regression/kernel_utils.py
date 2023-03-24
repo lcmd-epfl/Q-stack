@@ -39,6 +39,12 @@ defaults = SimpleNamespace(
 
 
 def mol_to_dict(mol, species):
+    """
+
+    .. todo::
+        Write the docstring
+    """
+
     mol_dict = {s:[]  for s in species}
     for a in mol:
         mol_dict[a[0]].append(a[1])
@@ -47,11 +53,21 @@ def mol_to_dict(mol, species):
     return mol_dict
 
 def avg_kernel(kernel, options):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     avg = numpy.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
     return avg
 
 
 def rematch_kernel(kernel, options):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     alpha = options['alpha']
     thresh = 1e-6
     n, m = kernel.shape
@@ -83,6 +99,11 @@ def rematch_kernel(kernel, options):
     return K_rem
 
 def normalize_kernel(kernel, self_x=None, self_y=None):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     print("Normalizing kernel.")
     if self_x == None and self_y == None:
         self_cov = numpy.diag(kernel).copy()
@@ -94,6 +115,11 @@ def normalize_kernel(kernel, self_x=None, self_y=None):
     return kernel
 
 def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     from qstack.regression.kernel_utils import get_kernel
     species = sorted(max_sizes.keys())
     mol1_dict = mol_to_dict(mol1, species)
@@ -116,6 +142,11 @@ def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
 
 
 def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     n_x = len(X)
     n_y = len(Y)
     species = sorted(list(set([s[0] for m in numpy.concatenate((X, Y), axis=0) for s in m])))
@@ -164,7 +195,11 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
 
 
 def my_laplacian_kernel(X, Y, gamma):
-  """ Compute Laplacian kernel between X and Y """
+  """ Compute Laplacian kernel between X and Y
+
+  .. todo::
+      Write the docstring
+  """
   def cdist(X, Y):
     K = numpy.zeros((len(X),len(Y)))
     for i,x in enumerate(X):
@@ -179,6 +214,11 @@ def my_laplacian_kernel(X, Y, gamma):
   return K
 
 def my_laplacian_kernel_c(X, Y, gamma):
+  """
+
+  .. todo::
+      Write the docstring
+  """
   import os,sys
   import ctypes
   array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
@@ -205,6 +245,11 @@ def my_laplacian_kernel_c(X, Y, gamma):
 
 
 def get_local_kernel(arg):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     if arg=='G':
         from sklearn.metrics.pairwise import rbf_kernel
         return rbf_kernel
@@ -222,6 +267,11 @@ def get_local_kernel(arg):
         raise Exception(f'{arg} kernel is not implemented') # TODO
 
 def get_global_kernel(arg, local_kernel):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     gkernel, options = arg
     if gkernel == 'avg':
         global_kernel = avg_kernel
@@ -233,7 +283,11 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-  """ Returns the kernel function depending on the cli argument """
+  """ Returns the kernel function depending on the cli argument 
+
+  .. todo::
+      Write the docstring
+  """
 
   local_kernel = get_local_kernel(arg)
 
