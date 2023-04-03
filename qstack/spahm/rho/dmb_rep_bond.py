@@ -47,21 +47,29 @@ def get_element_pairs(elements):
     return qqs, qqs4q
 
 
-def get_element_pairs_cutoff(elements, mols, cutoff):
+def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
     qqs4q = {q: [] for q in elements}
     qqs = []
-    for mol in mols:
-        q = [mol.atom_symbol(i) for i in range(mol.natm)]
-        r = mol.atom_coords(unit='ANG')
-        for i0, q0 in enumerate(q):
-            if q0 not in elements: continue
-            for i1, q1 in enumerate(q[:i0]):
-                if q1 not in elements: continue
-                if np.linalg.norm(r[i1]-r[i0]) <= cutoff:
+    if align:
+        for i0, q0 in enumerate(elements):
+            for i1, q1 in enumerate(elements):
                     qq = make_bname(q1,q0)
                     qqs4q[q0].append(qq)
                     qqs4q[q1].append(qq)
                     qqs.append(qq)
+    else:
+        for mol in mols:
+            q = [mol.atom_symbol(i) for i in range(mol.natm)]
+            r = mol.atom_coords(unit='ANG')
+            for i0, q0 in enumerate(q):
+                if q0 not in elements: continue
+                for i1, q1 in enumerate(q[:i0]):
+                    if q1 not in elements: continue
+                    if np.linalg.norm(r[i1]-r[i0]) <= cutoff:
+                        qq = make_bname(q1,q0)
+                        qqs4q[q0].append(qq)
+                        qqs4q[q1].append(qq)
+                        qqs.append(qq)
     qqs4q = {q: sorted(set(qqs4q[q])) for q in elements}
     qqs   = sorted(set(qqs))
     return qqs, qqs4q
@@ -72,13 +80,12 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
         elements = sorted(list(set([q for mol in mols for q in mol.elements])))
 
     if pairfile and not dump_and_exit:
-        bond_pairs = np.load(pairfile, allow_pickle=True)
-        qqs0, qqs4q = bond_pairs['qqs0'], bond_pairs['qqs4q'][()]
+        qqs0, qqs4q = np.load(pairfile, allow_pickle=True)
     else:
         if cutoff is None:
             qqs0, qqs4q = get_element_pairs(elements)
         else:
-            qqs0, qqs4q = get_element_pairs_cutoff(elements, mols, cutoff)
+            qqs0, qqs4q = get_element_pairs_cutoff(elements, mols, cutoff, align=True)
 
     if pairfile and dump_and_exit:
         np.save(pairfile, np.asanyarray((qqs0, qqs4q), dtype=object))
@@ -89,7 +96,6 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
     mybasis = read_df_basis(qqs0, bpath)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return elements, mybasis, qqs, qqs4q, idx, M
-
 
 def bonds_dict_init(qqs, M):
     N = 0
