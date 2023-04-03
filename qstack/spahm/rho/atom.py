@@ -33,7 +33,7 @@ def get_repr(mol, elements, charge, spin,
 
     rep = []
     for omod in open_mod:
-        DM      = utils.dm_open_mod(dm, omod) if spin else dm
+        DM      = utils.dm_open_mod(dm, omod) if spin is not None else dm
         c_df    = df_wrapper(mol, DM, auxbasis)
         vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
         if spin is None:
