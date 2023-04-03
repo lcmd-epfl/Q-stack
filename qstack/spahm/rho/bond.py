@@ -39,6 +39,7 @@ def main():
     parser = argparse.ArgumentParser(description='This program computes the chosen initial guess for a given molecular system.')
     parser.add_argument('--mol',      type=str,            dest='filename',  required=True,                    help='file containing a list of molecular structures in xyz format (single xyz file also accepted)')
     parser.add_argument('--guess',    type=str,            dest='guess',     default=defaults.guess,           help='initial guess type')
+    parser.add_argument('--units',     dest='units',     default='Angstrom',               type=str, help=f"The units of the given coordinates files (default: Angstrom")
     parser.add_argument('--basis',    type=str,            dest='basis'  ,   default=defaults.basis,           help='AO basis set (default=MINAO)')
     parser.add_argument('--charge',   type=str,            dest='charge',    default=None,                     help='file with a list of charges')
     parser.add_argument('--spin',     type=str,            dest='spin',      default=None,                     help='file with a list of numbers of unpaired electrons')
@@ -66,7 +67,7 @@ def main():
     xyzlist = utils.get_xyzlist(xyzlistfile)
     charge  = utils.get_chsp(args.charge, len(xyzlist))
     spin    = utils.get_chsp(args.spin,   len(xyzlist))
-    mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print)
+    mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
     dms     = utils.mols_guess(mols, xyzlist, args.guess,
                                xc=defaults.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print)
     allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
