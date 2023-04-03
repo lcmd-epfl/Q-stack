@@ -29,11 +29,11 @@ def get_chsp(f, n):
         chsp = np.zeros(n, dtype=int)
     return chsp
 
-def load_mols(xyzlist, charge, spin, basis, printlevel=0):
+def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG'):
     mols = []
     for xyzfile, ch, sp in zip(xyzlist, charge, spin):
         if printlevel>0: print(xyzfile, flush=True)
-        mols.append(compound.xyz_to_mol(xyzfile, basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp)) #TODO
+        mols.append(compound.xyz_to_mol(xyzfile, basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp, unit=units)) #TODO
     if printlevel>0: print()
     return mols
 
@@ -64,3 +64,36 @@ def dm_open_mod(dm, omod):
 
 def get_xyzlist(xyzlistfile):
   return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
+
+def load_reps(f_in, from_list=True, single=True, with_labels=False, local=True, reaction=False):
+    if from_list:
+        X_list = get_xyzlist(f_in)
+        Xs = [np.load(f_X, allow_pickle=True) for f_X in X_list]
+    else:
+        Xs = [np.load(f_in, allow_pickle=True)]
+    reps = []
+    for x in Xs:
+        labels = []
+        if local == True:
+            if  type(x[0,0]) == str:
+                reps.extend(x[:,1])
+                labels.extend(x[:,0])
+            else:
+                reps.extend(x)
+        else:
+            if type(x[0]) == str:
+                reps.append(x[1])
+                labels.append(x[0])
+            else:
+                reps.append(x) 
+    try:
+        reps = np.array(reps, dtype=float)
+    except:
+        print(reps[0])
+        reps = np.array(reps, dtype=float)
+        print("Error while loading representations, verify you parameters !")
+        exit()
+    if with_labels:
+        return reps, labels
+    else:
+        return reps
