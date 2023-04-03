@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -62,6 +63,9 @@ def main():
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
+
+    if args.name_out is None:
+        args.name_out = os.path.splitext(args.filename)[0]
 
     xyzlistfile = [args.filename] if args.filename.split('.')[-1] == 'xyz' else args.filename
     xyzlist = utils.get_xyzlist(xyzlistfile)
