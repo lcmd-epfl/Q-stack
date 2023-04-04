@@ -76,16 +76,16 @@ def load_reps(f_in, from_list=True, single=True, with_labels=False, local=True, 
         labels = []
         if local == True:
             if  type(x[0,0]) == str:
-                reps.extend(x[:,1])
-                labels.extend(x[:,0])
+                reps.append(x[:,1])
+                labels.append(x[:,0])
             else:
                 reps.extend(x)
         else:
-            if type(x[0]) == str:
-                reps.append(x[1])
-                labels.append(x[0])
-            else:
-                reps.append(x) 
+           if type(x[0]) == str:
+                reps.extend(x[1])
+                labels.extend(x[0])
+           else:
+                reps.extend(x) 
     try:
         reps = np.array(reps, dtype=float)
     except:
@@ -93,6 +93,7 @@ def load_reps(f_in, from_list=True, single=True, with_labels=False, local=True, 
         reps = np.array(reps, dtype=float)
         print("Error while loading representations, verify you parameters !")
         exit()
+    reps = np.array(reps, ndmin=1)
     if with_labels:
         return reps, labels
     else:
