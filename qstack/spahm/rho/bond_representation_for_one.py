@@ -14,13 +14,11 @@ parser.add_argument('--guess',      type=str,            dest='guess',     defau
 parser.add_argument('--basis',      type=str,            dest='basis'  ,   default='minao',                      help='AO basis set (default=MINAO)')
 parser.add_argument('--func',       type=str,            dest='func',      default='hf',                         help='DFT functional for the SAD guess (default=HF)')
 parser.add_argument('--dir',        type=str,            dest='dir',       default='./',                         help='directory to save the output in (default=current dir)')
-parser.add_argument('--pairfile',   type=str,            dest='pairfile',  required=True,                         help='pythoon file cotaining basis-pair information')
 parser.add_argument('--cutoff',     type=float,          dest='cutoff',    default=5.0,                          help='bond length cutoff')
-parser.add_argument('--bpath',      type=str,            dest='bpath',     default=defaults.bpath,           help='dir with basis sets')
+parser.add_argument('--bpath',      type=str,            dest='bpath',     default=defaults.bpath,               help='dir with basis sets')
 parser.add_argument('--omod',       type=str,            dest='omod',      default=['alpha','beta'], nargs='+',  help='model for open-shell systems (alpha, beta, sum, diff')
 parser.add_argument('--print',      type=int,            dest='print',     default=0,                            help='printlevel')
 parser.add_argument('--onlym0',     action='store_true', dest='only_m0',   default=False,                        help='if use only fns with m=0')
-parser.add_argument('--elements',   type=str,            dest='elements',  default=None,  nargs='+',             help="the elements contained in the database")
 args = parser.parse_args()
 if args.print>0: print(vars(args))
 
@@ -36,13 +34,13 @@ def main():
     if args.spin is None:
         args.omod = [None]
 
-    mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print)
-    dms     = utils.mols_guess(mols, xyzlist, args.guess,
+    mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print)
+    dms  = utils.mols_guess(mols, xyzlist, args.guess,
                                xc=defaults.xc, spin=args.spin, printlevel=args.print)
-    elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements, pairfile=args.pairfile)
+    mybasis, idx, M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print)
 
-    for i,(bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
-        if args.print>0: print('mol', i, flush=True)
+    for j,(bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
+        if args.print>0: print('mol', j, flush=True)
         q = [mol.atom_symbol(i) for i in range(mol.natm)]
         r = mol.atom_coords(unit='ANG')
         vec = []
@@ -51,10 +49,12 @@ def main():
             L = lowdin.Lowdin_split(mol, DM)
             vec.append(dmbb.repr_for_bond(*bondij, L, mybasis, idx, q, r, args.cutoff)[0][0])
         vec = np.hstack(vec)
+        outname = f'{fname}_{bondij[0]+1}_{bondij[1]+1}'
         if args.spin:
-            np.save(fname+'_'+'_'.join(args.omod), vec)
-        else:
-            np.save(fname, vec)
+            outname = outname+'_'+'_'.join(args.omod)
+        if args.print>1:
+            print(outname)
+        np.save(outname, vec)
 
 
 if __name__ == "__main__":
