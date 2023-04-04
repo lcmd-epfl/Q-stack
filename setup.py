@@ -12,5 +12,7 @@ setup(
                            extra_compile_args=['-fopenmp', '-std=gnu11'],
                            extra_link_args=['-lgomp'])
                 ],
+    include_package_data=True,
+    package_data={'': ['spahm/rho/basis_opt/*.bas']},
 )
 
