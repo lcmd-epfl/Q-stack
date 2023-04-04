@@ -14,6 +14,7 @@ parser.add_argument('--guess',      type=str,            dest='guess',     defau
 parser.add_argument('--basis',      type=str,            dest='basis'  ,   default='minao',                      help='AO basis set (default=MINAO)')
 parser.add_argument('--func',       type=str,            dest='func',      default='hf',                         help='DFT functional for the SAD guess (default=HF)')
 parser.add_argument('--dir',        type=str,            dest='dir',       default='./',                         help='directory to save the output in (default=current dir)')
+parser.add_argument('--pairfile',   type=str,            dest='pairfile',  required=True,                         help='pythoon file cotaining basis-pair information')
 parser.add_argument('--cutoff',     type=float,          dest='cutoff',    default=5.0,                          help='bond length cutoff')
 parser.add_argument('--bpath',      type=str,            dest='bpath',     default=defaults.bpath,           help='dir with basis sets')
 parser.add_argument('--omod',       type=str,            dest='omod',      default=['alpha','beta'], nargs='+',  help='model for open-shell systems (alpha, beta, sum, diff')
@@ -38,7 +39,7 @@ def main():
     mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print)
     dms     = utils.mols_guess(mols, xyzlist, args.guess,
                                xc=defaults.xc, spin=args.spin, printlevel=args.print)
-    elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements)
+    elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, args.bpath, args.only_m0, args.print, elements=args.elements, pairfile=args.pairfile)
 
     for i,(bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
         if args.print>0: print('mol', i, flush=True)
@@ -46,7 +47,7 @@ def main():
         r = mol.atom_coords(unit='ANG')
         vec = []
         for omod in args.omod:
-            DM = utils.dm_open_mod(dm, omod) if args.spin else dm
+            DM = utils.dm_open_mod(dm, omod) if args.spin is not None else dm
             L = lowdin.Lowdin_split(mol, DM)
             vec.append(dmbb.repr_for_bond(*bondij, L, mybasis, idx, q, r, args.cutoff)[0][0])
         vec = np.hstack(vec)
