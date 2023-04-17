@@ -33,6 +33,10 @@ def _get_mrange(l):
 
 def _get_llist(q, mol):
     # TODO other basis formats?
+#        for bas_id in mol.atom_shell_ids(iat):
+#            l  = mol.bas_angular(bas_id)
+#            nc = mol.bas_nctr(bas_id)
+#            for n in range(nc):
     if isinstance(q, numbers.Integral):
         q = data.elements.ELEMENTS[q]
     llist = []
