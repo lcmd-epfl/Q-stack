@@ -1,14 +1,13 @@
 import numpy as np
 
 def _pyscf2gpr_idx(mol):
-    """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR .
+    """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
 
     Args:
-        mol (pyscf Mole): a pyscf Mole object.
-
+        mol (pyscf Mole): pyscf Mole object.
 
     Returns:
-        numpy ndarray: Array of re-arranged indices.
+        A numpy ndarray of re-arranged indices.
     """
 
     idx = np.arange(mol.nao_nr(), dtype=int)
@@ -44,11 +43,10 @@ def _gpr2pyscf_idx(mol):
     """Given a molecule returns a list of reordered indices to tranform SA-GPR AO ordering into pyscf.
 
     Args:
-        mol (pyscf Mole): a pyscf Mole object.
-
+        mol (pyscf Mole): pyscf Mole object.
 
     Returns:
-        numpy ndarray: Array of re-arranged indices.
+        A numpy ndarray of re-arranged indices.
     """
 
     idx = np.arange(mol.nao_nr(), dtype=int)
@@ -84,11 +82,11 @@ def pyscf2gpr(mol, vector):
     """Reorder p-orbitals from +1,-1,0 (pyscf convention) to -1,0,+1 (SA-GPR convention).
 
     Args:
-        mol (pyscf Mole): a pyscf Mole object.
-        vector (numpy ndarray): a vector or a matrix of atomic orbitals ordered in pyscf convention.
+        mol (pyscf Mole): pyscf Mole object.
+        vector (numpy ndarray): Vector or a matrix of atomic orbitals ordered in pyscf convention.
 
     Returns:
-        numpy ndarray: The reordered vector or matrix.
+        A numpy ndarray with the reordered vector or matrix.
     """
 
     idx = _pyscf2gpr_idx(mol)
@@ -106,11 +104,11 @@ def gpr2pyscf(mol, vector):
     """Reorder p-orbitals from -1,0,+1 (SA-GPR convention) to +1,-1,0 (pyscf convention).
 
     Args:
-        mol (pyscf Mole): a pyscf Mole object.
-        vector (numpy ndarray): a vector or a matrix of atomic orbitals ordered in pyscf convention.
+        mol (pyscf Mole): pyscf Mole object.
+        vector (numpy ndarray): Vector or a matrix of atomic orbitals ordered in pyscf convention.
 
     Returns:
-        numpy ndarray: The reordered vector or matrix.
+        A numpy ndarray with the reordered vector or matrix.
     """
 
     idx = _gpr2pyscf_idx(mol)
@@ -126,13 +124,13 @@ def gpr2pyscf(mol, vector):
 
 
 def _Rz(a):
-    """Computes the rotation matrix around absolute z-axis
+    """Computes the rotation matrix around absolute z-axis.
 
     Args:
-        a (float): rotation angle.
+        a (float): Rotation angle.
 
     Returns:
-        numpy ndarray: Rotation Matrix.
+        A 2D numpy ndarray containing the rotation matrix.
     """
 
     A = np.zeros((3,3))
@@ -150,13 +148,13 @@ def _Rz(a):
     return A
 
 def _Ry(b):
-    """Computes the rotation matrix around absolute y-axis
+    """Computes the rotation matrix around absolute y-axis.
 
     Args:
-        b (float): rotation angle.
+        b (float): Rotation angle.
 
     Returns:
-        numpy ndarray: Rotation Matrix.
+        A 2D numpy ndarray containing the rotation matrix.
     """
 
     A = np.zeros((3,3))
@@ -174,13 +172,13 @@ def _Ry(b):
     return A
 
 def _Rx(g):
-    """Computes the rotation matrix around absolute x-axis
+    """Computes the rotation matrix around absolute x-axis.
 
     Args:
-        g (float): rotation angle.
+        g (float): Rotation angle.
 
     Returns:
-        numpy ndarray: Rotation Matrix.
+        A 2D numpy ndarray containing the rotation matrix.
     """
 
     A = np.zeros((3,3))
@@ -198,16 +196,16 @@ def _Rx(g):
     return A
 
 def rotate_euler(a, b, g, rad=False):
-    """Computes the rotation matrix given Euler angles
+    """Computes the rotation matrix given Euler angles.
 
     Args:
-        a (float): alpha Euler angle.
-        b (float): beta Euler angle.
-        g (float): gamma Euler angle.
+        a (float): Alpha Euler angle.
+        b (float): Beta Euler angle.
+        g (float): Gamma Euler angle.
         rad (bool) : Wheter the angles are in radians or not.
 
     Returns:
-        numpy ndarray: Rotation Matrix.
+        A 2D numpy ndarray with the rotation matrix.
     """
 
     if not rad:

@@ -7,6 +7,11 @@ from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 from qstack.tools import correct_num_threads
 
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict, test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep, debug=False):
+    """
+    
+    .. todo::
+        Write the docstring
+    """
     if read_kernel is False:
         kernel = get_kernel(akernel, [gkernel, gdict])
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=0)

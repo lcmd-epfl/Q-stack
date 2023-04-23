@@ -32,6 +32,15 @@ def _get_mrange(l):
 
 
 def _get_llist(q, mol):
+    """                                                                                                                           
+    Args:                                                                                                                         
+        q (int): Atomic number.                                                                                                   
+        mol (pyscf Mole): pyscf Mole object.                                                                                      
+                                                                                                                                  
+    Returns:                                                                                                                      
+        A list                                                                                                                    
+    """                
+
     # TODO other basis formats?
 #        for bas_id in mol.atom_shell_ids(iat):
 #            l  = mol.bas_angular(bas_id)
@@ -46,10 +55,27 @@ def _get_llist(q, mol):
 
 
 def _get_tsize(tensor):
+    """Computes the size of a tensor.
+    
+    Args:
+        tensor (equistore TensorMap): Tensor.
+    
+    Returns:
+        The size of the tensor as an integer.
+    """
     return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
 
 
 def vector_to_tensormap(mol, c):
+    """Transform a vector into a tensor map. Used by :py:func:`array_to_tensormap`.
+    
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        v (numpy ndarray): Vector.
+    
+    Returns:
+        A equistore tensor map.
+    """
 
     atom_charges = list(mol.atom_charges())
     elements = sorted(set(atom_charges))
@@ -119,6 +145,15 @@ def vector_to_tensormap(mol, c):
 
 
 def tensormap_to_vector(mol, tensor):
+    """Transform a tensor map into a vector. :py:func:`Used by tensormap_to_array`.
+    
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        tensor (equistore TensorMap): Tensor.
+    
+    Returns:
+        A numpy ndarray (vector).
+    """
 
     nao = _get_tsize(tensor)
     if mol.nao != nao:
@@ -143,6 +178,15 @@ def tensormap_to_vector(mol, tensor):
 
 
 def matrix_to_tensormap(mol, dm):
+    """ Transform a matrix into a tensor map. Used by :py:func:`array_to_tensormap`.
+    
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        v (numpy ndarray): Matrix.
+    
+    Returns:
+        A equistore tensor map.
+    """
 
     def pairs(list1, list2):
         return np.array([(i,j) for i in list1 for j in list2])
@@ -256,6 +300,15 @@ def matrix_to_tensormap(mol, dm):
 
 
 def tensormap_to_matrix(mol, tensor):
+    """Transform a tensor map into a matrix. Used by :py:func:`tensormap_to_array`.
+    
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        tensor (equistore TensorMap): Tensor.
+    
+    Returns:
+        A numpy ndarray (matrix).
+    """
 
     nao2 = _get_tsize(tensor)
     if mol.nao*mol.nao != nao2:
@@ -292,6 +345,15 @@ def tensormap_to_matrix(mol, tensor):
     return dm
 
 def array_to_tensormap(mol, v):
+    """ Transform an array into a tensor map.
+    
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        v (numpy ndarray): Array. It can be a vector or a matrix.
+    
+    Returns:
+        A equistore tensor map.
+    """
     if v.ndim==1:
         return vector_to_tensormap(mol, v)
     elif v.ndim==2:
@@ -301,6 +363,16 @@ def array_to_tensormap(mol, v):
 
 
 def tensormap_to_array(mol, tensor):
+    """Transform a tensor map into an array.                                                                                      
+                                                                                                                                  
+    Args:                                                                                                                         
+        mol (pyscf Mole): pyscf Mole object.                                                                                      
+        tensor (equistore TensorMap): Tensor.                                                                                     
+                                                                                                                                  
+    Returns:                                                                                                                      
+        A numpy ndarray. Matrix or vector, depending on the key names of the tensor.                                              
+    """   
+
     if tensor.keys.names==tuple(vector_label_names.tm):
         return tensormap_to_vector(mol, tensor)
     elif tensor.keys.names==tuple(matrix_label_names.tm):
@@ -310,6 +382,14 @@ def tensormap_to_array(mol, tensor):
 
 
 def join(tensors):
+    """Merge two or more tensors with the same label names avoiding information duplictaion.
+    
+    Args:
+        tensors (list): List of equistore TensorMap.
+    
+    Returns:
+        A equistore TensorMap containing the information of all the input tensors.
+    """
 
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
         raise Exception(f'Cannot merge tensors with different label names')
@@ -349,6 +429,14 @@ def join(tensors):
 
 
 def split(tensor):
+    """Split a tensor based on the molecule information stored within the input TensorMap.
+    
+    Args:
+        tensor (equistore TensorMap): Tensor containing several molecules.
+    
+    Returns:
+        N equistore TensorMap, where N is equal to the total number of diferent molecules stored within the input TensorMap.
+    """
 
     if tensor.sample_names[0]!=_molid_name:
         raise Exception(f'Tensor does not seem to contain several molecules')

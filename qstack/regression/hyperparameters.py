@@ -11,6 +11,11 @@ def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel, gdict=defaults.gdict,
            akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits,
            printlevel=0, adaptive=False, read_kernel=False):
+    """
+
+    .. todo::
+        Write the docstring
+    """
 
     def k_fold_opt(K_all):
         kfold = KFold(n_splits=splits, shuffle=False)

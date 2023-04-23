@@ -6,11 +6,27 @@ import pyscf.dft
 from qstack.spahm.LB2020guess import LB2020guess as LB20
 
 def hcore(mol, *_):
+  """Uses the diagonalization of the core to compute the guess Hamiltonian.
+  
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+  
+  Returns:
+    A numpy ndarray containing the computed approximate Hamiltonian.
+  """
   h  = mol.intor_symmetric('int1e_kin')
   h += mol.intor_symmetric('int1e_nuc')
   return h
 
 def GWH(mol, *_):
+  """Uses the generalized Wolfsberg-Helmholtz to compute the guess Hamiltonian.                                                   
+                                                                                                                                  
+  Args:                                                                                                                           
+    mol (pyscf Mole): pyscf Mole object.                                                                                          
+                                                                                                                                  
+  Returns:                                                                                                                        
+    A numpy ndarray containing the computed approximate Hamiltonian.                                                              
+  """   
   h = hcore(mol)
   S = mol.intor_symmetric('int1e_ovlp')
   K = 1.75 # See J. Chem. Phys. 1952, 20, 837
@@ -24,6 +40,15 @@ def GWH(mol, *_):
   return h_gwh
 
 def SAD(mol, func):
+  """Uses the superposition of atomic densities to compute the guess Hamiltonian.
+  
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+    func (str): Exchange-correlation functional.
+  
+  Returns:
+    A numpy ndarray containing the computed approximate Hamiltonian.
+  """
   hc = hcore(mol)
   dm =  pyscf.scf.hf.init_guess_by_atom(mol)
   mf = pyscf.dft.RKS(mol)
@@ -33,6 +58,14 @@ def SAD(mol, func):
   return fock
 
 def SAP(mol, *_):
+  """Uses the superposition of atomic potentials to compute the guess Hamiltonian.
+  
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+  
+  Returns:
+    A numpy ndarray containing the computed approximate Hamiltonian.
+  """
   mf = pyscf.dft.RKS(mol)
   vsap = mf.get_vsap()
   t = mol.intor_symmetric('int1e_kin')
@@ -40,16 +73,46 @@ def SAP(mol, *_):
   return fock
 
 def LB(mol, *_):
+  """Uses the Laikov-Briling model with HF-based parameters to compute the guess Hamiltonian.
+  
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+  
+  Returns:
+    A numpy ndarray containing the computed approximate Hamiltonian.
+  """
   return LB20(parameters='HF').Heff(mol)
 
 def LB_HFS(mol, *_):
+  """ Laikov-Briling using HFS-based parameters
+  
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+  
+  Returns:
+    A numpy ndarray containing the computed approximate Hamiltonian.
+  """
   return LB20(parameters='HFS').Heff(mol)
 
 def solveF(mol, fock):
+  """Computes the eigenvalues and eigenvectors corresponding to the given Hamiltonian.
+  
+  Args:
+    mol (pyscf Mole): pyscf Mole object.
+    fock (numpy ndarray): Approximate Hamiltonian.
+  """
   s1e = mol.intor_symmetric('int1e_ovlp')
   return scipy.linalg.eigh(fock, s1e)
 
 def get_guess(arg):
+  """Returns the function of the method selected to compute the approximate hamiltoninan
+  
+  Args:
+    arg (str): Approximate Hamiltonian
+  
+  Returns:
+    The function of the selected method.
+  """
   arg = arg.lower()
   guesses = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}
   if arg not in guesses.keys():
@@ -58,6 +121,16 @@ def get_guess(arg):
   return guesses[arg]
 
 def get_occ(e, nelec, spin):
+    """Computes the occupancy.
+    
+    Args:
+      e (numpy ndarray): Energy eigenvalues.
+      nelec(tuple): Number of alpha and beta electrons.
+      spin(int): Spin.
+    
+    Returns:
+      A numpy ndarray containing the occupancy.
+    """
     if spin==None:
         nocc = nelec[0]
         return e[:nocc,...]
@@ -69,6 +142,16 @@ def get_occ(e, nelec, spin):
         return e1
 
 def get_dm(v, nelec, spin):
+  """Computes the density matrix.
+  
+  Args:
+    v (numpy ndarray): Eigenvectors of a previously solve Hamiltoinan.
+    nelec(tuple): Number of alpha and beta electrons.
+    spin(int): Spin.
+  
+  Return:
+    A numpy ndarray containing the density matrix computed using the guess Hamiltonian.
+  """
   if spin==None:
     nocc = nelec[0]
     dm = v[:,:nocc] @ v[:,:nocc].T
