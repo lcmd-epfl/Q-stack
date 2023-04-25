@@ -1,23 +1,21 @@
 import numpy
-import sysconfig
 from types import SimpleNamespace
 import qstack
 import argparse
 
+
 class ParseKwargs(argparse.Action):
-   def __call__(self, parser, namespace, values, option_string=None):
-       setattr(namespace, self.dest, defaults.gdict)
-       for value in values:
-           key, value = value.split('=')
-           for t in [int, float]:
-               try:
-                   value = t(value)
-                   break
-               except:
-                   continue
-           getattr(namespace, self.dest)[key] = value
-
-
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, defaults.gdict)
+        for value in values:
+            key, value = value.split('=')
+            for t in [int, float]:
+                try:
+                    value = t(value)
+                    break
+                except:
+                    continue
+            getattr(namespace, self.dest)[key] = value
 
 
 defaults = SimpleNamespace(
@@ -36,8 +34,6 @@ defaults = SimpleNamespace(
   )
 
 
-
-
 def mol_to_dict(mol, species):
     """
 
@@ -51,6 +47,7 @@ def mol_to_dict(mol, species):
     for k in mol_dict.keys():
         mol_dict[k] = numpy.array(mol_dict[k])
     return mol_dict
+
 
 def avg_kernel(kernel, options):
     """
@@ -98,6 +95,7 @@ def rematch_kernel(kernel, options):
     K_rem = numpy.sum(numpy.multiply(p_alpha, kernel))
     return K_rem
 
+
 def normalize_kernel(kernel, self_x=None, self_y=None):
     """
 
@@ -113,6 +111,7 @@ def normalize_kernel(kernel, self_x=None, self_y=None):
         for m in range(kernel.shape[1]):
             kernel[n][m] /= numpy.sqrt(self_x[n]*self_y[m])
     return kernel
+
 
 def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     """
@@ -213,35 +212,39 @@ def my_laplacian_kernel(X, Y, gamma):
   numpy.exp(K, K)
   return K
 
-def my_laplacian_kernel_c(X, Y, gamma):
-  """
 
-  .. todo::
-      Write the docstring
-  """
-  import os,sys
-  import ctypes
-  array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
-  try:
-      manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
-  except:
-      manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
-  manh.manh.restype = ctypes.c_int
-  manh.manh.argtypes = [
-    ctypes.c_int,
-    ctypes.c_int,
-    ctypes.c_int,
-    array_2d_double,
-    array_2d_double,
-    array_2d_double]
+def my_kernel_c(akernel):
+    """
 
-  K = numpy.zeros((len(X),len(Y)))
-  manh.manh(len(X), len(Y), len(X[0]), X, Y, K)
-  K *= -gamma
-  numpy.exp(K, K)
-  return K
-
-
+    .. todo::
+        Write the docstring
+    """
+    import ctypes
+    import sysconfig
+    array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
+    def kernel_func_c(X, Y, gamma):
+        try:
+            manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
+        except:
+            manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
+        if akernel == 'myLfast':
+            kfunc = manh.manh
+        elif akernel == 'myG':
+            kfunc = manh.eucl
+        kfunc.restype = ctypes.c_int
+        kfunc.argtypes = [
+          ctypes.c_int,
+          ctypes.c_int,
+          ctypes.c_int,
+          array_2d_double,
+          array_2d_double,
+          array_2d_double]
+        K = numpy.zeros((len(X),len(Y)))
+        kfunc(len(X), len(Y), len(X[0]), X, Y, K)
+        K *= -gamma
+        numpy.exp(K, K)
+        return K
+    return kernel_func_c
 
 
 def get_local_kernel(arg):
@@ -261,8 +264,8 @@ def get_local_kernel(arg):
         return laplacian_kernel
     elif arg=='myL':
         return my_laplacian_kernel
-    elif arg=='myLfast':
-        return my_laplacian_kernel_c
+    elif arg in ['myLfast', 'myG']:
+        return my_kernel_c(arg)
     else:
         raise Exception(f'{arg} kernel is not implemented') # TODO
 
@@ -283,7 +286,7 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-  """ Returns the kernel function depending on the cli argument 
+  """ Returns the kernel function depending on the cli argument
 
   .. todo::
       Write the docstring
