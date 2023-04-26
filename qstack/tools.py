@@ -20,13 +20,10 @@ def _orca2gpr_idx(mol):
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
         max_l = mol._basis[q][-1][0]
-        numbs = np.zeros(max_l+1, dtype=int)
         for gto in mol._basis[q]:
             l = gto[0]
             nf = max([len(prim)-1 for prim in gto[1:]])
-            numbs[l] += nf
-        for l in range(max_l+1):
-            for n in range(numbs[l]):
+            for n in range(nf):
                 for m in range(-l, l+1):
                     m1 = _M1(m+l)
                     idx[(i+(m1-m))] = i
@@ -48,20 +45,16 @@ def _orca2gpr_sign(mol):
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
         max_l = mol._basis[q][-1][0]
-        numbs = np.zeros(max_l+1, dtype=int)
         for gto in mol._basis[q]:
             l = gto[0]
+            msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
-            numbs[l] += nf
-        for l in range(max_l+1):
             if l<3:
-                i += (2*l+1)*numbs[l]
+                i += msize*nf
             else:
-                for n in range(numbs[l]):
-                    for m in range(2*l+1):
-                        if m > 4:
-                            signs[i] = -1
-                        i+=1
+                for n in range(nf):
+                    signs[i+5:i+msize] = -1  # |m| >= 3
+                    i+= msize
     return signs
 
 
@@ -80,21 +73,18 @@ def _pyscf2gpr_idx(mol):
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
         max_l = mol._basis[q][-1][0]
-        numbs = np.zeros(max_l+1, dtype=int)
         for gto in mol._basis[q]:
             l = gto[0]
+            msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
-            numbs[l] += nf
-        i+=numbs[0]
-        if(max_l<1):
-            continue
-        for n in range(numbs[1]):
-            idx[i  ] = i+1
-            idx[i+1] = i+2
-            idx[i+2] = i
-            i += 3
-        for l in range(2, max_l+1):
-            i += (2*l+1)*numbs[l]
+            if l==1:
+                for n in range(nf):
+                    idx[i  ] = i+1
+                    idx[i+1] = i+2
+                    idx[i+2] = i
+                    i += 3
+            else:
+                i += msize * nf
     return idx
 
 
