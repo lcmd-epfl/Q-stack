@@ -1,4 +1,62 @@
+import os
+import time
+import resource
 import numpy as np
+
+
+def _orca2gpr_idx(mol):
+    """Given a molecule returns a list of reordered indices to tranform orca AO ordering into SA-GPR.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+
+    Returns:
+        A numpy ndarray of re-arranged indices.
+    """
+    def _M1(n):
+        return (n+1)//2 if n%2 else -((n+1)//2)
+    idx = np.arange(mol.nao, dtype=int)
+    i=0
+    for iat in range(mol.natm):
+        q = mol._atom[iat][0]
+        max_l = mol._basis[q][-1][0]
+        for gto in mol._basis[q]:
+            l = gto[0]
+            nf = max([len(prim)-1 for prim in gto[1:]])
+            for n in range(nf):
+                for m in range(-l, l+1):
+                    m1 = _M1(m+l)
+                    idx[(i+(m1-m))] = i
+                    i+=1
+    return idx
+
+
+def _orca2gpr_sign(mol):
+    """Given a molecule returns a list of multipliers needed to tranform from orca AO.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+
+    Returns:
+        A numpy ndarray of +1/-1 multipliers
+    """
+    signs = np.ones(mol.nao, dtype=int)
+    i=0
+    for iat in range(mol.natm):
+        q = mol._atom[iat][0]
+        max_l = mol._basis[q][-1][0]
+        for gto in mol._basis[q]:
+            l = gto[0]
+            msize = 2*l+1
+            nf = max([len(prim)-1 for prim in gto[1:]])
+            if l<3:
+                i += msize*nf
+            else:
+                for n in range(nf):
+                    signs[i+5:i+msize] = -1  # |m| >= 3
+                    i+= msize
+    return signs
+
 
 def _pyscf2gpr_idx(mol):
     """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
@@ -10,117 +68,78 @@ def _pyscf2gpr_idx(mol):
         A numpy ndarray of re-arranged indices.
     """
 
-    idx = np.arange(mol.nao_nr(), dtype=int)
-
+    idx = np.arange(mol.nao, dtype=int)
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
         max_l = mol._basis[q][-1][0]
-
-        numbs = np.zeros(max_l+1, dtype=int)
         for gto in mol._basis[q]:
             l = gto[0]
+            msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
-            numbs[l] += nf
-
-        i+=numbs[0]
-        if(max_l<1):
-            continue
-
-        for n in range(numbs[1]):
-            idx[i  ] = i+1
-            idx[i+1] = i+2
-            idx[i+2] = i
-            i += 3
-
-        for l in range(2, max_l+1):
-            i += (2*l+1)*numbs[l]
-
+            if l==1:
+                for n in range(nf):
+                    idx[i  ] = i+1
+                    idx[i+1] = i+2
+                    idx[i+2] = i
+                    i += 3
+            else:
+                i += msize * nf
     return idx
 
 
-def _gpr2pyscf_idx(mol):
-    """Given a molecule returns a list of reordered indices to tranform SA-GPR AO ordering into pyscf.
+def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
+    """Reorder the atomic orbitals from one convention to another.
+    For example, src=pyscf dest=gpr reorders p-orbitals from +1,-1,0 (pyscf convention) to -1,0,+1 (SA-GPR convention).
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-
-    Returns:
-        A numpy ndarray of re-arranged indices.
-    """
-
-    idx = np.arange(mol.nao_nr(), dtype=int)
-
-    i=0
-    for iat in range(mol.natm):
-        q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
-
-        numbs = np.zeros(max_l+1, dtype=int)
-        for gto in mol._basis[q]:
-            l = gto[0]
-            nf = max([len(prim)-1 for prim in gto[1:]])
-            numbs[l] += nf
-
-        i+=numbs[0]
-        if(max_l<1):
-            continue
-
-        for n in range(numbs[1]):
-            idx[i+1] = i
-            idx[i+2] = i+1
-            idx[i  ] = i+2
-            i += 3
-
-        for l in range(2, max_l+1):
-            i += (2*l+1)*numbs[l]
-
-    return idx
-
-
-def pyscf2gpr(mol, vector):
-    """Reorder p-orbitals from +1,-1,0 (pyscf convention) to -1,0,+1 (SA-GPR convention).
-
-    Args:
-        mol (pyscf Mole): pyscf Mole object.
-        vector (numpy ndarray): Vector or a matrix of atomic orbitals ordered in pyscf convention.
+        vector (numpy ndarray): vector or matrix
+        src (string): current convention
+        dest (string): convention to convert to (available: 'pyscf', 'gpr', ...
 
     Returns:
         A numpy ndarray with the reordered vector or matrix.
     """
 
-    idx = _pyscf2gpr_idx(mol)
-    dim = vector.ndim
+    def get_idx(mol, convention):
+        convention = convention.lower()
+        if convention == 'gpr':
+            return np.arange(mol.nao)
+        elif convention == 'pyscf':
+            return _pyscf2gpr_idx(mol)
+        elif convention == 'orca':
+            return _orca2gpr_idx(mol)
+        else:
+            errstr = f'Conversion to/from the {convention} convention is not implemented'
+            raise NotImplementedError(errstr)
 
-    if dim == 1:
-        return vector[idx]
-    elif dim == 2:
-        return vector[idx].T[idx]
-    else:
-        errstr = 'Dim = '+ str(dim)+' (should be 1 or 2)'
+    def get_sign(mol, convention):
+        convention = convention.lower()
+        if convention in ['gpr', 'pyscf']:
+            return np.ones(mol.nao, dtype=int)
+        elif convention == 'orca':
+            return _orca2gpr_sign(mol)
+
+    idx_src  = get_idx(mol, src)
+    idx_dest = get_idx(mol, dest)
+    sign_src  = get_sign(mol, src)
+    sign_dest = get_sign(mol, dest)
+
+    if vector.ndim == 2:
+        sign_src  = np.einsum('i,j->ij', sign_src, sign_src)
+        sign_dest = np.einsum('i,j->ij', sign_dest, sign_dest)
+        idx_dest = np.ix_(idx_dest,idx_dest)
+        idx_src  = np.ix_(idx_src,idx_src)
+    elif vector.ndim!=1:
+        errstr = 'Dim = '+ str(vector.ndim)+' (should be 1 or 2)'
         raise Exception(errstr)
 
-def gpr2pyscf(mol, vector):
-    """Reorder p-orbitals from -1,0,+1 (SA-GPR convention) to +1,-1,0 (pyscf convention).
+    newvector = np.zeros_like(vector)
+    newvector[idx_dest] = (sign_src*vector)[idx_src]
+    newvector *= sign_dest
 
-    Args:
-        mol (pyscf Mole): pyscf Mole object.
-        vector (numpy ndarray): Vector or a matrix of atomic orbitals ordered in pyscf convention.
-
-    Returns:
-        A numpy ndarray with the reordered vector or matrix.
-    """
-
-    idx = _gpr2pyscf_idx(mol)
-    dim = vector.ndim
-
-    if dim == 1:
-        return vector[idx]
-    elif dim == 2:
-        return vector[idx].T[idx]
-    else:
-        errstr = 'Dim = '+ str(dim)+' (should be 1 or 2)'
-        raise Exception(errstr)
+    return newvector
 
 
 def _Rz(a):
@@ -134,7 +153,6 @@ def _Rz(a):
     """
 
     A = np.zeros((3,3))
-
     A[0,0] = np.cos(a)
     A[0,1] = -np.sin(a)
     A[0,2] = 0
@@ -144,8 +162,8 @@ def _Rz(a):
     A[2,0] = 0
     A[2,1] = 0
     A[2,2] = 1
-
     return A
+
 
 def _Ry(b):
     """Computes the rotation matrix around absolute y-axis.
@@ -158,7 +176,6 @@ def _Ry(b):
     """
 
     A = np.zeros((3,3))
-
     A[0,0] = np.cos(b)
     A[0,1] = 0
     A[0,2] = np.sin(b)
@@ -168,7 +185,6 @@ def _Ry(b):
     A[2,0] = -np.sin(b)
     A[2,1] = 0
     A[2,2] = np.cos(b)
-
     return A
 
 def _Rx(g):
@@ -182,7 +198,6 @@ def _Rx(g):
     """
 
     A = np.zeros((3,3))
-
     A[0,0] = 1
     A[0,1] = 0
     A[0,2] = 0
@@ -192,8 +207,8 @@ def _Rx(g):
     A[2,0] = 0
     A[2,1] = np.sin(g)
     A[2,2] = np.cos(g)
-
     return A
+
 
 def rotate_euler(a, b, g, rad=False):
     """Computes the rotation matrix given Euler angles.
@@ -220,9 +235,6 @@ def rotate_euler(a, b, g, rad=False):
     return A@B@G
 
 
-import resource
-import time
-
 def unix_time_decorator(func):
 # thanks to https://gist.github.com/turicas/5278558
   def wrapper(*args, **kwargs):
@@ -238,7 +250,6 @@ def unix_time_decorator(func):
 
 
 def correct_num_threads():
-    import os
     if "SLURM_CPUS_PER_TASK" in os.environ:
         os.environ["MKL_NUM_THREADS"] = os.environ["SLURM_CPUS_PER_TASK"]
         os.environ["OPENBLAS_NUM_THREADS"] = os.environ["SLURM_CPUS_PER_TASK"]
