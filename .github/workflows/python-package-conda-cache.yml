@@ -11,13 +11,12 @@ on:
   push:
     branches:
       - '*'
-
   pull_request:
     branches:
       - '*'
-
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
