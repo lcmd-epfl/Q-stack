@@ -5,14 +5,14 @@ import equistore.core as equistore
 import numbers
 
 vector_label_names = SimpleNamespace(
-    tm = ['spherical_harmonics_l', 'element'],
+    tm = ['spherical_harmonics_l', 'species_center'],
     block_prop = ['radial_channel'],
     block_samp = ['atom_id'],
     block_comp = ['spherical_harmonics_m']
     )
 
 matrix_label_names = SimpleNamespace(
-    tm = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'element1', 'element2'],
+    tm = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'species_center1', 'species_center2'],
     block_prop = ['radial_channel1', 'radial_channel2'],
     block_samp = ['atom_id1', 'atom_id2'],
     block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
@@ -166,7 +166,7 @@ def tensormap_to_vector(mol, tensor):
         llist = _get_llist(q, mol)
         il = {l: 0 for l in range(max(llist)+1)}
         for l in llist:
-            block = tensor.block(spherical_harmonics_l=l, element=q)
+            block = tensor.block(spherical_harmonics_l=l, species_center=q)
             id_samp = block.samples.position((iat,))
             id_prop = block.properties.position((il[l],))
             for m in _get_mrange(l):
@@ -329,7 +329,7 @@ def tensormap_to_matrix(mol, tensor):
                     il2 = {l2: 0 for l2 in range(max(llist2)+1)}
                     for l2 in llist2:
 
-                        block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, element1=q1, element2=q2)
+                        block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, species_center1=q1, species_center2=q2)
                         id_samp = block.samples.position((iat1, iat2))
                         id_prop = block.properties.position((il1[l1], il2[l2]))
 
