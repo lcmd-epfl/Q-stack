@@ -4,7 +4,7 @@ import os
 import tempfile, filecmp
 import numpy as np
 from qstack import compound, fields, equio
-import equistore
+from equistore import core as equistore
 
 
 def test_equio_vector():
