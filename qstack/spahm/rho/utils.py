@@ -70,7 +70,7 @@ def get_xyzlist(xyzlistfile):
     return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
 
 
-def load_reps(f_in, from_list=True, with_labels=False, local=True, summ=False, printlevel=0):
+def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True, summ=False, printlevel=0):
     if from_list:
         X_list = get_xyzlist(f_in)
         if printlevel > 0:
@@ -83,16 +83,15 @@ def load_reps(f_in, from_list=True, with_labels=False, local=True, summ=False, p
                 progress.update(i)
                 i+=1
     else:
-        Xs = np.load(f_in, allow_pickle=True)
+        Xs = np.load(f_in, allow_pickle=True) if not single else np.array([np.load(f_in, allow_pickle=True)])
         if printlevel > 0:
             progress = add_progressbar(max_value=len(Xs))
         i=0
     reps = []
     labels = []
     for x in Xs:
-        print(x.shape)
         if local == True:
-            if type(x[0][0]) == str or type(x[0][0]) == np.str_:
+            if type(x[0,0]) == str or type(x[0,0]) == np.str_:
                 if summ:
                     reps.append(x[:,1].sum(axis=0))
                 else:
