@@ -51,7 +51,7 @@ def get_repr(mol, elements, charge, spin,
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Script intended for computing Density-Matrix based representations (DMbReps) for efficient quantum machine learning.')
+    parser = argparse.ArgumentParser(description='This program computes the SPAHM(a) representation for a given molecular system')
     parser.add_argument('--mol',       dest='mol',       required=True,                        type=str, help="the path to the xyz file with the molecular structure")
     parser.add_argument('--guess',     dest='guess',     default=defaults.guess,               type=str, help=f"the initial guess Hamiltonian to be used (default: {defaults.guess})")
     parser.add_argument('--units',     dest='units',     default='Angstrom',                   type=str, help=f"the units of the input coordinates (default: Angstrom)")
