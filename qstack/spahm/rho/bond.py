@@ -36,6 +36,20 @@ def bond(mols, dms,
     return allvec
 
 
+def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
+             pairfile=None, dump_and_exit=False,
+             bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
+             elements=None, only_m0=False, zeros=False, split=False, printlevel=0):
+
+    dms     = utils.mols_guess(mols, xyzlist, guess,
+                               xc=xc, spin=spin, readdm=readdm, printlevel=printlevel)
+    allvec  = bond(mols, dms, bpath, cutoff, omods,
+                   spin=spin, elements=elements,
+                   only_m0=only_m0, zeros=zeros, split=split, printlevel=printlevel,
+                   pairfile=pairfile, dump_and_exit=dump_and_exit)
+    return allvec
+
+
 def main():
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
     parser.add_argument('--mol',           type=str,            dest='filename',       required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
@@ -67,17 +81,24 @@ def main():
     if args.name_out is None:
         args.name_out = os.path.splitext(args.filename)[0]
 
-    xyzlistfile = [args.filename] if args.filename.split('.')[-1] == 'xyz' else args.filename
-    xyzlist = utils.get_xyzlist(xyzlistfile)
-    charge  = utils.get_chsp(args.charge, len(xyzlist))
-    spin    = utils.get_chsp(args.spin,   len(xyzlist))
+    if args.filename.endswith('xyz'):
+        xyzlist = [args.filename]
+        charge  = [int(args.charge) or 0]
+        spin    = [int(args.spin) or 0]
+    else:
+        xyzlistfile = args.filename
+        xyzlist = utils.get_xyzlist(xyzlistfile)
+        charge  = utils.get_chsp(args.charge, len(xyzlist))
+        spin    = utils.get_chsp(args.spin,   len(xyzlist))
     mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
-    dms     = utils.mols_guess(mols, xyzlist, args.guess,
-                               xc=defaults.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print)
-    allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
-                   spin=args.spin, elements=args.elements,
-                   only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print,
-                   pairfile=args.pairfile, dump_and_exit=args.dump_and_exit)
+
+    allvec = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print,
+                      pairfile=args.pairfile, dump_and_exit=args.dump_and_exit,
+                      bpath=args.bpath, cutoff=args.cutoff, omods=args.omod,
+                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split)
+
+
+
     if len(allvec) == 1:
         allvec = allvec[0]
 
