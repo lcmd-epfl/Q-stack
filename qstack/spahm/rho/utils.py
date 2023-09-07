@@ -1,9 +1,10 @@
-import sys, os
+import os
 import numpy as np
 from types import SimpleNamespace
 import qstack.spahm.compute_spahm as spahm
 import qstack.spahm.guesses as guesses
 from qstack import compound
+
 
 defaults = SimpleNamespace(
     guess='LB',
@@ -18,16 +19,15 @@ defaults = SimpleNamespace(
   )
 
 
-
-def get_chsp(f, n):
-    if f:
-      chsp = np.loadtxt(f, dtype=int).reshape(-1)
-      if(len(chsp)!=n):
-          print('Wrong lengh of the file', f, file=sys.stderr);
-          exit(1)
+def get_chsp(fname, n):
+    if fname:
+        chsp = np.loadtxt(fname, dtype=int, ndmin=1)
+        if(len(chsp)!=n):
+            raise RuntimeError(f'Wrong lengh of the file {fname}')
     else:
         chsp = np.zeros(n, dtype=int)
     return chsp
+
 
 def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG'):
     mols = []
@@ -36,6 +36,7 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG'):
         mols.append(compound.xyz_to_mol(xyzfile, basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp, unit=units)) #TODO
     if printlevel>0: print()
     return mols
+
 
 def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, printlevel=0):
     dms = []
@@ -63,7 +64,8 @@ def dm_open_mod(dm, omod):
 
 
 def get_xyzlist(xyzlistfile):
-  return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
+    return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
+
 
 def load_reps(f_in, from_list=True, single=True, with_labels=False, local=True, reaction=False):
     if from_list:
@@ -85,14 +87,11 @@ def load_reps(f_in, from_list=True, single=True, with_labels=False, local=True, 
                 reps.extend(x[1])
                 labels.extend(x[0])
            else:
-                reps.extend(x) 
+                reps.extend(x)
     try:
         reps = np.array(reps, dtype=float)
     except:
-        print(reps[0])
-        reps = np.array(reps, dtype=float)
-        print("Error while loading representations, verify you parameters !")
-        exit()
+        raise RuntimeError("Error while loading representations, check the parameters")
     reps = np.array(reps, ndmin=1)
     if with_labels:
         return reps, labels
