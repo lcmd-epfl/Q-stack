@@ -127,7 +127,7 @@ def add_progressbar(legend='', max_value=100):
     bar = progressbar.ProgressBar(widgets=widgets, max_value=max_value).start()
     return bar
 
-def build_reaction(reacts_file, prods_file, local=False, print_level=0):
+def build_reaction(reacts_file, prods_file, local=False, print_level=0, summ=True, diff=True):
     reacts = []
     with open(reacts_file, 'r') as r_in:
         lines = r_in.readlines()
@@ -149,9 +149,11 @@ def build_reaction(reacts_file, prods_file, local=False, print_level=0):
     for rxn in reacts:
         xr = []
         for r in rxn:
-            xr.append(load_reps(r, from_list=False, with_labels=False, local=local, summ=True, single=True))
-        xr = np.array(xr)
-        if xr.ndim > 1:
+            xr.append(load_reps(r, from_list=False, with_labels=False, local=local, summ=False, single=True))
+        xr = np.squeeze(xr)
+#        print(xr.shape)
+#        exit()
+        if summ and xr.ndim > 1:
             xr = xr.sum(axis=0)
         XR.append(xr)
         i+=1
@@ -160,17 +162,18 @@ def build_reaction(reacts_file, prods_file, local=False, print_level=0):
     for rxn in prods:
         xp=[]
         for p in rxn:
-            xp.append(load_reps(p, from_list=False, with_labels=False, local=local, summ=True, single=True))
-        xp = np.array(xp)
-        if xp.ndim > 1:
+            xp.append(load_reps(p, from_list=False, with_labels=False, local=local, summ=False, single=True))
+        xp = np.squeeze(xp)
+        if summ and xp.ndim > 1:
             xp = xp.sum(axis=0)
         XP.append(xp)
         i+=1
         if print_level > 0 : progress.update(i)
-    XR = np.array(XR)
-    XP = np.array(XP)
-    rxn = XP - XR
-    return np.squeeze(rxn)
+    XR = np.squeeze(XR)
+    XP = np.squeeze(XP)
+    if diff : rxn = XP - XR
+    else: rxn = (XR, XP)
+    return rxn
 
 def regroup_symbols(file_list, print_level=0):
     reps, atoms = load_reps(file_list, from_list=True, with_labels=True, local=True, printlevel=print_level)
