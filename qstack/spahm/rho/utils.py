@@ -120,10 +120,13 @@ def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True,
 def add_progressbar(legend='', max_value=100):
     import progressbar
     import time
+    import logging
+    progressbar.streams.wrap_stderr()
+    logging.basicConfig()
     widgets=[\
     ' [', progressbar.Timer(), '] ',\
     progressbar.Bar(),\
-    ' (', progressbar.ETA(), ') ',]
+    ' (', progressbar.ETA(), ') ']
     bar = progressbar.ProgressBar(widgets=widgets, max_value=max_value).start()
     return bar
 
