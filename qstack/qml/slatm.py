@@ -111,6 +111,7 @@ def get_three_body(j, mbtype, q, r, dist,
 
 
 def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
+              global_repr=False,
               r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
               theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
 
@@ -157,18 +158,22 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
     if stack_all:
         slatm = np.vstack(slatm)
 
+    if global_repr:
+        slatm = np.sum(slatm, axis=0)
+
     return slatm
 
 
 
 def get_slatm_for_dataset(molecules,
                           progress=False,
+                          global_repr=False,
                           qml_mbtypes=True, qml_compatible=True, stack_all=True,
                           r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
                           theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
 
     if isinstance(molecules[0], str):
-        import ase
+        import ase.io
         molecules = [ase.io.read(xyz) for xyz in molecules]
 
     qs = [mol.numbers for mol in molecules]
@@ -181,6 +186,7 @@ def get_slatm_for_dataset(molecules,
     slatm = []
     for mol in molecules:
         slatm.append(get_slatm(mol.numbers, mol.positions, mbtypes,
+                               global_repr=global_repr,
                                qml_compatible=qml_compatible, stack_all=stack_all,
                                r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
                                theta0=theta0, sigma3=sigma3, dgrid3=dgrid3))
