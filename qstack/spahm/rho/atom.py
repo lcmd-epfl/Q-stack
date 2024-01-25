@@ -19,7 +19,7 @@ def check_file(mol_file):
 def get_repr(mol, elements, charge, spin,
              open_mod=defaults.omod, dm=None,
              guess=defaults.guess, model=defaults.model, xc=defaults.xc,
-             auxbasis=defaults.auxbasis):
+             auxbasis=defaults.auxbasis, only_z=[]):
 
     # User-defined options
     elements = sorted(list(set(elements)))
@@ -31,11 +31,16 @@ def get_repr(mol, elements, charge, spin,
     # Compute density matrices
     if dm is None:
         dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin, xc=xc)
+# if only the representations for a given atom type are to be computed restricts the considered atomic indices
+    if len(only_z) != 0:
+        only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
+    else:
+        only_i = range(mol.natm) #otherwise consider the full list of atomic indices
 
     rep = []
     for omod in open_mod:
         DM      = utils.dm_open_mod(dm, omod) if spin is not None else dm
-        c_df    = df_wrapper(mol, DM, auxbasis)
+        c_df    = df_wrapper(mol, DM, auxbasis, only_i=only_i)
         vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
         if spin is None:
             rep = vectors
@@ -46,8 +51,10 @@ def get_repr(mol, elements, charge, spin,
         rep = np.hstack(rep)
 
     mrep = []
-    for q, v in zip(mol.elements, rep):
-        mrep.append(np.array((q, v)))
+    for j,i in enumerate(only_i):
+        q = mol.elements[i]
+        v = rep[j]
+        mrep.append(np.array((q, v), dtype=object))
     return np.array(mrep)
 
 
@@ -61,6 +68,7 @@ def main():
     parser.add_argument('--model',     dest='model',     default=defaults.model,               type=str, help=f"the model to use when creating the representation (default: {defaults.model})")
     parser.add_argument('--dm',        dest='dm',        default=None,                         type=str, help="a density matrix to load instead of computing the guess")
     parser.add_argument('--species',   dest='elements',  default=defaults.elements, nargs='+', type=str, help="the elements contained in the database")
+    parser.add_argument('--only',   dest='only_z', default=[], nargs='+', type=str, help="The restricted list of elements for which you want to generate the representation")
     parser.add_argument('--charge',    dest='charge',    default=0,                            type=int, help='total charge of the system (default: 0)')
     parser.add_argument('--spin',      dest='spin',      default=None,                         type=int, help='number of unpaired electrons (default: None) (use 0 to treat a closed-shell system in a UHF manner)')
     parser.add_argument('--xc',        dest='xc',        default=defaults.xc,                  type=str, help=f'DFT functional for the SAD guess (default: {defaults.xc})')
@@ -75,7 +83,7 @@ def main():
     representations = get_repr(mol, elements, args.charge, args.spin,
                                open_mod=args.omod,
                                dm=dm, guess=args.guess, model=args.model,
-                               xc=args.xc, auxbasis=args.auxbasis)
+                               xc=args.xc, auxbasis=args.auxbasis, only_z=args.only_z)
 
     # output dir
     cwd = os.getcwd()

@@ -3,11 +3,15 @@ from qstack import compound, fields
 from . import lowdin
 
 
-def fit(mol, dm, aux_basis, short=False, w_slicing=True):
+def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
 
     L = lowdin.Lowdin_split(mol, dm)
 
-    dm_slices = mol.aoslice_nr_by_atom()[:,2:]
+    if len(only_i) != 0:
+        dm_slices = mol.aoslice_nr_by_atom()[only_i,2:]
+    else:
+        dm_slices = mol.aoslice_nr_by_atom()[:,2:]
+
     auxmol = compound.make_auxmol(mol, aux_basis)
     eri2c, eri3c = fields.decomposition.get_integrals(mol, auxmol)[1:]
 
