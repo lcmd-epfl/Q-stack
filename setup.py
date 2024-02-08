@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages, Extension
 import subprocess
 
+VERSION="0.0.1"
 
 def get_git_version_hash():
     """Get tag/hash of the latest commit.
@@ -8,10 +9,10 @@ def get_git_version_hash():
     try:
         p = subprocess.Popen(["git", "describe", "--tags", "--dirty", "--always"], stdout=subprocess.PIPE)
     except EnvironmentError:
-        print("Cannot run git to get a version number")
-        return "0.0.0-unknown"
+        return VERSION + "+unknown"
     version = p.communicate()[0]
-    return version.strip()
+    print(version)
+    return VERSION+'+'+version.strip().decode()
 
 
 setup(
