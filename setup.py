@@ -1,4 +1,6 @@
 from setuptools import setup, find_packages, Extension
+import subprocess
+
 
 def get_git_version_hash():
     """Get tag/hash of the latest commit.
@@ -10,6 +12,7 @@ def get_git_version_hash():
         return "0.0.0-unknown"
     version = p.communicate()[0]
     return version.strip()
+
 
 setup(
     name='qstack',
