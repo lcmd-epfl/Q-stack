@@ -21,7 +21,7 @@ setup(
     description='Stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning',
     url='https://github.com/lcmd-epfl/Q-stack',
     install_requires=[],
-    packages=find_packages(),
+    packages=setuptools.find_packages(exclude=['tests', 'examples']),
     ext_modules=[Extension('manh',
                            ['qstack/regression/lib/manh.c'],
                            extra_compile_args=['-fopenmp'],
