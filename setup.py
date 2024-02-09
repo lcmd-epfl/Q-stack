@@ -22,10 +22,12 @@ setup(
     url='https://github.com/lcmd-epfl/Q-stack',
     install_requires=[],
     packages=setuptools.find_packages(exclude=['tests', 'examples']),
-    ext_modules=[Extension('manh',
+    ext_modules=[Extension('qstack.regression.lib.manh',
                            ['qstack/regression/lib/manh.c'],
                            extra_compile_args=['-fopenmp'],
                            extra_link_args=['-lgomp'])
                 ],
+    include_package_data=True,
+    package_data={'': ['regression/lib/manh.c']},
 )
 
