@@ -34,6 +34,13 @@ def check_for_openmp():
     return not result
 
 
+def get_requirements():
+    fname = f"{os.path.dirname(os.path.realpath(__file__))}/requirements.txt"
+    with open(fname) as f:
+        install_requires = f.read().splitlines()
+    return install_requires
+
+
 if __name__ == '__main__':
     openmp_enabled = check_for_openmp()
 
@@ -42,7 +49,8 @@ if __name__ == '__main__':
         version=get_git_version_hash(),
         description='Stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning',
         url='https://github.com/lcmd-epfl/Q-stack',
-        install_requires=[],
+        python_requires='==3.9.*',
+        install_requires=get_requirements(),
         packages=setuptools.find_packages(exclude=['tests', 'examples']),
         ext_modules=[Extension('qstack.regression.lib.manh',
                                ['qstack/regression/lib/manh.c'],
