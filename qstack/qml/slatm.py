@@ -1,6 +1,6 @@
-import numpy as np
 import itertools
 from types import SimpleNamespace
+import numpy as np
 
 
 defaults = SimpleNamespace(sigma2=0.05, r0=0.1, rcut=4.8, dgrid2=0.03, theta0=20.0*np.pi/180.0, sigma3=0.05, dgrid3=0.03)
@@ -184,12 +184,12 @@ def get_slatm_for_dataset(molecules,
                           qml_mbtypes=True, qml_compatible=True, stack_all=True,
                           r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
                           theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
-    """ Computes (a)SLATM representation for a set of molecules.
+    """ Computes the (a)SLATM representation for a set of molecules.
 
     Reference:
-        Huang, B., von Lilienfeld, O.A.
-        Quantum machine learning using atom-in-molecule-based fragments selected on the fly.
-        Nat. Chem. 12, 945–951 (2020), doi:10.1038/s41557-020-0527-z
+        B. Huang, O. A. von Lilienfeld,
+        "Quantum machine learning using atom-in-molecule-based fragments selected on the fly",
+        Nat. Chem. 12, 945–951 (2020), doi:10.1038/s41557-020-0527-z.
 
     Args:
         molecules (Union(List[ase.Atoms], List[str]): pre-loaded ASE molecules or paths to the xyz files.
@@ -238,3 +238,56 @@ def get_slatm_for_dataset(molecules,
         slatm = np.vstack(slatm)
 
     return slatm
+
+
+
+def get_slatm_rxn(reactions, progress=False, qml_mbtypes=True,
+                  r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
+                  theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
+    """ Computes the SLATM_d representation for a list of reactions.
+
+    Reference:
+        P. van Gerwen, A. Fabrizio, M. D. Wodrich, C. Corminboeuf,
+        "Physics-based representations for machine learning properties of chemical reactions",
+        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a.
+
+    Args:
+        reactions (List[rxn]): a list of rxn objects containing reaction information.
+            rxn.reactants (List[ase.Atoms]) is a list of reactants (ASE molecules),
+            rxn.products (List[ase.Atoms]) is a list of products.
+        qml_mbtypes (bool): if True, mbtypes order should be identical as from QML (https://www.qmlcode.org/).
+                            if False, the elements are sorted thus mbtype order can differ from QML in some cases
+
+        rcut (float): radial cutoff (Å) for the 2- and 3-body terms
+        r0 (float): grid range parameter (Å) [r0, rcut] for the 2-body term
+        sigma2 (float): gaussian width for the 2-body term (Å)
+        dgrid2 (float): grid spacing for the 2-body term (Å)
+        theta0 (float): grid range parameter (°) [theta0, 180-theta0] for the 3-body term
+        sigma3 (float): gaussian width for the 3-body term (°)
+        dgrid3 (float): grid spacing for the 3-body term (°)
+
+        progress (bool): if print progress bar
+
+    Returns:
+        ndrarray containing the SLATM_d representation for each reaction
+    """
+
+    qs = [mol.numbers for rxn in reactions for mol in rxn.reactants]
+    mbtypes = get_mbtypes(qs, qml=qml_mbtypes)
+
+    if progress:
+        import tqdm
+        reactions = tqdm.tqdm(reactions)
+
+    slatm_diff = []
+    for reaction in reactions:
+        slatm_reactants, slatm_products = [
+                sum(get_slatm(mol.numbers, mol.positions, mbtypes,
+                              global_repr=True, stack_all=True,
+                              r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
+                              theta0=theta0, sigma3=sigma3, dgrid3=dgrid3
+                              ) for mol in mols)
+                for mols in (reaction.reactants, reaction.products)]
+        slatm_diff.append(slatm_products-slatm_reactants)
+
+    return np.vstack(slatm_diff)
