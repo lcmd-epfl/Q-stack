@@ -32,6 +32,14 @@ def get_mbtypes(qs, qml=False):
     return {1: elements, 2: pairs, 3: triples}
 
 
+def pad_zeros(slatm):
+    n_features = np.array([x.shape[-1] for x in slatm])
+    pad_sizes = max(n_features)-n_features
+    for i in range(len(slatm)):
+        if pad_sizes[i]:
+            slatm[i] = np.pad(slatm[i], (0, pad_sizes[i]))
+    return slatm
+
 
 def get_two_body(i, mbtype, q, dist,
                  r0=defaults.r0, rcut=defaults.rcut,
@@ -158,7 +166,9 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
         else:
             slatm.append({1: slatm1b, 2: slatm2b, 3: slatm3b})
 
-    if stack_all:
+    if stack_all or global_repr:
+        if not qml_compatible:
+            slatm = pad_zeros(slatm)
         slatm = np.vstack(slatm)
 
     if global_repr:
@@ -223,6 +233,8 @@ def get_slatm_for_dataset(molecules,
                                r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
                                theta0=theta0, sigma3=sigma3, dgrid3=dgrid3))
     if stack_all:
+        if not qml_compatible:
+            slatm = pad_zeros(slatm)
         slatm = np.vstack(slatm)
 
     return slatm
