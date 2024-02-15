@@ -219,7 +219,7 @@ def get_slatm_for_dataset(molecules,
         molecules = [ase.io.read(xyz) for xyz in molecules]
 
     qs = [mol.numbers for mol in molecules]
-    mbtypes = get_mbtypes(qs, qml=True)
+    mbtypes = get_mbtypes(qs, qml=qml_mbtypes)
 
     if progress:
         import tqdm
