@@ -115,6 +115,9 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
               r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
               theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
 
+    # for global representation, qml_compatible should be True
+    qml_compatible = qml_compatible or global_repr
+
     natoms = len(q)
     dist = np.zeros((natoms, natoms))
     for (i,j) in itertools.product(range(natoms), range(natoms)):
@@ -171,6 +174,35 @@ def get_slatm_for_dataset(molecules,
                           qml_mbtypes=True, qml_compatible=True, stack_all=True,
                           r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
                           theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
+    """ Computes (a)SLATM representation for a set of molecules.
+
+    Reference:
+        Huang, B., von Lilienfeld, O.A.
+        Quantum machine learning using atom-in-molecule-based fragments selected on the fly.
+        Nat. Chem. 12, 945–951 (2020), doi:10.1038/s41557-020-0527-z
+
+    Args:
+        molecules (Union(List[ase.Atoms], List[str]): pre-loaded ASE molecules or paths to the xyz files.
+                  Alternatively, a list of any objects providing fields .numbers and .positions (Å)
+        global_repr (bool): return molecular SLATM if True, return atomic SLATM (aSLATM) if False
+        qml_mbtypes (bool): if True, mbtypes order should be identical as from QML (https://www.qmlcode.org/).
+                            if False, the elements are sorted thus mbtype order can differ from QML in some cases
+        qml_compatible (bool): if False, the local representation (global_repr=False) is condensed
+        stack_all (bool): if stack the representations into one big ndarray
+
+        rcut (float): radial cutoff (Å) for the 2- and 3-body terms
+        r0 (float): grid range parameter (Å) [r0, rcut] for the 2-body term
+        sigma2 (float): gaussian width for the 2-body term (Å)
+        dgrid2 (float): grid spacing for the 2-body term (Å)
+        theta0 (float): grid range parameter (°) [theta0, 180-theta0] for the 3-body term
+        sigma3 (float): gaussian width for the 3-body term (°)
+        dgrid3 (float): grid spacing for the 3-body term (°)
+
+        progress (bool): if print progress bar
+
+    Returns:
+        ndrarray or List[List[ndarray]] containing the SLATM representation for each molecule.
+    """
 
     if isinstance(molecules[0], str):
         import ase.io
