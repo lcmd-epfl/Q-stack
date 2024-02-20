@@ -84,7 +84,7 @@ Digital Discovery, *1*, 286–294 (2022)
 * P. van Gerwen, A. Fabrizio, M. Wodrich and C. Corminboeuf,
   "Physics-based representations for machine learning properties of chemical reactions",
   Machine Learning: Science and Technology, **3**, 045005 (2022)
-  [![DOI]((https://img.shields.io/badge/DOI-10.1088%2F2632-2153%2Fac8f1a?color=blue)])](https://doi.org/10.1088/2632-2153/ac8f1a)
+  [![DOI](https://img.shields.io/badge/DOI-10.1088%2F2632-2153%2Fac8f1a?color=blue)](https://doi.org/10.1088/2632-2153/ac8f1a)
 
 
 ## Acknowledgements [↑](#contents)
