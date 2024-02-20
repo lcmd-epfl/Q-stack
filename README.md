@@ -16,7 +16,7 @@ Q-stack
 
 ## About [↑](#contents)
 
-Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress, and will be updated soon.
+Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress. Stay tuned for updates!
 
 For now, we link to the relevant packages that will be incorporated (among others):
 - https://github.com/lcmd-epfl/azo-xcite-tools
@@ -24,8 +24,6 @@ For now, we link to the relevant packages that will be incorporated (among other
 - https://github.com/lcmd-epfl/RHO-Decomposition
 - https://github.com/lcmd-epfl/ml-density
 - https://github.com/lcmd-epfl/OTPD-basis
-
-Stay tuned for updates!
 
 ## Install [↑](#contents)
 
@@ -86,7 +84,7 @@ Digital Discovery, *1*, 286–294 (2022)
 * P. van Gerwen, A. Fabrizio, M. Wodrich and C. Corminboeuf,
   "Physics-based representations for machine learning properties of chemical reactions",
   Machine Learning: Science and Technology, **3**, 045005 (2022)
-  [![DOI]((https://img.shields.io/badge/DOI-10.1088/2632-2153/ac8f1a-blue)])](https://doi.org/10.1088/2632-2153/ac8f1a)
+  [![DOI]((https://img.shields.io/badge/DOI-10.1088%2F2632-2153%2Fac8f1a?color=blue)])](https://doi.org/10.1088/2632-2153/ac8f1a)
 
 
 ## Acknowledgements [↑](#contents)
