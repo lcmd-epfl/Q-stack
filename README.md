@@ -19,12 +19,13 @@ Q-stack
 Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress. Stay tuned for updates!
 
 For now, we link to the relevant packages that will be incorporated (among others):
-- https://github.com/lcmd-epfl/azo-xcite-tools
-- https://github.com/lcmd-epfl/SPAHM
-- https://github.com/lcmd-epfl/RHO-Decomposition
-- https://github.com/lcmd-epfl/ml-density
-- https://github.com/lcmd-epfl/OTPD-basis
-
+- [x] https://github.com/lcmd-epfl/azo-xcite-tools
+- [x] https://github.com/lcmd-epfl/SPAHM
+- [x] https://github.com/lcmd-epfl/RHO-Decomposition
+- [ ] https://github.com/lcmd-epfl/ml-density
+- [x] https://github.com/lcmd-epfl/OTPD-basis
+- [x] https://github.com/lcmd-epfl/b2r2-reaction-rep
+      
 ## Install [↑](#contents)
 
 The installation of the library for python use can be done executing the following commands:
@@ -51,40 +52,45 @@ python example_opt.py
 ```
 python example_SPAHM.py
 ```
-- An example for the structure-based reaction representations (B2R2 and SLATMd) will follow shortly
+- An example for the structure-based reaction representations ($B^2R^2$ and $\mathrm{SLATM}_d$) will follow shortly
 
 
 ## References [↑](#contents)
 
 * A. Fabrizio, A. Grisafi, B. Meyer, M. Ceriotti, and C. Corminboeuf,
-“Electron density learning of non-covalent systems”,
-Chem. Sci. **10**, 9492 (2019)
-[![DOI](https://img.shields.io/badge/DOI-10.1039%2FC9SC02696G-blue)](https://doi.org/10.1039/C9SC02696G)
+  “Electron density learning of non-covalent systems”,
+  Chem. Sci. **10**, 9492 (2019)
+  [![DOI](https://img.shields.io/badge/DOI-10.1039%2FC9SC02696G-blue)](https://doi.org/10.1039/C9SC02696G)
 
 * A. Fabrizio, K. R. Briling, D. D. Girardier, and C. Corminboeuf,
-“Learning on-top: regressing the on-top pair density for real-space visualization of electron correlation”,
-J. Chem. Phys. **153**, 204111 (2020)
-[![DOI](https://img.shields.io/badge/DOI-10.1063%2F5.0033326-blue)](https://doi.org/10.1063/5.0033326)
+  “Learning on-top: regressing the on-top pair density for real-space visualization of electron correlation”,
+  J. Chem. Phys. **153**, 204111 (2020)
+  [![DOI](https://img.shields.io/badge/DOI-10.1063%2F5.0033326-blue)](https://doi.org/10.1063/5.0033326)
 
 * S. Vela, A. Fabrizio, K. R. Briling, and C. Corminboeuf,
-“Machine-learning the transition density of the productive excited states of azo-dyes”
-J. Phys. Chem. Lett. **12**, 5957–5962 (2021).
-[![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jpclett.1c01425-blue)](https://doi.org/10.1021/acs.jpclett.1c01425)
+  “Machine-learning the transition density of the productive excited states of azo-dyes”
+  J. Phys. Chem. Lett. **12**, 5957–5962 (2021)
+  [![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jpclett.1c01425-blue)](https://doi.org/10.1021/acs.jpclett.1c01425)
 
 * K. R. Briling, A. Fabrizio, and C. Corminboeuf,
-“Impact of quantum-chemical metrics on the machine learning prediction of electron density”,
-J. Chem. Phys. **155**, 024107 (2021)
-[![DOI](https://img.shields.io/badge/DOI-10.1063/5.0055393-blue)](https://doi.org/10.1063/5.0055393)
+  “Impact of quantum-chemical metrics on the machine learning prediction of electron density”,
+  J. Chem. Phys. **155**, 024107 (2021)
+  [![DOI](https://img.shields.io/badge/DOI-10.1063/5.0055393-blue)](https://doi.org/10.1063/5.0055393)
 
 * A. Fabrizio, K. R. Briling, and C. Corminboeuf,
-“SPAHM: the Spectrum of Approximated Hamiltonian Matrices representations”,
-Digital Discovery, *1*, 286–294 (2022)
-[![DOI](https://img.shields.io/badge/DOI-10.1039/D1DD00050K-blue)](https://doi.org/10.1039/D1DD00050K)
+  “SPAHM: the Spectrum of Approximated Hamiltonian Matrices representations”,
+  Digital Discovery **1**, 286–294 (2022)
+  [![DOI](https://img.shields.io/badge/DOI-10.1039/D1DD00050K-blue)](https://doi.org/10.1039/D1DD00050K)
 
-* P. van Gerwen, A. Fabrizio, M. Wodrich and C. Corminboeuf,
-  "Physics-based representations for machine learning properties of chemical reactions",
-  Machine Learning: Science and Technology, **3**, 045005 (2022)
-  [![DOI](https://img.shields.io/badge/DOI-10.1088%2F2632-2153%2Fac8f1a?color=blue)](https://doi.org/10.1088/2632-2153/ac8f1a)
+* K. R. Briling, Y. Calvino Alonso, A. Fabrizio, and C. Corminboeuf,
+  “SPAHM(a,b): Encoding the Density Information from Guess Hamiltonian in Quantum Machine Learning Representations”,
+  J. Chem. Theory Comput. **20**, 1108–1117 (2024)
+  [![DOI](https://img.shields.io/badge/DOI-10.1021/acs.jctc.3c01040-blue)](https://doi.org/10.1021/acs.jctc.3c01040)
+
+* P. van Gerwen, A. Fabrizio, M. Wodrich, and C. Corminboeuf,
+  “Physics-based representations for machine learning properties of chemical reactions”,
+  Mach. Learn.: Sci. Technol. **3**, 045005 (2022)
+  [![DOI](https://img.shields.io/badge/DOI-10.1088/2632--2153/ac8f1a-blue)](https://doi.org/10.1088/2632-2153/ac8f1a)
 
 
 ## Acknowledgements [↑](#contents)
