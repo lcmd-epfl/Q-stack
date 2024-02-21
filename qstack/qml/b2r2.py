@@ -133,7 +133,7 @@ def get_b2r2_l_molecular(ncharges, coords, elements,
     return twobodyrep
 
 
-def get_b2r2(reactions, variant='l', rcut=defaults.rcut, gridspace=defaults.gridspace):
+def get_b2r2(reactions, variant='l', progress=False, rcut=defaults.rcut, gridspace=defaults.gridspace):
     if variant=='l':
         get_b2r2_molecular=get_b2r2_l_molecular
         combine = lambda r,p: p-r
@@ -145,7 +145,7 @@ def get_b2r2(reactions, variant='l', rcut=defaults.rcut, gridspace=defaults.grid
         combine = lambda r,p: np.hstack((r,p))
     else:
         raise RuntimeError(f'Unknown B2R2 {variant=}')
-    return get_b2r2_inner(reactions, rcut=rcut, gridspace=gridspace,
+    return get_b2r2_inner(reactions, progress=progress, rcut=rcut, gridspace=gridspace,
                           get_b2r2_molecular=get_b2r2_molecular, combine=combine)
 
 
