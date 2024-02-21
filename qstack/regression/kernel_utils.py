@@ -30,7 +30,8 @@ defaults = SimpleNamespace(
   train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
   etaarr=list(numpy.logspace(-10, 0, 5)),
   sigmaarr=list(numpy.logspace(0,6, 13)),
-  sigmaarr_mult=list(numpy.logspace(0,2, 5))
+  sigmaarr_mult=list(numpy.logspace(0,2, 5)),
+  random_state=0,
   )
 
 
