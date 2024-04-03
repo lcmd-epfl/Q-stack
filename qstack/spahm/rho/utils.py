@@ -80,6 +80,20 @@ def get_xyzlist(xyzlistfile):
 
 
 def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True, summ=False, printlevel=0):
+    '''
+    A function to load representations from txt-list/npy files.
+        Args:
+            - f_in: the name of the input file
+            - fomr_list(bol): if the input file is a txt-file containing a list of paths to the representations
+            - single: if the input file is .npy AND contains a single representation (not an array of representation)
+            - with_label(bol): saves a list of tuple (filename, representation)
+            - local(bol): if the representations is local
+            - summ(bol): if local=True then summs the local components
+            - printlevel(int): level of verbosity
+        Return:
+            np.array with shape (N,M) where N number of representations M dimmensionality of the representation
+            OR tuple (N,np.array(N,M)) containing filenames in pos 0
+    '''
     if from_list:
         X_list = get_xyzlist(f_in)
         if printlevel > 0:
