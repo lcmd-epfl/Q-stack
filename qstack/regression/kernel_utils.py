@@ -1,23 +1,21 @@
 import numpy
-import sysconfig
 from types import SimpleNamespace
 import qstack
 import argparse
 
+
 class ParseKwargs(argparse.Action):
-   def __call__(self, parser, namespace, values, option_string=None):
-       setattr(namespace, self.dest, defaults.gdict)
-       for value in values:
-           key, value = value.split('=')
-           for t in [int, float]:
-               try:
-                   value = t(value)
-                   break
-               except:
-                   continue
-           getattr(namespace, self.dest)[key] = value
-
-
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, defaults.gdict)
+        for value in values:
+            key, value = value.split('=')
+            for t in [int, float]:
+                try:
+                    value = t(value)
+                    break
+                except:
+                    continue
+            getattr(namespace, self.dest)[key] = value
 
 
 defaults = SimpleNamespace(
@@ -32,13 +30,18 @@ defaults = SimpleNamespace(
   train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
   etaarr=list(numpy.logspace(-10, 0, 5)),
   sigmaarr=list(numpy.logspace(0,6, 13)),
-  sigmaarr_mult=list(numpy.logspace(0,2, 5))
+  sigmaarr_mult=list(numpy.logspace(0,2, 5)),
+  random_state=0,
   )
 
 
-
-
 def mol_to_dict(mol, species):
+    """
+
+    .. todo::
+        Write the docstring
+    """
+
     mol_dict = {s:[]  for s in species}
     for a in mol:
         mol_dict[a[0]].append(a[1])
@@ -46,12 +49,23 @@ def mol_to_dict(mol, species):
         mol_dict[k] = numpy.array(mol_dict[k])
     return mol_dict
 
+
 def avg_kernel(kernel, options):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     avg = numpy.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
     return avg
 
 
 def rematch_kernel(kernel, options):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     alpha = options['alpha']
     thresh = 1e-6
     n, m = kernel.shape
@@ -82,7 +96,13 @@ def rematch_kernel(kernel, options):
     K_rem = numpy.sum(numpy.multiply(p_alpha, kernel))
     return K_rem
 
+
 def normalize_kernel(kernel, self_x=None, self_y=None):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     print("Normalizing kernel.")
     if self_x == None and self_y == None:
         self_cov = numpy.diag(kernel).copy()
@@ -93,7 +113,13 @@ def normalize_kernel(kernel, self_x=None, self_y=None):
             kernel[n][m] /= numpy.sqrt(self_x[n]*self_y[m])
     return kernel
 
+
 def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     from qstack.regression.kernel_utils import get_kernel
     species = sorted(max_sizes.keys())
     mol1_dict = mol_to_dict(mol1, species)
@@ -116,6 +142,11 @@ def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
 
 
 def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     n_x = len(X)
     n_y = len(Y)
     species = sorted(list(set([s[0] for m in numpy.concatenate((X, Y), axis=0) for s in m])))
@@ -164,7 +195,11 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
 
 
 def my_laplacian_kernel(X, Y, gamma):
-  """ Compute Laplacian kernel between X and Y """
+  """ Compute Laplacian kernel between X and Y
+
+  .. todo::
+      Write the docstring
+  """
   def cdist(X, Y):
     K = numpy.zeros((len(X),len(Y)))
     for i,x in enumerate(X):
@@ -178,33 +213,47 @@ def my_laplacian_kernel(X, Y, gamma):
   numpy.exp(K, K)
   return K
 
-def my_laplacian_kernel_c(X, Y, gamma):
-  import os,sys
-  import ctypes
-  array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
-  try:
-      manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
-  except:
-      manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
-  manh.manh.restype = ctypes.c_int
-  manh.manh.argtypes = [
-    ctypes.c_int,
-    ctypes.c_int,
-    ctypes.c_int,
-    array_2d_double,
-    array_2d_double,
-    array_2d_double]
 
-  K = numpy.zeros((len(X),len(Y)))
-  manh.manh(len(X), len(Y), len(X[0]), X, Y, K)
-  K *= -gamma
-  numpy.exp(K, K)
-  return K
+def my_kernel_c(akernel):
+    """
 
-
+    .. todo::
+        Write the docstring
+    """
+    import ctypes
+    import sysconfig
+    array_2d_double = numpy.ctypeslib.ndpointer(dtype=numpy.float64, ndim=2, flags='CONTIGUOUS')
+    def kernel_func_c(X, Y, gamma):
+        try:
+            manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
+        except:
+            manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
+        if akernel == 'myLfast':
+            kfunc = manh.manh
+        elif akernel == 'myG':
+            kfunc = manh.eucl
+        kfunc.restype = ctypes.c_int
+        kfunc.argtypes = [
+          ctypes.c_int,
+          ctypes.c_int,
+          ctypes.c_int,
+          array_2d_double,
+          array_2d_double,
+          array_2d_double]
+        K = numpy.zeros((len(X),len(Y)))
+        kfunc(len(X), len(Y), len(X[0]), X, Y, K)
+        K *= -gamma
+        numpy.exp(K, K)
+        return K
+    return kernel_func_c
 
 
 def get_local_kernel(arg):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     if arg=='G':
         from sklearn.metrics.pairwise import rbf_kernel
         return rbf_kernel
@@ -216,12 +265,17 @@ def get_local_kernel(arg):
         return laplacian_kernel
     elif arg=='myL':
         return my_laplacian_kernel
-    elif arg=='myLfast':
-        return my_laplacian_kernel_c
+    elif arg in ['myLfast', 'myG']:
+        return my_kernel_c(arg)
     else:
         raise Exception(f'{arg} kernel is not implemented') # TODO
 
 def get_global_kernel(arg, local_kernel):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     gkernel, options = arg
     if gkernel == 'avg':
         global_kernel = avg_kernel
@@ -233,7 +287,11 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-  """ Returns the kernel function depending on the cli argument """
+  """ Returns the kernel function depending on the cli argument
+
+  .. todo::
+      Write the docstring
+  """
 
   local_kernel = get_local_kernel(arg)
 

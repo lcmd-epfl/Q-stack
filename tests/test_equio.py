@@ -4,7 +4,7 @@ import os
 import tempfile, filecmp
 import numpy as np
 from qstack import compound, fields, equio
-import equistore.io
+from equistore import core as equistore
 
 
 def test_equio_vector():
@@ -13,7 +13,7 @@ def test_equio_vector():
     c = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
     ctensor = equio.array_to_tensormap(mol, c)
     tmpfile = tempfile.mktemp()
-    equistore.io.save(tmpfile+'.npz', ctensor)
+    equistore.save(tmpfile+'.npz', ctensor)
     assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npz', tmpfile+'.npz'))
     c1 = equio.tensormap_to_array(mol, ctensor)
     assert(np.linalg.norm(c-c1)==0)
@@ -24,7 +24,7 @@ def test_equio_matrix():
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
     dtensor = equio.array_to_tensormap(mol, dm)
     tmpfile = tempfile.mktemp()
-    equistore.io.save(tmpfile+'.npz', dtensor)
+    equistore.save(tmpfile+'.npz', dtensor)
     assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.dm.npz', tmpfile+'.npz'))
     dm1 = equio.tensormap_to_array(mol, dtensor)
     assert(np.linalg.norm(dm-dm1)==0)
@@ -40,7 +40,7 @@ def test_equio_joinsplit():
     ctensor_big = equio.join([ctensor1, ctensor2])
 
     tmpfile = tempfile.mktemp()
-    equistore.io.save(tmpfile+'.npz', ctensor_big)
+    equistore.save(tmpfile+'.npz', ctensor_big)
     assert(filecmp.cmp(path+'/data/H2O_dist_CH3OH.ccpvdz.ccpvdzjkfit.npz', tmpfile+'.npz'))
 
     ctensors = equio.split(ctensor_big)

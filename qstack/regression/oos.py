@@ -5,6 +5,11 @@ from qstack.regression.kernel_utils import get_kernel, defaults
 from qstack.tools import correct_num_threads
 
 def oos(X, X_oos, alpha, sigma=defaults.sigma, akernel=defaults.kernel, test_size=defaults.test_size):
+    """
+
+    .. todo::
+        Write the docstring
+    """
     kernel = get_kernel(akernel)
     X_train, _, _, _ = train_test_split(X, np.zeros(len(X)), test_size=test_size, random_state=0)
     K = kernel(X_oos, X_train, 1.0/sigma)

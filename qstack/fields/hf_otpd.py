@@ -3,16 +3,17 @@ import numpy as np
 from qstack.fields.dm import make_grid_for_rho
 
 def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
-    """ Computes the uncorrelated on-top pair density on a grid.
+    """Computes the uncorrelated on-top pair density on a grid.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        dm (numpy ndarray): density matrix in AO-basis.
-        grid_level (int): controls the number of radial and angular points.
+        dm (numpy ndarray): Density matrix in AO-basis.
+        grid_level (int): Controls the number of radial and angular points.
+        save_otpd (bool): If True, saves the input and output in a .npz file. Defaults to False
+        return_all (bool): If true, returns the uncorrelated on-top pair density on a grid, and the cooresponding pyscf Grid object; if False, returns only the uncorrelated on-top pair density. Defaults to False
 
     Returns:
-        numpy ndarray : uncorrelated on-top pair density on a grid.
-
+        A numpy ndarray with the uncorrelated on-top pair density on a grid. If 'return_all' = True, then it also returns the corresponding pyscf Grid object.
     """
 
     grid = make_grid_for_rho(mol, grid_level)
@@ -31,11 +32,11 @@ def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
     return hf_otpd
 
 def save_OTPD(mol, otpd, grid):
-    """ Saves the information about an OTPD computation into a single file in uncompressed .npz format.
+    """ Saves the information about an OTPD computation into a .npz file.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        otpd (numpy ndarray): on-top pair density on a grid.
+        otpd (numpy ndarray): On-top pair density on a grid.
         grid (pyscf Grid): Grid object
     """
 

@@ -31,6 +31,15 @@ def energy_mol(newbasis, moldata):
 
 
 def gradient_mol(nexp, newbasis, moldata):
+    """
+
+    Args:
+        nexp():
+        newbasis():
+        moldata(pyscf Mole): pyscf Mole object holding molecular structure, composition and the auxiliary basis set
+
+    Returns:
+    """
 
     mol       = moldata['mol'      ]
     rho       = moldata['rho'      ]
@@ -80,6 +89,16 @@ def gradient_mol(nexp, newbasis, moldata):
 
 
 def exp2basis(exponents, elements, basis):
+    """
+    
+    Argas:
+        exponents():
+        elements():
+        basis():
+
+    Returns:
+        newbasis():
+    """
     i = 0
     newbasis = copy.deepcopy(basis)
     for q in elements:

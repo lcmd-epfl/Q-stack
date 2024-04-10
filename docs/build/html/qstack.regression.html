@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+
+
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>qstack.regression package &mdash; Q-stack 1.0.0 documentation</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    
+
+<link rel="stylesheet" href="_static/css/basicstrap-base.css" type="text/css" />
+<link rel="stylesheet" id="current-theme" href="_static/css/bootstrap3/bootswatch-cerulean.css" type="text/css" />
+<link rel="stylesheet" id="current-adjust-theme" href="_static/css/adjust_theme/bootswatch-cerulean.css" type="text/css" />
+
+<link rel="stylesheet" href="_static/css/font-awesome.min.css">
+
+<style type="text/css">
+  body {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+</style>
+
+<link rel="stylesheet" href="_static/css/basicstrap.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+<link rel="stylesheet" href="_static/css/basicstrap.css" type="text/css" />
+    
+<script type="text/javascript">
+  var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:    './',
+            VERSION:     '1.0.0',
+            COLLAPSE_INDEX: false,
+            FILE_SUFFIX: '.html',
+            HAS_SOURCE:  true
+  };
+</script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/sphinx_highlight.js"></script>
+    <script type="text/javascript" src="_static/js/bootstrap3.min.js"></script>
+<script type="text/javascript" src="_static/js/jquery.cookie.min.js"></script>
+<script type="text/javascript" src="_static/js/basicstrap.js"></script>
+<script type="text/javascript">
+</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="Q-stack 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="qstack package" href="qstack.html" />
+    <link rel="next" title="qstack.spahm package" href="qstack.spahm.html" />
+    <link rel="prev" title="qstack.fields package" href="qstack.fields.html" /> 
+  </head>
+  <body role="document">
+    <div id="navbar-top" class="navbar navbar-fixed-top navbar-default" role="navigation" aria-label="top navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">Q-stack 1.0.0 documentation</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown visible-xs">
+                <a role="button" id="localToc" data-toggle="dropdown" data-target="#" href="#">Table Of Contents <b class="caret"></b></a>
+                <ul class="dropdown-menu localtoc sp-localtoc" role="menu" aria-labelledby="localToc">
+                <ul>
+<li><a class="reference internal" href="#">qstack.regression package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qstack.regression.condition">qstack.regression.condition module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.condition.condition"><code class="docutils literal notranslate"><span class="pre">condition()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.condition.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.final_error">qstack.regression.final_error module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.final_error.final_error"><code class="docutils literal notranslate"><span class="pre">final_error()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.final_error.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.hyperparameters">qstack.regression.hyperparameters module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.hyperparameters.hyperparameters"><code class="docutils literal notranslate"><span class="pre">hyperparameters()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.hyperparameters.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.kernel">qstack.regression.kernel module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.kernel.kernel"><code class="docutils literal notranslate"><span class="pre">kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.kernel_utils">qstack.regression.kernel_utils module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.ParseKwargs"><code class="docutils literal notranslate"><span class="pre">ParseKwargs</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.avg_kernel"><code class="docutils literal notranslate"><span class="pre">avg_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_covariance"><code class="docutils literal notranslate"><span class="pre">get_covariance()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_global_K"><code class="docutils literal notranslate"><span class="pre">get_global_K()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_global_kernel"><code class="docutils literal notranslate"><span class="pre">get_global_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_kernel"><code class="docutils literal notranslate"><span class="pre">get_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_local_kernel"><code class="docutils literal notranslate"><span class="pre">get_local_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.mol_to_dict"><code class="docutils literal notranslate"><span class="pre">mol_to_dict()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.my_laplacian_kernel"><code class="docutils literal notranslate"><span class="pre">my_laplacian_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.my_laplacian_kernel_c"><code class="docutils literal notranslate"><span class="pre">my_laplacian_kernel_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.normalize_kernel"><code class="docutils literal notranslate"><span class="pre">normalize_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.rematch_kernel"><code class="docutils literal notranslate"><span class="pre">rematch_kernel()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.oos">qstack.regression.oos module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.oos.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.oos.oos"><code class="docutils literal notranslate"><span class="pre">oos()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.regression">qstack.regression.regression module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.regression.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.regression.regression"><code class="docutils literal notranslate"><span class="pre">regression()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+                </ul>
+              </li>
+
+            
+              <li><a href="qstack.fields.html" title="qstack.fields package" accesskey="P">previous </a></li>
+              <li><a href="qstack.spahm.html" title="qstack.spahm package" accesskey="N">next </a></li>
+              <li><a href="py-modindex.html" title="Python Module Index" >modules </a></li>
+              <li><a href="genindex.html" title="General Index" accesskey="I">index </a></li>
+              <li><a href="modules.html" >qstack</a></li>
+              <li><a href="qstack.html" accesskey="U">qstack package</a></li>
+            
+            <li class="visible-xs"><a href="_sources/qstack.regression.rst.txt" rel="nofollow">Show Source</a></li>
+
+            <li class="visible-xs">
+                <form class="search form-search form-inline navbar-form navbar-right sp-searchbox" action="search.html" method="get">
+                  <div class="input-append input-group">
+                    <input type="text" class="search-query form-control" name="q" placeholder="Search...">
+                    <span class="input-group-btn">
+                    <input type="submit" class="btn" value="Go" />
+                    </span>
+                  </div>
+                  <input type="hidden" name="check_keywords" value="yes" />
+                  <input type="hidden" name="area" value="default" />
+                </form>
+            </li>
+
+            
+
+          </ul>
+
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- container -->
+    <div class="container">
+
+      <!-- row -->
+      <div class="row">
+         
+<div class="col-md-3 hidden-xs" id="sidebar-wrapper">
+  <div class="sidebar hidden-xs" role="navigation" aria-label="main navigation">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">qstack.regression package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-qstack.regression.condition">qstack.regression.condition module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.condition.condition"><code class="docutils literal notranslate"><span class="pre">condition()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.condition.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.final_error">qstack.regression.final_error module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.final_error.final_error"><code class="docutils literal notranslate"><span class="pre">final_error()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.final_error.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.hyperparameters">qstack.regression.hyperparameters module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.hyperparameters.hyperparameters"><code class="docutils literal notranslate"><span class="pre">hyperparameters()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.hyperparameters.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.kernel">qstack.regression.kernel module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.kernel.kernel"><code class="docutils literal notranslate"><span class="pre">kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.kernel_utils">qstack.regression.kernel_utils module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.ParseKwargs"><code class="docutils literal notranslate"><span class="pre">ParseKwargs</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.avg_kernel"><code class="docutils literal notranslate"><span class="pre">avg_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_covariance"><code class="docutils literal notranslate"><span class="pre">get_covariance()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_global_K"><code class="docutils literal notranslate"><span class="pre">get_global_K()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_global_kernel"><code class="docutils literal notranslate"><span class="pre">get_global_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_kernel"><code class="docutils literal notranslate"><span class="pre">get_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.get_local_kernel"><code class="docutils literal notranslate"><span class="pre">get_local_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.mol_to_dict"><code class="docutils literal notranslate"><span class="pre">mol_to_dict()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.my_laplacian_kernel"><code class="docutils literal notranslate"><span class="pre">my_laplacian_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.my_laplacian_kernel_c"><code class="docutils literal notranslate"><span class="pre">my_laplacian_kernel_c()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.normalize_kernel"><code class="docutils literal notranslate"><span class="pre">normalize_kernel()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.kernel_utils.rematch_kernel"><code class="docutils literal notranslate"><span class="pre">rematch_kernel()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.oos">qstack.regression.oos module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.oos.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.oos.oos"><code class="docutils literal notranslate"><span class="pre">oos()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression.regression">qstack.regression.regression module</a><ul>
+<li><a class="reference internal" href="#qstack.regression.regression.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#qstack.regression.regression.regression"><code class="docutils literal notranslate"><span class="pre">regression()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-qstack.regression">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="qstack.fields.html"
+                          title="previous chapter">qstack.fields package</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="qstack.spahm.html"
+                          title="next chapter">qstack.spahm package</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/qstack.regression.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" role="search">
+  <h3>Quick search</h3>
+  <form class="search form-inline" action="search.html" method="get">
+      <div class="input-append input-group">
+        <input type="text" class="search-query form-control" name="q" placeholder="Search...">
+        <span class="input-group-btn">
+        <input type="submit" class="btn" value="Go" />
+        </span>
+      </div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+  </div>
+</div> 
+        
+
+        <div class="col-md-9" id="content-wrapper">
+          <div class="document" role="main">
+            <div class="documentwrapper">
+              <div class="bodywrapper">
+                <div class="body">
+                  
+  <section id="qstack-regression-package">
+<h1>qstack.regression package<a class="headerlink" href="#qstack-regression-package" title="Permalink to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-qstack.regression.condition">
+<span id="qstack-regression-condition-module"></span><h2>qstack.regression.condition module<a class="headerlink" href="#module-qstack.regression.condition" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.condition.condition">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.condition.</span></span><span class="sig-name descname"><span class="pre">condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">akernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.condition.condition" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.condition.main">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.condition.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.condition.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-qstack.regression.final_error">
+<span id="qstack-regression-final-error-module"></span><h2>qstack.regression.final_error module<a class="headerlink" href="#module-qstack.regression.final_error" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.final_error.final_error">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.final_error.</span></span><span class="sig-name descname"><span class="pre">final_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">akernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.final_error.final_error" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.final_error.main">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.final_error.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.final_error.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-qstack.regression.hyperparameters">
+<span id="qstack-regression-hyperparameters-module"></span><h2>qstack.regression.hyperparameters module<a class="headerlink" href="#module-qstack.regression.hyperparameters" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.hyperparameters.hyperparameters">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">hyperparameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1.0,</span> <span class="pre">3.1622776601683795,</span> <span class="pre">10.0,</span> <span class="pre">31.622776601683793,</span> <span class="pre">100.0,</span> <span class="pre">316.22776601683796,</span> <span class="pre">1000.0,</span> <span class="pre">3162.2776601683795,</span> <span class="pre">10000.0,</span> <span class="pre">31622.776601683792,</span> <span class="pre">100000.0,</span> <span class="pre">316227.7660168379,</span> <span class="pre">1000000.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1e-10,</span> <span class="pre">3.162277660168379e-08,</span> <span class="pre">1e-05,</span> <span class="pre">0.0031622776601683794,</span> <span class="pre">1.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gkernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gdict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'alpha':</span> <span class="pre">1.0,</span> <span class="pre">'normalize':</span> <span class="pre">1}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">akernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">printlevel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.hyperparameters.hyperparameters" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.hyperparameters.main">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.hyperparameters.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.hyperparameters.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-qstack.regression.kernel">
+<span id="qstack-regression-kernel-module"></span><h2>qstack.regression.kernel module<a class="headerlink" href="#module-qstack.regression.kernel" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel.kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel.</span></span><span class="sig-name descname"><span class="pre">kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">akernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gkernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gdict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'alpha':</span> <span class="pre">1.0,</span> <span class="pre">'normalize':</span> <span class="pre">1}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel.kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes a kernel using a list of representations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>list</em><em> of </em><em>arrays</em>) – Representations.</p></li>
+<li><p><strong>Y</strong> (<em>list</em><em> of </em><em>arrays</em>) – Property???. Defaults to [].</p></li>
+<li><p><strong>(</strong><strong>)</strong> (<em>gdict</em>) – Sigma hyperparameter. Defaults to 32.0.</p></li>
+<li><p><strong>(</strong><strong>)</strong> – Kernel type (G for Gaussian, L for Laplacian, and myL for Laplacian for open-shell systems). Defaults to L</p></li>
+<li><p><strong>(</strong><strong>)</strong> – Global kernel type (agv for average, rem for REMatch kernel, None for local kernels). Defaults to None.</p></li>
+<li><p><strong>(</strong><strong>)</strong> – Dictionary like input string to initialize global kernel parameters. Defaults to {‘alpha’:1.0, ‘normalize’:1}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A numpy ndarray containing the kernel.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel.main">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-qstack.regression.kernel_utils">
+<span id="qstack-regression-kernel-utils-module"></span><h2>qstack.regression.kernel_utils module<a class="headerlink" href="#module-qstack.regression.kernel_utils" title="Permalink to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.ParseKwargs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">ParseKwargs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">option_strings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">const</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metavar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.ParseKwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.avg_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">avg_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.avg_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id4">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.get_covariance">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">get_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.get_covariance" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id5">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.get_global_K">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">get_global_K</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.get_global_K" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id6">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.get_global_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">get_global_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_kernel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.get_global_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id7">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.get_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">get_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.get_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the kernel function depending on the cli argument</p>
+<div class="admonition-todo admonition" id="id8">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.get_local_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">get_local_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.get_local_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id9">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.mol_to_dict">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">mol_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.mol_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id10">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.my_laplacian_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">my_laplacian_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.my_laplacian_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute Laplacian kernel between X and Y</p>
+<div class="admonition-todo admonition" id="id11">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.my_laplacian_kernel_c">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">my_laplacian_kernel_c</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.my_laplacian_kernel_c" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id12">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.normalize_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">normalize_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.normalize_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id13">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.kernel_utils.rematch_kernel">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.kernel_utils.</span></span><span class="sig-name descname"><span class="pre">rematch_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kernel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.kernel_utils.rematch_kernel" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id14">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-qstack.regression.oos">
+<span id="qstack-regression-oos-module"></span><h2>qstack.regression.oos module<a class="headerlink" href="#module-qstack.regression.oos" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.oos.main">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.oos.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.oos.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.oos.oos">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.oos.</span></span><span class="sig-name descname"><span class="pre">oos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_oos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">akernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.oos.oos" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id15">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-qstack.regression.regression">
+<span id="qstack-regression-regression-module"></span><h2>qstack.regression.regression module<a class="headerlink" href="#module-qstack.regression.regression" title="Permalink to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.regression.main">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.regression.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.regression.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qstack.regression.regression.regression">
+<span class="sig-prename descclassname"><span class="pre">qstack.regression.regression.</span></span><span class="sig-name descname"><span class="pre">regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">akernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'L'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gkernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gdict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'alpha':</span> <span class="pre">1.0,</span> <span class="pre">'normalize':</span> <span class="pre">1}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[0.125,</span> <span class="pre">0.25,</span> <span class="pre">0.5,</span> <span class="pre">0.75,</span> <span class="pre">1.0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_rep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#qstack.regression.regression.regression" title="Permalink to this definition">¶</a></dt>
+<dd><div class="admonition-todo admonition" id="id16">
+<p class="admonition-title">Todo</p>
+<p>Write the docstring</p>
+</div>
+</dd></dl>
+
+</section>
+<section id="module-qstack.regression">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-qstack.regression" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        
+      </div><!-- /row -->
+
+      <!-- row -->
+      <div class="row footer-relbar">
+<div id="navbar-related" class=" related navbar navbar-default" role="navigation" aria-label="related navigation">
+  <div class="navbar-inner">
+    <ul class="nav navbar-nav ">
+        <li><a href="index.html">Q-stack 1.0.0 documentation</a></li>
+    </ul>
+<ul class="nav navbar-nav pull-right hidden-xs hidden-sm">
+      
+        <li><a href="qstack.fields.html" title="qstack.fields package" >previous</a></li>
+        <li><a href="qstack.spahm.html" title="qstack.spahm package" >next</a></li>
+        <li><a href="py-modindex.html" title="Python Module Index" >modules</a></li>
+        <li><a href="genindex.html" title="General Index" >index</a></li>
+        <li><a href="modules.html" >qstack</a></li>
+        <li><a href="qstack.html" >qstack package</a></li>
+        <li><a href="#">top</a></li> 
+      
+    </ul>
+  </div>
+</div>
+      </div><!-- /row -->
+
+      <!-- footer -->
+      <footer role="contentinfo">
+          &copy; Copyright 2023, LCMD.
+        Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 5.3.0.
+      </footer>
+      <!-- /footer -->
+
+    </div>
+    <!-- /container -->
+
+  </body>
+</html>

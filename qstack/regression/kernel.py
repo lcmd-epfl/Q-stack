@@ -5,6 +5,19 @@ from qstack.tools import correct_num_threads
 import sys
 
 def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
+    """ Computes a kernel using a list of representations.
+
+    Args:
+        X (list of arrays): Representations.
+        Y (list of arrays): Property???. Defaults to [].
+        sigma (): Sigma hyperparameter. Defaults to 32.0.
+        akernel (): Kernel type (G for Gaussian, L for Laplacian, and myL for Laplacian for open-shell systems). Defaults to L
+        gkernel (): Global kernel type (agv for average, rem for REMatch kernel, None for local kernels). Defaults to None.
+        gdict (): Dictionary like input string to initialize global kernel parameters. Defaults to {'alpha':1.0, 'normalize':1}.
+
+    Returns:
+        A numpy ndarray containing the kernel. 
+    """
     if len(Y) == 0 :
         Y = X
     kernel = get_kernel(akernel, [gkernel, gdict])

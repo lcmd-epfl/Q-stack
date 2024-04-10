@@ -22,7 +22,7 @@ dependencies:
   - numpy=1.21.2=py39h20f2e39_0
   - numpy-base=1.21.2=py39h79a1101_0
   - openssl=1.1.1l=h7f8727e_0
-  - pip=21.2.4=py39h06a4308_0
+  - pip=22.3
   - python=3.9.7=h12debd9_1
   - readline=8.1=h27cfd23_0
   - setuptools=58.0.4=py39h06a4308_0
@@ -46,4 +46,6 @@ dependencies:
     - pytest==6.2.5
     - scipy==1.7.3
     - toml==0.10.2
-    - git+https://github.com/lab-cosmo/equistore.git@8e2e1f0
+    - ase==3.22
+    - tqdm==4.66
+    - git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core

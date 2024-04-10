@@ -12,15 +12,15 @@ from qstack.tools import rotate_euler
 
 def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
-
+    
     Args:
-        fin (str): name (including path) of the xyz file to read.
-        basis (str or dict): basis set.
-        charge (int): charge of the molecule.
-        spin (int): alpha electrons - beta electrons
-
+        fin (str): Name (including path) of the xyz file to read.
+        basis (str or dict): Basis set.
+        charge (int): Charge of the molecule.
+        spin (int): Spin of the molecule (alpha electrons - beta electrons).
+    
     Returns:
-        pyscf Mole: pyscf Mole object.
+        A pyscf Mole object containing the molecule information.
     """
 
     # Open and read the file
@@ -59,10 +59,10 @@ def mol_to_xyz(mol, fout, format="xyz"):
 
     Args:
         pyscf Mole: pyscf Mole object.
-        fout (str): name (including path) of the xyz file to write.
+        fout (str): Name (including path) of the xyz file to write.
 
     Returns:
-        pyscf Mole: pyscf Mole object.
+        A file in xyz format containing the charge, total spin and molecular coordinates.
     """
 
     format = format.lower()
@@ -89,17 +89,17 @@ def mol_to_xyz(mol, fout, format="xyz"):
 
 
 def gmol_to_mol(fin, basis="def2-svp"):
-    """Reads .
-
-    Args:
-        fin (str): name (including path) of the xyz file to read.
-        basis (str or dict): basis set.
-        charge (int): charge of the molecule.
-        spin (int): alpha electrons - beta electrons
-
-    Returns:
-        pyscf Mole: pyscf Mole object.
-    """
+    """Reads a molecular file in gmol format and returns a pyscf Mole object.                                                     
+                                                                                                                                  
+    Args:                                                                                                                         
+        fin (str): Name (including path) of the xyz file to read.                                                                 
+        basis (str or dict): Basis set.                                                                                           
+        charge (int): Charge of the molecule.                                                                                     
+        spin (int): Alpha electrons - beta electrons.                                                                             
+                                                                                                                                  
+    Returns:                                                                                                                      
+        pyscf Mole: pyscf Mole object.                                                                                            
+    """             
 
     from cell2mol.tmcharge_common import Cell, atom, molecule, ligand, metal
     from cell2mol.tmcharge_common import labels2formula
@@ -185,13 +185,13 @@ def gmol_to_mol(fin, basis="def2-svp"):
 
 def make_auxmol(mol, basis):
     """Builds an auxiliary Mole object given a basis set and a pyscf Mole object.
-
+    
     Args:
-        mol (pyscf Mole): original pyscf Mole object.
-        basis (str or dict): basis set.
-
+        mol (pyscf Mole): Original pyscf Mole object.
+        basis (str or dict): Basis set.
+    
     Returns:
-        pyscf Mole: auxiliary pyscf Mole object.
+        An auxiliary pyscf Mole object.
     """
 
     # Define attributes to the auxiliary Mole object and build it
@@ -207,17 +207,17 @@ def make_auxmol(mol, basis):
 
 def rotate_molecule(mol, a, b, g, rad=False):
     """Rotate a molecule: transform nuclear coordinates given a set of Euler angles.
-
+    
     Args:
-        mol (pyscf Mole): original pyscf Mole object.
-        a (float): alpha Euler angle.
-        b (float): beta Euler angle.
-        g (float): gamma Euler angle.
+        mol (pyscf Mole): Original pyscf Mole object.
+        a (float): Alpha Euler angle.
+        b (float): Beta Euler angle.
+        g (float): Gamma Euler angle.
         rad (bool) : Wheter the angles are in radians or not.
-
-
+    
+    
     Returns:
-        pyscf Mole: Mole object with transformed coordinates.
+        A pyscf Mole object with transformed coordinates.
     """
 
     orig_coords = mol.atom_coords()
@@ -236,11 +236,30 @@ def rotate_molecule(mol, a, b, g, rad=False):
 
 
 def fragments_read(frag_file):
+    """Loads fragement definition from a frag file.
+    
+    Args:
+        frag_file (str): Name (including path) of the frag file to read.
+    
+    Returns:
+        A list of arrays containing the fragments.
+    """
     with open(frag_file, 'r') as f:
         fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f.readlines()]
     return fragments
 
 def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
+    """Computes the contribution of each fragment.                                                                                
+                                                                                                                                  
+    Args:                                                                                                                         
+        fragments (numpy ndarray): Fragment definition                                                                            
+        prop_atom_inp (list of arrays or array): Coefficients densities.                                                          
+        normalize (bool): Normalized fragment partitioning. Defaults to True.                                                     
+                                                                                                                                  
+    Returns:                                                                                                                      
+        A list of arrays or an array containing the contribution of each fragment.                                                
+    """      
+
     if type(prop_atom_inp)==list:
         props_atom = prop_atom_inp
     else:
