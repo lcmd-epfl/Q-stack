@@ -3,7 +3,7 @@
 import numpy as np
 from pyscf import gto, data
 from qstack import compound
-from qstack.math.matrix import sqrtm
+from qstack.mathutils.matrix import sqrtm
 
 
 def idxl0(i, l, ao):
