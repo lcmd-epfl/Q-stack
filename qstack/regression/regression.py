@@ -5,7 +5,7 @@ import scipy
 from sklearn.model_selection import train_test_split
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 from qstack.tools import correct_num_threads
-from qstack.math.fps import do_fps
+from qstack.mathutils.fps import do_fps
 
 
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
