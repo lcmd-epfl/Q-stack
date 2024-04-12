@@ -6,26 +6,38 @@ import scipy
 from sklearn.model_selection import train_test_split, KFold
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 from qstack.tools import correct_num_threads
+from qstack.mathutils.fps import do_fps
 
 def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel, gdict=defaults.gdict,
            akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits,
-           printlevel=0, adaptive=False, read_kernel=False):
+           printlevel=0, adaptive=False, read_kernel=False, sparse=None):
     """
 
     .. todo::
         Write the docstring
     """
 
-    def k_fold_opt(K_all):
+    def k_fold_opt(K_all, eta):
         kfold = KFold(n_splits=splits, shuffle=False)
         all_maes = []
         for train_idx, test_idx in kfold.split(X_train):
             y_kf_train, y_kf_test = y_train[train_idx], y_train[test_idx]
-            K  = K_all [np.ix_(train_idx,train_idx)]
-            Ks = K_all [np.ix_(test_idx,train_idx)]
+
+            if not sparse:
+                K_solve = np.copy(K_all [np.ix_(train_idx,train_idx)])
+                K_solve[np.diag_indices_from(K_solve)] += eta
+                y_solve = y_kf_train
+                Ks = K_all [np.ix_(test_idx,train_idx)]
+            else:
+                K_NM    = K_all [np.ix_(train_idx,sparse_idx)]
+                K_solve = K_NM.T @ K_NM
+                K_solve[np.diag_indices_from(K_solve)] += eta
+                y_solve = K_NM.T @ y_kf_train
+                Ks = K_all [np.ix_(test_idx,sparse_idx)]
+
             try:
-                alpha = scipy.linalg.solve(K, y_kf_train, assume_a='pos', overwrite_a=True)
+                alpha = scipy.linalg.solve(K_solve, y_solve, assume_a='pos', overwrite_a=True)
             except scipy.linalg.LinAlgError:
                 print('singular matrix')
                 all_maes.append(np.nan)
@@ -43,9 +55,7 @@ def hyperparameters(X, y,
                 K_all = X_train
 
             for e in eta:
-                K_all[np.diag_indices_from(K_all)] += e
-                mean, std = k_fold_opt(K_all)
-                K_all[np.diag_indices_from(K_all)] -= e
+                mean, std = k_fold_opt(K_all, e)
                 if printlevel>0 :
                     sys.stderr.flush()
                     print(s, e, mean, std, flush=True)
@@ -62,6 +72,11 @@ def hyperparameters(X, y,
         idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=0)
         X_train = X[np.ix_(idx_train,idx_train)]
         sigma = [np.nan]
+
+    if sparse:
+        if read_kernel:
+            raise RuntimeError('Cannot do FPS with kernels')
+        sparse_idx = do_fps(X_train)[0][:sparse]
 
     work_sigma = sigma
     errors = []
@@ -111,6 +126,7 @@ def main():
     parser.add_argument('--ll',   action='store_true', dest='ll',       default=False,  help='if correct for the numper of threads')
     parser.add_argument('--ada',  action='store_true', dest='adaptive', default=False,  help='if adapt sigma')
     parser.add_argument('--readkernel', action='store_true', dest='readk', default=False,  help='if X is kernel')
+    parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     args = parser.parse_args()
     if(args.readk): args.sigma = [np.nan]
     print(vars(args))
@@ -118,7 +134,8 @@ def main():
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel, test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
+    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel, sparse=args.sparse,
+                             test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
 
     print()
     print('error        stdev          eta          sigma')

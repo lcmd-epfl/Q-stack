@@ -1,5 +1,5 @@
 import numpy as np
-from qstack.math.matrix import from_tril
+from qstack.mathutils.matrix import from_tril
 from qstack.tools import reorder_ao
 
 def read_density(mol, basename, directory='./', version=500, openshell=False, reorder_dest='pyscf'):

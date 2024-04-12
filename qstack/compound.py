@@ -282,3 +282,13 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
         return props_frag
     else:
         return props_frag[0]
+
+
+def make_atom(q, basis):
+    mol = gto.Mole()
+    mol.atom = q + " 0.0 0.0 0.0"
+    mol.charge = 0
+    mol.spin = data.elements.ELEMENTS_PROTON[q] % 2
+    mol.basis = basis
+    mol.build()
+    return mol
