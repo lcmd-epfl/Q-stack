@@ -9,8 +9,10 @@ setup(
     packages=find_packages(),
     ext_modules=[Extension('manh',
                            ['qstack/regression/lib/manh.c'],
-                           extra_compile_args=['-fopenmp'],
+                           extra_compile_args=['-fopenmp', '-std=gnu11'],
                            extra_link_args=['-lgomp'])
                 ],
+    include_package_data=True,
+    package_data={'': ['spahm/rho/basis_opt/*.bas']},
 )
 

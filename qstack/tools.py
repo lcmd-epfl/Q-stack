@@ -248,6 +248,17 @@ def unix_time_decorator(func):
     return ret
   return wrapper
 
+def unix_time_decorator_with_tvalues(func):
+# thanks to https://gist.github.com/turicas/5278558
+  def wrapper(*args, **kwargs):
+    start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
+    ret = func(*args, **kwargs)
+    end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
+    timing = {'real' : end_time - start_time,
+              'user' : end_resources.ru_utime - start_resources.ru_utime,
+              'sys' : end_resources.ru_stime - start_resources.ru_stime}
+    return timing, ret
+  return wrapper
 
 def correct_num_threads():
     if "SLURM_CPUS_PER_TASK" in os.environ:
