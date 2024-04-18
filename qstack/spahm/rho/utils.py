@@ -114,7 +114,7 @@ def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True,
     labels = []
     for x in Xs:
         if local == True:
-            if x.ndim > 1 and (type(x[0,0]) == str or type(x[0,0])) == np.str_:
+            if x.ndim > 1 and (type(x[0,0]) == str or type(x[0,0]) == np.str_):
                 if summ:
                     reps.append(x[:,1].sum(axis=0))
                 else:
