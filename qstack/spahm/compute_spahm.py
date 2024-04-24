@@ -39,6 +39,8 @@ def get_guess_dm(mol, guess, xc="pbe", openshell=None):
         A numpy ndarray containing the density matrix computed using the guess Hamiltonian.
     """
     e,v = get_guess_orbitals(mol, guess, xc)
+    print(f"Orbitals =  {v.shape}")
+    exit()
     return get_dm(v, mol.nelec, mol.spin if mol.spin>0 or not openshell is None else None)
 
 def get_spahm_representation(mol, guess_in, xc="pbe"):

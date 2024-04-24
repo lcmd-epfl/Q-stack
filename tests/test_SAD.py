@@ -11,7 +11,7 @@ def test_water_open_shell():
     path = os.path.dirname(os.path.realpath(__file__))
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'sto3g', charge=1, spin=1) ## test breaks when effective open-shell caluclation is needed
 
-    Xsad = atom.get_repr(mol, ["H", "O"], 0, 0, dm=None,
+    Xsad = atom.get_repr(mol, ["H", "O"], 1, 1, dm=None,
                       xc = 'hf', guess='sad', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
 
     print(np.array([*Xsad[:,1]]).shape)

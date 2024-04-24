@@ -33,7 +33,9 @@ def SAD(mol, func):
   vhf = mf.get_veff(dm=dm)
   print(f"XC-dunc = {func} (converged = {mf.converged})")
   print(f"SAD-vhf = {vhf.shape}")
+  if vhf.ndim >2 : print(f"alpha and beta components are equal {(vhf[0] == vhf[1]).all()}")
   fock = hc + vhf
+  print(f"SAD-Fock = {fock.shape}")
   return fock
 
 def SAP(mol, *_):
