@@ -51,12 +51,17 @@ def SAD(mol, func):
     A numpy ndarray containing the computed approximate Hamiltonian.
   """
   hc = hcore(mol)
-  print(f"SAD-Hcore = {hc.shape}")
   dm =  pyscf.scf.hf.init_guess_by_atom(mol)
   mf = pyscf.dft.RKS(mol)
   mf.xc = func
   vhf = mf.get_veff(dm=dm)
-  fock = hc + (vhf if vhf.ndim == 2 else vhf[0])
+  if vhf.ndim == 2:
+      fock = hc + vhf
+  elif vhf.ndim == 3 and numpy.array_equal(vhf[0], vhf[1]):
+      fock = hc + vhf[0]
+  else:
+      msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
+      warnings.warn(msg)
   return fock
 
 def SAP(mol, *_):
