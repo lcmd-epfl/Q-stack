@@ -57,11 +57,11 @@ def SAD(mol, func):
   vhf = mf.get_veff(dm=dm)
   if vhf.ndim == 2:
       fock = hc + vhf
-  elif vhf.ndim == 3 and numpy.array_equal(vhf[0], vhf[1]):
-      fock = hc + vhf[0]
   else:
-      msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
-      warnings.warn(msg)
+      fock = hc + vhf[0]
+      if numpy.array_equal(vhf[0], vhf[1]):
+        msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
+        warnings.warn(msg)
   return fock
 
 def SAP(mol, *_):
