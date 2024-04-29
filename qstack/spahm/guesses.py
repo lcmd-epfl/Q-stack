@@ -59,7 +59,7 @@ def SAD(mol, func):
       fock = hc + vhf
   else:
       fock = hc + vhf[0]
-      if numpy.array_equal(vhf[0], vhf[1]):
+      if not numpy.array_equal(vhf[0], vhf[1]):
         msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
         warnings.warn(msg)
   return fock
