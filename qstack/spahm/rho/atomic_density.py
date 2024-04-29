@@ -3,7 +3,7 @@ from qstack import compound, fields
 from . import lowdin
 
 
-def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
+def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[], valence_only=False):
 
     L = lowdin.Lowdin_split(mol, dm)
 
@@ -28,6 +28,8 @@ def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
         a_dm1 = np.zeros_like(L.dmL)
         a_dm1[start:stop,:] += L.dmL[start:stop,:]*0.5
         a_dm1[:,start:stop] += L.dmL[:,start:stop]*0.5
+        if valence_only:
+            a_dm1[start:stop,start:stop] = 0
         a_dm0 = L.S12i @ a_dm1 @ L.S12i
 
         c_a = fields.decomposition.get_coeff(a_dm0, J, eri3c)
