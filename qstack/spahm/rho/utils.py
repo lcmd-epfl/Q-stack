@@ -29,11 +29,14 @@ def get_chsp(fname, n):
     return chsp
 
 
-def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG'):
+def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None):
     mols = []
     for xyzfile, ch, sp in zip(xyzlist, charge, spin):
         if printlevel>0: print(xyzfile, flush=True)
-        mols.append(compound.xyz_to_mol(xyzfile, basis, charge=0 if ch is None else ch, spin=0 if ch is None else sp, unit=units)) #TODO
+        mols.append(compound.xyz_to_mol(xyzfile, basis,
+                                        charge=0 if ch is None else ch,
+                                        spin=0 if ch is None else sp,
+                                        unit=units, ecp=ecp)) #TODO
     if printlevel>0: print()
     return mols
 
