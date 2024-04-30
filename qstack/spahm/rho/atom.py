@@ -84,7 +84,8 @@ def main():
     representations = get_repr(mol, elements, args.charge, args.spin,
                                open_mod=args.omod,
                                dm=dm, guess=args.guess, model=args.model,
-                               xc=args.xc, auxbasis=args.auxbasis, only_z=args.only_z)
+                               xc=args.xc, auxbasis=args.auxbasis, only_z=args.only_z,
+                               valence_only=args.valence_only)
 
     # output dir
     cwd = os.getcwd()
