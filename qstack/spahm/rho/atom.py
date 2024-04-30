@@ -22,6 +22,7 @@ def get_repr(mol, elements, charge, spin,
              auxbasis=defaults.auxbasis):
 
     # User-defined options
+    elements = sorted(list(set(elements)))
     guess = spahm.guesses.get_guess(guess)
     model = dmba.get_model(model)
     df_wrapper, sym_wrapper = model
@@ -68,7 +69,6 @@ def main():
     args = parser.parse_args()
     print(vars(args))
 
-    elements = sorted(list(set(args.elements)))
     mol = compound.xyz_to_mol(check_file(args.mol), args.basis, charge=args.charge, spin=args.spin, unit=args.units)
     dm = None if args.dm is None else np.load(args.dm)
 
