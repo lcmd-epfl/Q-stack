@@ -203,7 +203,7 @@ def make_auxmol(mol, basis, copy_ecp=False):
     auxmol.charge = mol.charge
     auxmol.spin = mol.spin
     auxmol.basis = basis
-    if ecp:
+    if copy_ecp:
         auxmol.ecp = mol.ecp
     auxmol.build()
 
