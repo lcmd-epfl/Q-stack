@@ -83,8 +83,8 @@ def main():
 
     if args.filename.endswith('xyz'):
         xyzlist = [args.filename]
-        charge  = [int(args.charge) if args.charge else 0]
-        spin    = [int(args.spin)   if args.spin   else None]
+        charge  = [int(args.charge) if args.charge is not None else 0]
+        spin    = [int(args.spin)   if args.spin   is not None else None]
     else:
         xyzlistfile = args.filename
         xyzlist = utils.get_xyzlist(xyzlistfile)
