@@ -35,8 +35,8 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None)
         if printlevel>0: print(xyzfile, flush=True)
         mols.append(compound.xyz_to_mol(xyzfile, basis,
                                         charge=0 if ch is None else ch,
-                                        spin=0 if ch is None else sp,
-                                        unit=units, ecp=ecp)) #TODO
+                                        spin=0 if sp is None else sp,
+                                        unit=units, ecp=ecp))
     if printlevel>0: print()
     return mols
 
