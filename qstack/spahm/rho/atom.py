@@ -86,7 +86,7 @@ def main():
         name_out = args.NameOut
     else:
         name_out = 'X_'+mol_name
-    if args.spin:
+    if args.spin is not None:
         name_out = name_out+'_'+'_'.join(args.omod)
 
     path_out = os.path.join(cwd, name_out)
