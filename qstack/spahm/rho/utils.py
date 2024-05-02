@@ -204,6 +204,7 @@ def build_reaction(reacts_file, prods_file, local=False, print_level=0, summ=Tru
     XP = np.squeeze(XP)
     if diff : rxn = XP - XR
     else: rxn = (XR, XP)
+    if print_level > 0 : progress.finish()
     return rxn
 
 def regroup_symbols(file_list, print_level=0):
