@@ -55,7 +55,13 @@ def SAD(mol, func):
   mf = pyscf.dft.RKS(mol)
   mf.xc = func
   vhf = mf.get_veff(dm=dm)
-  fock = hc + vhf
+  if vhf.ndim == 2:
+      fock = hc + vhf
+  else:
+      fock = hc + vhf[0]
+      if not numpy.array_equal(vhf[0], vhf[1]):
+        msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
+        warnings.warn(msg)
   return fock
 
 def SAP(mol, *_):
