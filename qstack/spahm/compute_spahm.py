@@ -3,12 +3,12 @@ from qstack.spahm.guesses import solveF, get_guess, get_occ, get_dm, eigenvalue_
 
 def get_guess_orbitals(mol, guess, xc="pbe"):
     """ Compute the guess Hamiltonian.
-    
+
     Args:
         mol (pyscf Mole): pyscf Mole object.
         guess (funct): Method used to compute the guess Hamiltonian. Output of get_guess.
         xc (str): Exchange-correlation functional. Defaults to pbe.
-    
+
     Returns:
         A 1D numpy array containing the eigenvalues and a 2D numpy array containing the eigenvectors of the guess Hamiltonian.
     """
@@ -28,13 +28,13 @@ def get_guess_orbitals_grad(mol, guess):
 
 def get_guess_dm(mol, guess, xc="pbe", openshell=None):
     """ Compute the density matrix with the guess Hamiltonian.
-    
+
     Args:
         mol (pyscf Mole): pyscf Mole object.
         guess (funct): Method used to compute the guess Hamiltonian. Output of get_guess.
         xc (str): Exchange-correlation functional. Defaults to pbe
         openshell (bool): . Defaults to None.
-    
+
     Returns:
         A numpy ndarray containing the density matrix computed using the guess Hamiltonian.
     """
@@ -43,12 +43,12 @@ def get_guess_dm(mol, guess, xc="pbe", openshell=None):
 
 def get_spahm_representation(mol, guess_in, xc="pbe"):
     """ Compute the SPAHM representation.
-    
+
     Args:
         mol (pyscf Mole): pyscf Mole object.
         guess_in (str): Method used to obtain the guess Hamiltoninan.
         xc (str): Exchange-correlation functional. Defaults to pbe.
-    
+
     Returns:
         A numpy ndarray containing the SPAHM representation.
     """

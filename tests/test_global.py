@@ -8,7 +8,8 @@ def test_avg_kernel():
 
     path = os.path.dirname(os.path.realpath(__file__))
     X_dir = os.path.join(path, 'data/SPAHM_a_H2O/')
-    mols = [np.load(os.path.join(X_dir, f), allow_pickle=True) for f in os.listdir(X_dir) if os.path.isfile(os.path.join(X_dir,f))]
+    mollist = [os.path.join(X_dir, s) for s in ['X_H2O.npy', 'X_rotated_H2O.npy', 'X_H2O_dist.npy']]
+    mols = [np.load(f, allow_pickle=True) for f in mollist]
     K = kernel.kernel(mols, akernel='L', gkernel='avg', sigma=1.0)
 
     true_K = np.array(  [[1.       ,  1.       ,  0.79179528], \
@@ -22,7 +23,8 @@ def test_avg_kernel():
 def test_rem_kernel():
     path = os.path.dirname(os.path.realpath(__file__))
     X_dir = os.path.join(path, 'data/SPAHM_a_H2O/')
-    mols = [np.load(os.path.join(X_dir, f), allow_pickle=True) for f in os.listdir(X_dir) if os.path.isfile(os.path.join(X_dir,f))]
+    mollist = [os.path.join(X_dir, s) for s in ['X_H2O.npy', 'X_rotated_H2O.npy', 'X_H2O_dist.npy']]
+    mols = [np.load(f, allow_pickle=True) for f in mollist]
     K = kernel.kernel(mols, akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1})
 
     true_K = np.array(  [[1.      , 0.6528238, 1.      ], \

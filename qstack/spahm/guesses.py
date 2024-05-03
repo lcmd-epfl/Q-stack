@@ -3,11 +3,11 @@ import warnings
 import numpy
 import scipy
 import pyscf
-import pyscf.dft
+import pyscf.dft, pyscf.scf
 from qstack.spahm.LB2020guess import LB2020guess as LB20
 
 def hcore(mol, *_):
-  """Uses the diagonalization of the core to compute the guess Hamiltonian.
+  """Uses the core potential (kin + nuc + ecp) to compute the guess Hamiltonian.
 
   Args:
     mol (pyscf Mole): pyscf Mole object.
@@ -15,9 +15,7 @@ def hcore(mol, *_):
   Returns:
     A numpy ndarray containing the computed approximate Hamiltonian.
   """
-  h  = mol.intor_symmetric('int1e_kin')
-  h += mol.intor_symmetric('int1e_nuc')
-  return h
+  return pyscf.scf.hf.get_hcore(mol)
 
 def GWH(mol, *_):
   """Uses the generalized Wolfsberg-Helmholtz to compute the guess Hamiltonian.
@@ -51,11 +49,17 @@ def SAD(mol, func):
     A numpy ndarray containing the computed approximate Hamiltonian.
   """
   hc = hcore(mol)
-  dm =  pyscf.scf.hf.init_guess_by_atom(mol)
+  dm = pyscf.scf.hf.init_guess_by_atom(mol)
   mf = pyscf.dft.RKS(mol)
   mf.xc = func
   vhf = mf.get_veff(dm=dm)
-  fock = hc + vhf
+  if vhf.ndim == 2:
+      fock = hc + vhf
+  else:
+      fock = hc + vhf[0]
+      if not numpy.array_equal(vhf[0], vhf[1]):
+        msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
+        warnings.warn(msg)
   return fock
 
 def SAP(mol, *_):

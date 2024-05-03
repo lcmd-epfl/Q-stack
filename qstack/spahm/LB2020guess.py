@@ -1,6 +1,6 @@
 import copy
 import numpy
-import pyscf.data, pyscf.df
+import pyscf.data, pyscf.df, pyscf.scf
 
 """ Taken from https://github.com/briling/aepm and modified """
 
@@ -288,6 +288,30 @@ class LB2020guess:
           acbasis = self.acbasis
       return acbasis
 
+  def use_ecp(self, mol, acbasis):
+      acbasis = copy.deepcopy(acbasis)
+      for iat, z in enumerate(mol.atom_charges()):
+          q = mol.atom_pure_symbol(iat)
+          zcore = pyscf.data.elements.charge(q) - z
+          if zcore > 0:
+              zrest = zcore
+              bad_idx = []
+              for iprim in range(len(acbasis[q])):
+                  if numpy.isclose(zrest, 0):
+                      break
+                  a, c = acbasis[q][iprim][1]
+                  renorm = self.renormalize(a)
+                  c /= renorm  # convert back to charge units: sum {c} == charge(q)
+                  dc = min(c, zrest)
+                  if numpy.isclose(c, dc):
+                      bad_idx.append(iprim)
+                  else:
+                      acbasis[q][iprim][1][1] = (c-dc)*renorm
+                  zrest -= dc
+              for i in bad_idx[::-1]:
+                  acbasis[q].pop(i)
+      return acbasis
+
   def get_auxweights(self, auxmol):
       w = numpy.zeros(auxmol.nao)
       iao = 0
@@ -307,17 +331,26 @@ class LB2020guess:
       eri3c      = pmol.intor('int3c2e_sph', shls_slice=shls_slice)
       return eri3c
 
+  def check_coefficients(self, mol, acbasis):
+      ch1 = sum(sum(c/self.renormalize(a) for _, (a, c) in acbasis[mol.atom_pure_symbol(iat)]) for iat in range(mol.natm))
+      ch2 = sum(mol.atom_charges()) - (mol.charge if self.parameters == 'HF' else 0)
+      assert numpy.isclose(ch1, ch2)
+
   def HLB20(self, mol):
       acbasis = self.use_charge(mol)
+      if mol.has_ecp():
+          acbasis = self.use_ecp(mol, acbasis)
+      self.check_coefficients(mol, acbasis)
+
       auxmol  = pyscf.df.make_auxmol(mol, acbasis)
       eri3c   = self.get_eri3c(mol, auxmol)
       auxw    = self.get_auxweights(auxmol)
       return self.merge_caps(auxw, eri3c)
 
   def Heff(self, mol):
-      self.mol = mol
-      self.Hcore = mol.intor('int1e_nuc_sph') + mol.intor('int1e_kin_sph')
-      self.H    = self.Hcore + self.HLB20(mol)
+      self.mol   = mol
+      self.Hcore = pyscf.scf.hf.get_hcore(mol)
+      self.H     = self.Hcore + self.HLB20(mol)
       return self.H
 
 
@@ -340,6 +373,9 @@ class LB2020guess:
 
   def HLB20_generator(self, mol):
       acbasis = self.use_charge(mol)
+      if mol.has_ecp():
+          acbasis = self.use_ecp(mol, acbasis)
+      self.check_coefficients(mol, acbasis)
       auxmol  = pyscf.df.make_auxmol(mol, acbasis)
       eri3c   = self.HLB20_ints_generator(mol, auxmol)
       auxw    = self.get_auxweights(auxmol)
