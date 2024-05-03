@@ -73,3 +73,5 @@ if __name__ == '__main__':
     test_water()
     test_water_SAD_guess_close_shell()
     test_water_SAD_guess_open_shell()
+    test_water_single_element()
+    test_water_valence_only()

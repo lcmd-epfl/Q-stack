@@ -19,7 +19,7 @@ def check_file(mol_file):
 def get_repr(mol, elements, charge, spin,
              open_mod=defaults.omod, dm=None,
              guess=defaults.guess, model=defaults.model, xc=defaults.xc,
-             auxbasis=defaults.auxbasis, only_z=[], valence_only=False):
+             auxbasis=defaults.auxbasis, only_z=None, valence_only=False):
 
     # User-defined options
     elements = sorted(list(set(elements)))
@@ -32,7 +32,7 @@ def get_repr(mol, elements, charge, spin,
     if dm is None:
         dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin, xc=xc)
 # if only the representations for a given atom type are to be computed restricts the considered atomic indices
-    if len(only_z) != 0:
+    if only_z is not None:
         only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
     else:
         only_i = range(mol.natm) #otherwise consider the full list of atomic indices
