@@ -52,6 +52,7 @@ def test_water_single_element():
 
     X_true = np.load(path+'/data/SPAHM_a_H2O/X_H2O.npy', allow_pickle=True)
     a = X[0]
+    assert(X.shape == np.array(X_true[0], ndmin=2).shape)
     for a_true in X_true:
         if a[0] == a_true[0]:                       # atom type
             assert(np.linalg.norm(a[1]-a_true[1]) < 1e-08)   # atom representations
