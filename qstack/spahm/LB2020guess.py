@@ -290,8 +290,13 @@ class LB2020guess:
 
   def use_ecp(self, mol, acbasis):
       acbasis = copy.deepcopy(acbasis)
+      q_cleaned = set()
       for iat, z in enumerate(mol.atom_charges()):
           q = mol.atom_pure_symbol(iat)
+          if q in q_cleaned:
+              continue
+          else:
+              q_cleaned.add(q)
           zcore = pyscf.data.elements.charge(q) - z
           if zcore > 0:
               zrest = zcore
