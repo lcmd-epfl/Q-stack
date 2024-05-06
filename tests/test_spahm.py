@@ -36,6 +36,14 @@ def test_spahm_LB_ecp():
                        -0.07260264])
     assert np.allclose(R, true_R)
 
+    mol2 = compound.xyz_to_mol(path+'/data/I2.xyz', 'minao',
+                              ecp='def2-svp', charge=0, spin=0)
+    R2 = compute_spahm.get_spahm_representation(mol2, 'lb')[0]
+    true_R2 = np.array([-5.68297474, -3.91180966, -3.91176332, -3.90721427, -1.22967252, -1.22469672,
+                        -1.22145412, -1.2210437 , -1.22099792, -0.43285024, -0.20943343, -0.15915716,
+                        -0.07260264])
+    assert np.allclose(R2, true_R2)
+
 
 if __name__ == '__main__':
     test_spahm_huckel()
