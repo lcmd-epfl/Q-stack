@@ -72,13 +72,14 @@ def main():
     parser.add_argument('--charge',    dest='charge',    default=0,                            type=int, help='total charge of the system (default: 0)')
     parser.add_argument('--spin',      dest='spin',      default=None,                         type=int, help='number of unpaired electrons (default: None) (use 0 to treat a closed-shell system in a UHF manner)')
     parser.add_argument('--xc',        dest='xc',        default=defaults.xc,                  type=str, help=f'DFT functional for the SAD guess (default: {defaults.xc})')
+    parser.add_argument('--ecp',        dest='ecp',        default=None,                  type=str, help=f'effective core potential to use (default: None)')
     parser.add_argument('--nameout',   dest='NameOut',   default=None,                         type=str, help='name of the output representations file.')
     parser.add_argument('--omod',      dest='omod',      default=defaults.omod,     nargs='+', type=str, help=f'model(s) for open-shell systems (alpha, beta, sum, diff, default: {defaults.omod})')
     parser.add_argument('--valence',        dest='valence_only',        action='store_true', help=f'to generate valence density only representations')
     args = parser.parse_args()
     print(vars(args))
 
-    mol = compound.xyz_to_mol(check_file(args.mol), args.basis, charge=args.charge, spin=args.spin, unit=args.units)
+    mol = compound.xyz_to_mol(check_file(args.mol), args.basis, charge=args.charge, spin=args.spin, unit=args.units, ecp=args.ecp)
     dm = None if args.dm is None else np.load(args.dm)
 
     representations = get_repr(mol, args.elements, args.charge, args.spin,
