@@ -19,7 +19,7 @@ def check_file(mol_file):
 def get_repr(mol, elements, charge, spin,
              open_mod=defaults.omod, dm=None,
              guess=defaults.guess, model=defaults.model, xc=defaults.xc,
-             auxbasis=defaults.auxbasis, only_z=None, valence_only=False):
+             auxbasis=defaults.auxbasis, only_z=None):
 
     # User-defined options
     elements = sorted(list(set(elements)))
@@ -40,7 +40,7 @@ def get_repr(mol, elements, charge, spin,
     rep = []
     for omod in open_mod:
         DM      = utils.dm_open_mod(dm, omod) if spin is not None else dm
-        c_df    = df_wrapper(mol, DM, auxbasis, only_i=only_i, valence_only=valence_only)
+        c_df    = df_wrapper(mol, DM, auxbasis, only_i=only_i)
         vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
         if spin is None:
             rep = vectors
@@ -75,7 +75,6 @@ def main():
     parser.add_argument('--ecp',        dest='ecp',        default=None,                  type=str, help=f'effective core potential to use (default: None)')
     parser.add_argument('--nameout',   dest='NameOut',   default=None,                         type=str, help='name of the output representations file.')
     parser.add_argument('--omod',      dest='omod',      default=defaults.omod,     nargs='+', type=str, help=f'model(s) for open-shell systems (alpha, beta, sum, diff, default: {defaults.omod})')
-    parser.add_argument('--valence',        dest='valence_only',        action='store_true', help=f'to generate valence density only representations')
     args = parser.parse_args()
     print(vars(args))
 
