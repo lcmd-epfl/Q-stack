@@ -68,7 +68,7 @@ def main():
     parser.add_argument('--model',     dest='model',     default=defaults.model,               type=str, help=f"the model to use when creating the representation (default: {defaults.model})")
     parser.add_argument('--dm',        dest='dm',        default=None,                         type=str, help="a density matrix to load instead of computing the guess")
     parser.add_argument('--species',   dest='elements',  default=defaults.elements, nargs='+', type=str, help="the elements contained in the database")
-    parser.add_argument('--only',   dest='only_z', default=[], nargs='+', type=str, help="The restricted list of elements for which you want to generate the representation")
+    parser.add_argument('--only',   dest='only_z', default=None, nargs='+', type=str, help="The restricted list of elements for which you want to generate the representation")
     parser.add_argument('--charge',    dest='charge',    default=0,                            type=int, help='total charge of the system (default: 0)')
     parser.add_argument('--spin',      dest='spin',      default=None,                         type=int, help='number of unpaired electrons (default: None) (use 0 to treat a closed-shell system in a UHF manner)')
     parser.add_argument('--xc',        dest='xc',        default=defaults.xc,                  type=str, help=f'DFT functional for the SAD guess (default: {defaults.xc})')
