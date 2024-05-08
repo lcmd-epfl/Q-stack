@@ -158,55 +158,6 @@ def add_progressbar(legend='', max_value=100):
     bar = progressbar.ProgressBar(widgets=widgets, max_value=max_value, redirect_stdout=True).start()
     return bar
 
-def build_reaction(reacts_file, prods_file, local=False, print_level=0, summ=True, diff=True):
-    reacts = []
-    with open(reacts_file, 'r') as r_in:
-        lines = r_in.readlines()
-        for line in lines:
-            line = line.rstrip('\n')
-            structs = line.split(' ')
-            reacts.append(structs)
-    prods = []
-    with open(prods_file, 'r') as p_in:
-        lines = p_in.readlines()
-        for line in lines:
-            line = line.rstrip('\n')
-            structs = line.split(' ')
-            prods.append(structs)
-    tot = len(reacts)+len(prods)
-    if print_level > 0 : progress = add_progressbar(max_value=tot)
-    i = 0
-    XR = []
-    for rxn in reacts:
-        xr = []
-        for r in rxn:
-            xr.append(load_reps(r, from_list=False, with_labels=False, local=local, summ=True if local else False, single=True))
-        xr = np.squeeze(xr)
-#        print(xr.shape)
-#        exit()
-        if summ and xr.ndim > 1:
-            xr = xr.sum(axis=0)
-        XR.append(xr)
-        i+=1
-        if print_level > 0 : progress.update(i)
-    XP = []
-    for rxn in prods:
-        xp=[]
-        for p in rxn:
-            xp.append(load_reps(p, from_list=False, with_labels=False, local=local, summ=True if local else False, single=True))
-        xp = np.squeeze(xp)
-        if summ and xp.ndim > 1:
-            xp = xp.sum(axis=0)
-        XP.append(xp)
-        i+=1
-        if print_level > 0 : progress.update(i)
-    XR = np.squeeze(XR)
-    XP = np.squeeze(XP)
-    if diff : rxn = XP - XR
-    else: rxn = (XR, XP)
-    if print_level > 0 : progress.finish()
-    return rxn
-
 def regroup_symbols(file_list, print_level=0):
     reps, atoms = load_reps(file_list, from_list=True, with_labels=True, local=True, printlevel=print_level)
     if print_level > 0: print(f"Extracting {len(atoms)} atoms from {file_list}:")
