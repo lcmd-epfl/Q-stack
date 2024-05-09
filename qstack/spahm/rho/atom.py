@@ -50,11 +50,7 @@ def get_repr(mol, elements, charge, spin,
     if spin is not None:
         rep = np.hstack(rep)
 
-    mrep = []
-    for j,i in enumerate(only_i):
-        q = mol.elements[i]
-        v = rep[j]
-        mrep.append(np.array((q, v), dtype=object))
+    mrep = [np.array((q,v), dtype=object) for q,v in zip(np.array(mol.elements)[only_i], rep)]
     return np.array(mrep)
 
 
