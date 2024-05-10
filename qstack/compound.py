@@ -50,10 +50,14 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'
         mol.charge = -(sum(map(data.elements.charge, elements))%2)
         mol.spin = 0
 
-    if ecp:
+    if ecp != None:
         mol.ecp = ecp
 
     mol.build()
+    species_charges = [data.elements.charge(z) for z in mol.elements]
+    if mol.basis == 'minao' and ecp == None and (np.array(species_charges) > 39).any():
+        msg = f"{mol.basis} basis set requires the use of effective core potentials for atoms with Z>39"
+        raise RuntimeError(msg)
     return mol
 
 

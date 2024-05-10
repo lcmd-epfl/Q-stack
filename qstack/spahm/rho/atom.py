@@ -73,13 +73,6 @@ def main():
     parser.add_argument('--omod',      dest='omod',      default=defaults.omod,     nargs='+', type=str, help=f'model(s) for open-shell systems (alpha, beta, sum, diff, default: {defaults.omod})')
     args = parser.parse_args()
     print(vars(args))
-    import pyscf.data.elements as pysymb
-    species_charges = [pysymb.charge(z) for z in args.elements]
-    if args.basis == 'minao' and args.ecp == None and (np.array(species_charges) > 39).any():
-        msg = f"{args.basis} basis set requires the use of effective core potentials for atoms with Z>39\n\
-                Setting ECP to 'cc-pvdz-pp'"
-        print(msg)
-        args.ecp = 'cc-pvdz-pp'
 
     mol = compound.xyz_to_mol(check_file(args.mol), args.basis, charge=args.charge, spin=args.spin, unit=args.units, ecp=args.ecp)
     dm = None if args.dm is None else np.load(args.dm)

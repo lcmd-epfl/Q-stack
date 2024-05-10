@@ -79,13 +79,6 @@ def main():
     if args.print>0: print(vars(args))
     correct_num_threads()
 
-    import pyscf.data.elements as pysymb
-    species_charges = [pysymb.charge(z) for z in args.elements]
-    if args.basis == 'minao' and args.ecp == None and (np.array(species_charges) > 39).any():
-        msg = f"{args.basis} basis set requires the use of effective core potentials for atoms with Z>39\n\
-                Setting ECP to 'cc-pvdz-pp'"
-        print(msg)
-        args.ecp = 'cc-pvdz-pp'
     if args.name_out is None:
         args.name_out = os.path.splitext(args.filename)[0]
 
