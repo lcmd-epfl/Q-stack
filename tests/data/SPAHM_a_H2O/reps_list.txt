@@ -1,0 +1,3 @@
+data/SPAHM_a_H2O/X_H2O_dist.npy
+data/SPAHM_a_H2O/X_H2O.npy
+data/SPAHM_a_H2O/X_rotated_H2O.npy
