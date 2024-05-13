@@ -29,17 +29,17 @@ def get_model(arg):
         dm = dm - dm_sad
         return fields.decomposition.decompose(mol, dm, auxbasis)[1]
 
-    def df_lowdin_long(mol, dm, auxbasis):
-        return atomic_density.fit(mol, dm, auxbasis)
+    def df_lowdin_long(mol, dm, auxbasis, only_i=[]):
+        return atomic_density.fit(mol, dm, auxbasis, only_i=only_i)
 
-    def df_lowdin_short(mol, dm, auxbasis):
-        return atomic_density.fit(mol, dm, auxbasis, short=True)
+    def df_lowdin_short(mol, dm, auxbasis, only_i=[]):
+        return atomic_density.fit(mol, dm, auxbasis, short=True, only_i=only_i)
 
-    def df_lowdin_long_x(mol, dm, auxbasis):
-        return atomic_density.fit(mol, dm, auxbasis, w_slicing=False)
+    def df_lowdin_long_x(mol, dm, auxbasis, only_i=[]):
+        return atomic_density.fit(mol, dm, auxbasis, w_slicing=False, only_i=only_i)
 
-    def df_lowdin_short_x(mol, dm, auxbasis):
-        return atomic_density.fit(mol, dm, auxbasis, short=True, w_slicing=False)
+    def df_lowdin_short_x(mol, dm, auxbasis, only_i=[]):
+        return atomic_density.fit(mol, dm, auxbasis, short=True, w_slicing=False, only_i=only_i)
 
     def df_occup(mol, dm, auxbasis):
         L = lowdin.Lowdin_split(mol, dm)
