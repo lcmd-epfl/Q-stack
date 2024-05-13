@@ -10,7 +10,8 @@ def test_load_rep_from_list():
 
     paths2list = os.path.join(path, 'data/SPAHM_a_H2O/')
     Xarray, symbols = ut.load_reps(paths2list+'reps_list.txt', from_list=True, single=False, \
-            with_labels=True, local=True, summ=False, printlevel=0)
+            with_labels=True, local=True, summ=False, printlevel=0, \
+            srcdir=paths2list)
     assert(Xarray.shape == (9,207))
     assert(len(symbols) == 9)
 
