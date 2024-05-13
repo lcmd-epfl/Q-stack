@@ -1,4 +1,5 @@
 import os
+import warnings
 import numpy as np
 from types import SimpleNamespace
 import qstack.spahm.compute_spahm as spahm
@@ -51,7 +52,7 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, pr
         if printlevel>0: print(xyzfile, flush=True)
         if not readdm:
             e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
-            dm   = guesses.get_dm(v, mol.nelec, mol.spin if spin != None else None)
+            dm   = guesses.get_dm(v, mol.nelec, mol.spin if spin is not None else None)
         else:
             dm = np.load(readdm+'/'+os.path.basename(xyzfile)+'.npy')
             if spin and dm.ndim==2:
@@ -73,16 +74,16 @@ def get_xyzlist(xyzlistfile):
     return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
 
 
-def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, summ=False, printlevel=0, progress=False):
+def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, sum_local=False, printlevel=0, progress=False):
     '''
     A function to load representations from txt-list/npy files.
         Args:
             - f_in: the name of the input file
-            - fomr_list(bol): if the input file is a txt-file containing a list of paths to the representations
+            - from_list(bool): if the input file is a txt-file containing a list of paths to the representations
             - single: if the input file is .npy AND contains a single representation (not an array of representation)
-            - with_label(bol): saves a list of tuple (filename, representation)
-            - local(bol): if the representations is local
-            - summ(bol): if local=True then summs the local components
+            - with_label(bool): saves a list of tuple (filename, representation)
+            - local(bool): if the representations is local
+            - sum_local(bool): if local=True then sums the local components
             - printlevel(int): level of verbosity
         Return:
             np.array with shape (N,M) where N number of representations M dimmensionality of the representation
@@ -94,11 +95,13 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
         path2list = srcdir
     if from_list:
         X_list = get_xyzlist(f_in)
-        Xs = []
+        Xs = []     # Xs must be a list of representations (local or global) whose len() = # of representations
         for f_X in X_list:
             Xs.append(np.load(os.path.join(path2list,f_X), allow_pickle=True))
+    elif single:
+        Xs = [np.load(f_in, allow_pickle=True)] # if the given file contains a single representation create a one-element list
     else:
-        Xs = np.load(f_in, allow_pickle=True) if not single else np.array([np.load(f_in, allow_pickle=True)])
+        Xs = np.load(f_in, allow_pickle=True)
     if progress:
         import tqdm
         Xs = tqdm.tqdm(Xs)
@@ -106,8 +109,8 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
     labels = []
     for x in Xs:
         if local == True:
-            if x.ndim > 1 and (type(x[0,0]) == str or type(x[0,0]) == np.str_):
-                if summ:
+            if x.ndim > 1 and (type(x[0,0]) == str or type(x[0,0]) == np.str_): # checks if there's enough dimensions to hold symbols/labels and if the elements are str-types
+                if sum_local:
                     reps.append(x[:,1].sum(axis=0))
                 else:
                     reps.extend(x[:,1])
@@ -119,7 +122,7 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
                 reps.append(x[1])
                 labels.extend(x[0])
            else:
-                reps.append(x) 
+                reps.append(x)
     try:
         reps = np.array(reps, dtype=float)
     except:
@@ -127,7 +130,9 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
         shapes = [r.shape[0]  for r in reps]
         shapes = set(shapes)
         print(shapes)
-        raise RuntimeError("Error while loading representations, check the parameters")
+        raise RuntimeError(f"Error while loading representations in {f_in}, check the parameters")
+    if with_labels and (len(labels) < len(reps)):
+        warnings.warn("All labels could not be recovered (verify your representation files).", RuntimeWarning)
     if with_labels:
         return reps, labels
     else:
