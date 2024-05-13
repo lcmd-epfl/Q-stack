@@ -164,10 +164,11 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
         rest = mol.natm if len(only_z) > 0 else i0
         for i1 in range(rest):
             if i0 == i1 : continue
-            v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff, no_lowdin=no_lowdin)
+            v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff)
             if v is None:
                 continue
             mybonds[i0][0][bname] += v[0]
+            mybonds[i1][0][bname] += v[1]
     vec = [None]*len(all_atoms)
     for i1,i0 in enumerate(all_atoms):
         vec[i1] = np.hstack([M[qq] @ mybonds[i0][0][qq] for qq in qqs[q[i0]]])
