@@ -10,11 +10,11 @@ from .utils import defaults
 def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          spin=None, elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
-         pairfile=None, dump_and_exit=False):
+         pairfile=None, dump_and_exit=False, all_same=False):
 
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
-                                                                     pairfile=pairfile, dump_and_exit=dump_and_exit)
+                                                                     pairfile=pairfile, dump_and_exit=dump_and_exit, all_same=all_same)
     if spin is None:
         omods = [None]
     qqs = qqs0 if zeros else qqs4q
@@ -74,6 +74,7 @@ def main():
     parser.add_argument('--elements',      type=str,            dest='elements',       default=None,  nargs='+',         help='the elements to limit the representation for')
     parser.add_argument('--pairfile',      type=str,            dest='pairfile',       default=None,                     help='path to the atom pair file')
     parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit',  default=False,                    help='write the atom pair file and exit if --pairfile is set')
+    parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if write the pairfile (and exit)')
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
@@ -91,27 +92,26 @@ def main():
         charge  = utils.get_chsp(args.charge, len(xyzlist))
         spin    = utils.get_chsp(args.spin,   len(xyzlist))
     mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
-
-    allvec = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print,
-                      pairfile=args.pairfile, dump_and_exit=args.dump_and_exit,
-                      bpath=args.bpath, cutoff=args.cutoff, omods=args.omod,
-                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split)
-
-
-
-    if len(allvec) == 1:
-        allvec = allvec[0]
+    if args.with_symbols: all_atoms   = np.array([mol.elements for mol in mols]).flatten()
+    dms     = utils.mols_guess(mols, xyzlist, args.guess,
+                               xc=defaults.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print)
+    allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
+                   spin=args.spin, elements=args.elements,
+                   only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print,
+                   pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, all_same=args.same_basis)
 
     if args.print>1: print(allvec.shape)
 
+    allvec = np.squeeze(allvec)
     if args.spin:
         if args.merge is False:
             for omod, vec in zip(args.omod, allvec):
+                if args.with_symbols: allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
                 np.save(args.name_out+'_'+omod, vec)
         else:
-            np.save(args.name_out+'_'+'_'.join(args.omod), np.hstack(allvec))
-    else:
-        np.save(args.name_out, allvec)
+            allvec = np.hstack(allvec)
+            if args.with_symbols: allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
+            np.save(args.name_out+'_'+'_'.join(args.omod), allvec)
 
 
 if __name__ == "__main__":

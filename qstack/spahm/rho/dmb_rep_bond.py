@@ -24,11 +24,12 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
     return idx, M
 
 
-def read_df_basis(bnames, bpath):
+def read_df_basis(bnames, bpath, all_same=False):
     mybasis = {}
     for bname in bnames:
         if bname in mybasis: continue
-        with open(bpath+'/'+bname+'.bas', 'r') as f:
+        fname = bpath+'/'+bname+'.bas' if not all_same else bpath+'/CC.bas'
+        with open(fname, 'r') as f:
             mybasis[bname] = eval(f.read())
     return mybasis
 
@@ -79,12 +80,12 @@ def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel):
     qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols)]
     qqs0 = sorted(set(qqs0))
     if printlevel>1: print(qqs0)
-    mybasis = read_df_basis(qqs0, bpath)
+    mybasis = read_df_basis(qqs0, bpath, all_same=all_same)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return mybasis, idx, M
 
 
-def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None, pairfile=None, dump_and_exit=False):
+def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None, pairfile=None, dump_and_exit=False, all_same=False):
     if elements is None:
         elements = sorted(list(set([q for mol in mols for q in mol.elements])))
 
@@ -102,7 +103,7 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
 
     qqs = {q: qqs0 for q in elements}
     if printlevel>1: print(qqs0)
-    mybasis = read_df_basis(qqs0, bpath)
+    mybasis = read_df_basis(qqs0, bpath, all_same=all_same)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return elements, mybasis, qqs, qqs4q, idx, M
 
