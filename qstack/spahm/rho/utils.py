@@ -79,7 +79,7 @@ def get_xyzlist(xyzlistfile):
     return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
 
 
-def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True, summ=False, printlevel=0):
+def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, summ=False, printlevel=0):
     '''
     A function to load representations from txt-list/npy files.
         Args:
@@ -94,6 +94,10 @@ def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True,
             np.array with shape (N,M) where N number of representations M dimmensionality of the representation
             OR tuple (N,np.array(N,M)) containing filenames in pos 0
     '''
+    if srcdir == None:
+        path2list = os.getcwd()
+    else:
+        path2list = srcdir
     if from_list:
         X_list = get_xyzlist(f_in)
         if printlevel > 0:
@@ -101,7 +105,7 @@ def load_reps(f_in, from_list=True, single=False, with_labels=False, local=True,
             i=0
         Xs = []
         for f_X in X_list:
-            Xs.append(np.load(f_X, allow_pickle=True))
+            Xs.append(np.load(os.path.join(path2list,f_X), allow_pickle=True))
             if printlevel > 0:
                 i+=1
                 progress.update(i)
