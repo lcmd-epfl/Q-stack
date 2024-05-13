@@ -29,24 +29,18 @@ def get_chsp(fname, n):
     return chsp
 
 
-def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None):
+def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False):
     mols = []
-    if printlevel > 0:
-        progress = add_progressbar(max_value=len(xyzlist))
-        i = 0
+    if progress:
+        import tqdm
+        xyzlist = tqdm.tqdm(xyzlist)
     for xyzfile, ch, sp in zip(xyzlist, charge, spin):
-        if printlevel>1: print(xyzfile, flush=True)
+        if printlevel>0: print(xyzfile, flush=True)
         mols.append(compound.xyz_to_mol(xyzfile, basis,
                                         charge=0 if ch is None else ch,
                                         spin=0 if sp is None else sp,
                                         unit=units, ecp=ecp))
-        if printlevel > 0:
-            i+=1
-            progress.update(i)
-    if printlevel>0:
-        progress.finish()
-        print()
-    if printlevel>1: print()
+    if printlevel>0: print()
     return mols
 
 
@@ -79,7 +73,7 @@ def get_xyzlist(xyzlistfile):
     return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
 
 
-def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, summ=False, printlevel=0):
+def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, summ=False, printlevel=0, progress=False):
     '''
     A function to load representations from txt-list/npy files.
         Args:
@@ -100,20 +94,14 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
         path2list = srcdir
     if from_list:
         X_list = get_xyzlist(f_in)
-        if printlevel > 0:
-            progress = add_progressbar(max_value=len(X_list)*2)
-            i=0
         Xs = []
         for f_X in X_list:
             Xs.append(np.load(os.path.join(path2list,f_X), allow_pickle=True))
-            if printlevel > 0:
-                i+=1
-                progress.update(i)
     else:
         Xs = np.load(f_in, allow_pickle=True) if not single else np.array([np.load(f_in, allow_pickle=True)])
-        if printlevel > 0:
-            progress = add_progressbar(max_value=len(Xs))
-            i=0
+    if progress:
+        import tqdm
+        Xs = tqdm.tqdm(Xs)
     reps = []
     labels = []
     for x in Xs:
@@ -132,10 +120,6 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
                 labels.extend(x[0])
            else:
                 reps.append(x) 
-        if printlevel > 0:
-            i+=1
-            progress.update(i)
-    if printlevel > 0: progress.finish()
     try:
         reps = np.array(reps, dtype=float)
     except:
@@ -148,19 +132,6 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
         return reps, labels
     else:
         return reps
-
-def add_progressbar(legend='', max_value=100):
-    import progressbar
-    import time
-    #import logging
-    #progressbar.streams.wrap_stderr()
-    #logging.basicConfig()
-    widgets=[\
-    ' [', progressbar.Timer(), '] ',\
-    progressbar.Bar(),\
-    ' (', progressbar.ETA(), ')']
-    bar = progressbar.ProgressBar(widgets=widgets, max_value=max_value, redirect_stdout=True).start()
-    return bar
 
 def regroup_symbols(file_list, print_level=0):
     reps, atoms = load_reps(file_list, from_list=True, with_labels=True, local=True, printlevel=print_level)
