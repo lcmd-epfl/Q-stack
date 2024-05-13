@@ -26,7 +26,7 @@ def test_load_reps():
     assert(X.shape == (3,207))
     assert(len(symbols) == 3)
 
-def test_load_reps_nosymbols():
+def test_load_reps_nosymbols(): #throws warning and returns empty list of symbols
     path = os.path.dirname(os.path.realpath(__file__))
 
     paths2X = os.path.join(path, 'data/H2O_spahm_b.npy_alpha_beta.npy')
@@ -34,6 +34,41 @@ def test_load_reps_nosymbols():
             with_labels=True, local=True, sum_local=False, printlevel=0, progress=True)
     assert(X.shape == (3,1108))
     assert(len(symbols) == 0)
+
+def test_load_reps_singleatom():
+    path = os.path.dirname(os.path.realpath(__file__))
+
+    xyzpath = os.path.join(path, 'data/H2O.xyz')
+    mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
+    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O'])
+    np.save(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), rep)
+    X, symbols = ut.load_reps(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), from_list=False, single=True, \
+            with_labels=True, local=True, sum_local=False, printlevel=0, progress=True)
+    assert(X.shape == (1,414))
+    assert(len(symbols) == 1)
+    assert(symbols[0] == 'O')
+
+def test_load_reps_singleatom_sum_local():
+    path = os.path.dirname(os.path.realpath(__file__))
+
+    xyzpath = os.path.join(path, 'data/H2O.xyz')
+    mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
+    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['H'])
+    np.save(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), rep)
+    X = ut.load_reps(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), from_list=False, single=True, \
+            with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
+    assert(X.shape == (1,414))
+
+def test_load_reps_singleatom_sum_local():
+    path = os.path.dirname(os.path.realpath(__file__))
+
+    xyzpath = os.path.join(path, 'data/H2O.xyz')
+    mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
+    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O']) #since only one O checks if the sum is not run over the representations elements
+    np.save(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), rep)
+    X = ut.load_reps(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), from_list=False, single=True, \
+            with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
+    assert(X.shape == (1,414))
 
 def test_load_mols():
     path = os.path.dirname(os.path.realpath(__file__))
