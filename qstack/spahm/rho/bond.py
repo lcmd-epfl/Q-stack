@@ -92,8 +92,11 @@ def main():
             all_atoms   = np.array([z for mol in mols for z in mol.elements if z in args.only_z]).flatten()
         else:
             all_atoms   = np.array([mol.elements for mol in mols]).flatten()
-    dms     = utils.mols_guess(mols, xyzlist, args.guess,
+    if not args.dump_and_exit:
+        dms     = utils.mols_guess(mols, xyzlist, args.guess,
                                xc=defaults.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print)
+    else:
+        dms = []
     allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
                    spin=args.spin, elements=args.elements,
                    only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print,
