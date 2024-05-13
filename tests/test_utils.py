@@ -10,7 +10,7 @@ def test_load_rep_from_list():
 
     paths2list = os.path.join(path, 'data/SPAHM_a_H2O/')
     Xarray, symbols = ut.load_reps(paths2list+'reps_list.txt', from_list=True, single=False, \
-            with_labels=True, local=True, summ=False, printlevel=0, \
+            with_labels=True, local=True, summ=False, printlevel=0, progress=True, \
             srcdir=paths2list)
     assert(Xarray.shape == (9,207))
     assert(len(symbols) == 9)
@@ -20,6 +20,19 @@ def test_load_reps():
 
     paths2X = os.path.join(path, 'data/SPAHM_a_H2O/X_H2O.npy')
     X, symbols = ut.load_reps(paths2X, from_list=False, single=True, \
-            with_labels=True, local=True, summ=False, printlevel=0)
+            with_labels=True, local=True, summ=False, printlevel=0, progress=True)
     assert(X.shape == (3,207))
     assert(len(symbols) == 3)
+
+def test_load_mols():
+    path = os.path.dirname(os.path.realpath(__file__))
+    molslist = [os.path.join(path, 'data', m) for m in ['H2O.xyz','H2O_dist.xyz','rotated_H2O.xyz']]
+    mols = ut.load_mols(molslist, [0]*len(molslist), [None]*len(molslist), 'minao', progress=True)
+    assert(len(mols) == 3)
+
+def main():
+    test_load_mols()
+    test_load_reps()
+    test_load_rep_from_list()
+
+if __name__ == '__main__': main()
