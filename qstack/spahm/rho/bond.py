@@ -104,9 +104,10 @@ def main():
                    pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis, only_z=args.only_z)
 
     if args.print>1: print(allvec.shape)
+    ### I think this was needed for a particular case but can't remember which one
+    #allvec = np.squeeze(allvec)
+    #allvec = np.array(allvec, ndmin=2)
 
-    allvec = np.squeeze(allvec)
-    allvec = np.array(allvec, ndmin=2)
     if args.spin:
         if args.merge is False:
             for omod, vec in zip(args.omod, allvec):
