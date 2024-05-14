@@ -95,13 +95,12 @@ def check_data_struct(fin, local=False):
 
 
 
-def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, sum_local=False, printlevel=0, progress=False):
+def load_reps(f_in, from_list=True, srcdir=None, with_labels=False, local=True, sum_local=False, printlevel=0, progress=False):
     '''
     A function to load representations from txt-list/npy files.
         Args:
             - f_in: the name of the input file
             - from_list(bool): if the input file is a txt-file containing a list of paths to the representations
-            - single: if the input file is .npy AND contains a single representation (not an array of representation)
             - with_label(bool): saves a list of tuple (filename, representation)
             - local(bool): if the representations is local
             - sum_local(bool): if local=True then sums the local components
