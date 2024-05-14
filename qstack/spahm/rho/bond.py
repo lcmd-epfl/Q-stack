@@ -50,6 +50,7 @@ def main():
     parser.add_argument('--guess',         type=str,            dest='guess',          default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         type=str,            dest='units',          default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         type=str,            dest='basis'  ,        default=defaults.basis,           help='AO basis set (default=MINAO)')
+    parser.add_argument('--ecp',           type=str,            dest='ecp'  ,          default=None,                     help='Effective core potential to be used (default: None)')
     parser.add_argument('--charge',        type=str,            dest='charge',         default=None,                     help='charge / path to a file with a list of thereof')
     parser.add_argument('--spin',          type=str,            dest='spin',           default=None,                     help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--xc',            type=str,            dest='xc',             default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
@@ -86,7 +87,7 @@ def main():
         xyzlist = utils.get_xyzlist(xyzlistfile)
         charge  = utils.get_chsp(args.charge, len(xyzlist))
         spin    = utils.get_chsp(args.spin,   len(xyzlist))
-    mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
+    mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
     if args.with_symbols:
         if len(args.only_z) > 0:
             all_atoms   = np.array([z for mol in mols for z in mol.elements if z in args.only_z]).flatten()
