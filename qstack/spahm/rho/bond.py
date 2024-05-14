@@ -10,11 +10,11 @@ from .utils import defaults
 def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          spin=None, elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
-         pairfile=None, dump_and_exit=False, all_same=False, only_z=[]):
+         pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
 
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
-                                                                     pairfile=pairfile, dump_and_exit=dump_and_exit, all_same=all_same)
+                                                                     pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
     if spin is None:
         omods = [None]
     qqs = qqs0 if zeros else qqs4q
@@ -68,7 +68,7 @@ def main():
     parser.add_argument('--elements',      type=str,            dest='elements',       default=None,  nargs='+',         help='the elements to limit the representation for')
     parser.add_argument('--pairfile',      type=str,            dest='pairfile',       default=None,                     help='path to the atom pair file')
     parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit',  default=False,                    help='write the atom pair file and exit if --pairfile is set')
-    parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if write the pairfile (and exit)')
+    parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
     parser.add_argument('--only-z',        type=str,            dest='only_z',         default=[],  nargs='+',           help="restrict the representation to one or several atom types")
     args = parser.parse_args()
     if args.print>0: print(vars(args))
@@ -100,7 +100,7 @@ def main():
     allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
                    spin=args.spin, elements=args.elements,
                    only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print,
-                   pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, all_same=args.same_basis, only_z=args.only_z)
+                   pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis, only_z=args.only_z)
 
     if args.print>1: print(allvec.shape)
 
