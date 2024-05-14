@@ -73,6 +73,27 @@ def dm_open_mod(dm, omod):
 def get_xyzlist(xyzlistfile):
     return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
 
+def check_data_struct(fin, local=False):
+    x = np.load(fin, allow_pickle=True)
+    if type(x.flatten()[0]) == str or type(x.flatten()[0]) == np.str_:
+        is_labeled = True
+        if not local and x.shape[0] == 1:
+            is_single = True
+        elif  x.shape[1] == 2:
+            is_single = True
+        else:
+            is_single = False
+    else:
+        is_labeled = False
+        if not local and x.ndim == 1:
+            is_single = True
+        elif x.shape[1] != 2: ## could be problematic! (if it's a set of local representations and nfeatures = 2 !!
+            is_single=True
+        else:
+            is_single = False
+    return is_single, is_labeled
+
+
 
 def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False, local=True, sum_local=False, printlevel=0, progress=False):
     '''
@@ -97,11 +118,14 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
         X_list = get_xyzlist(f_in)
         Xs = []     # Xs must be a list of representations (local or global) whose len() = # of representations
         for f_X in X_list:
+            is_single, is_labeled = check_data_struct(os.path.join(path2list,f_X), local=local) #Could test here maybe
+            if printlevel > 0 : print(is_single, is_labeled)
             Xs.append(np.load(os.path.join(path2list,f_X), allow_pickle=True))
-    elif single:
-        Xs = [np.load(f_in, allow_pickle=True)] # if the given file contains a single representation create a one-element list
     else:
-        Xs = np.load(f_in, allow_pickle=True)
+        is_single, is_labeled = check_data_struct(f_in, local=local)
+        # if the given file contains a single representation create a one-element list
+        Xs = [np.load(f_in, allow_pickle=True)] if is_single else np.load(f_in, allow_pickle=True)
+    print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
     if progress:
         import tqdm
         Xs = tqdm.tqdm(Xs)
@@ -109,7 +133,7 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
     labels = []
     for x in Xs:
         if local == True:
-            if x.ndim > 1 and (type(x[0,0]) == str or type(x[0,0]) == np.str_): # checks if there's enough dimensions to hold symbols/labels and if the elements are str-types
+            if is_labeled:
                 if sum_local:
                     reps.append(x[:,1].sum(axis=0))
                 else:
@@ -118,7 +142,7 @@ def load_reps(f_in, from_list=True, srcdir=None, single=False, with_labels=False
             else:
                 reps.extend(x)
         else:
-           if type(x[0]) == str or type(x[0]) == np.str_:
+           if is_labeled:
                 reps.append(x[1])
                 labels.extend(x[0])
            else:

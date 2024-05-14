@@ -76,9 +76,23 @@ def test_load_mols():
     mols = ut.load_mols(molslist, [0]*len(molslist), [None]*len(molslist), 'minao', progress=True)
     assert(len(mols) == 3)
 
+def test_check_data_structure():
+    path = os.path.dirname(os.path.realpath(__file__))
+    test_files = [
+                  {'path2file': os.path.join(path, 'data', 'H2O_spahm-e_def2svp.npy'), 'is_local':False, 'is_single':True, 'is_labeled':False}, \
+                  {'path2file': os.path.join(path, 'data', 'H2O_spahm_b.npy_alpha_beta.npy'), 'is_local':True, 'is_single':True, 'is_labeled':False}, \
+                  {'path2file': os.path.join(path, 'data', 'SPAHM_a_H2O/X_H2O.npy'), 'is_local':True, 'is_single':True, 'is_labeled':True}, \
+                  {'path2file': os.path.join(path, 'data', 'SPAHM_a_H2O/Xs_H2O_array.npy'), 'is_local':True, 'is_single':False, 'is_labeled':True} \
+                  ]
+    for ft in test_files:
+        is_single, is_labeled = ut.check_data_struct(ft['path2file'], local = ft['is_local'])
+        assert((ft['is_single'] == is_single) and (ft['is_labeled'] == is_labeled))
+
+
 def main():
     test_load_mols()
     test_load_reps()
     test_load_rep_from_list()
+    test_check_data_structure()
 
 if __name__ == '__main__': main()
