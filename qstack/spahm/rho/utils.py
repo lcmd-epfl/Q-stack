@@ -95,19 +95,24 @@ def check_data_struct(fin, local=False):
 
 
 
-def load_reps(f_in, from_list=True, srcdir=None, with_labels=False, local=True, sum_local=False, printlevel=0, progress=False):
+def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
+              local=True, sum_local=False, printlevel=0, progress=False,
+              file_format={'is_labeled':None, 'is_single':None}):
     '''
     A function to load representations from txt-list/npy files.
         Args:
             - f_in: the name of the input file
             - from_list(bool): if the input file is a txt-file containing a list of paths to the representations
+            - srcdir(str) : the path prefix to be at the begining of each file in `f_in`, defaults to cwd
             - with_label(bool): saves a list of tuple (filename, representation)
             - local(bool): if the representations is local
             - sum_local(bool): if local=True then sums the local components
             - printlevel(int): level of verbosity
+            - progress(bool): if True shows progress-bar
+            - file_format(dict): (for "experienced users" only) structure of the input data, defaults to structure auto determination
         Return:
             np.array with shape (N,M) where N number of representations M dimmensionality of the representation
-            OR tuple (N,np.array(N,M)) containing filenames in pos 0
+            OR tuple ([N],np.array(N,M)) containing list of labels and np.array of representations
     '''
     if srcdir == None:
         path2list = os.getcwd()
@@ -117,11 +122,17 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False, local=True, 
         X_list = get_xyzlist(f_in)
         Xs = []     # Xs must be a list of representations (local or global) whose len() = # of representations
         for f_X in X_list:
-            is_single, is_labeled = check_data_struct(os.path.join(path2list,f_X), local=local) #Could test here maybe
+            if None in file_format.values():
+                is_single, is_labeled = check_data_struct(os.path.join(path2list,f_X), local=local)
+            else:
+                is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
             if printlevel > 0 : print(is_single, is_labeled)
             Xs.append(np.load(os.path.join(path2list,f_X), allow_pickle=True))
     else:
-        is_single, is_labeled = check_data_struct(f_in, local=local)
+        if None in file_format.values():
+            is_single, is_labeled = check_data_struct(os.path.join(path2list,f_in), local=local)
+        else:
+            is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
         # if the given file contains a single representation create a one-element list
         Xs = [np.load(f_in, allow_pickle=True)] if is_single else np.load(f_in, allow_pickle=True)
     print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
