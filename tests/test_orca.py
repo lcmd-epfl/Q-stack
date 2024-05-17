@@ -3,6 +3,19 @@
 import os
 import numpy as np
 import qstack
+from pyscf.data import elements
+
+def _dipole_moment(mol, dm):
+    charges = mol.atom_charges()
+    coords  = mol.atom_coords()
+    mass = np.round(np.array(elements.MASSES)[charges], 3)
+    mass_center = np.einsum('i,ix->x', mass, coords) / sum(mass)
+    with mol.with_common_orig(mass_center):
+        ao_dip = mol.intor_symmetric('int1e_r', comp=3)
+    el_dip = np.einsum('xij,ji->x', ao_dip, dm.sum(axis=0))
+    nucl_dip = np.einsum('i,ix->x', charges, coords-mass_center)
+    mol_dip = nucl_dip - el_dip
+    return mol_dip
 
 
 def test_orca_density_reader():
@@ -38,6 +51,21 @@ def test_orca_gbw_reader():
     assert np.linalg.norm(occ504-occ) == 0.0  # fine since they contain only 0.0 and 1.0
 
 
+def test_orca_gbw_reader_def2tzvp():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol = qstack.compound.xyz_to_mol(path+'/data/orca/CEHZOF/CEHZOF.xyz', 'def2tzvp', charge=1, spin=1, ecp='def2tzvp')
+    c504, e504, occ504 = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
+
+    dm = np.zeros_like(c504)
+    for i, (ci, occi) in enumerate(zip(c504, occ504)):
+        dm[i,:,:] = (ci[:,occi>0] * occi[occi>0]) @ ci[:,occi>0].T
+    mol_dip = _dipole_moment(mol, dm)
+    mol_dip_true = np.array([-0.98591, -2.20093, 2.61135])
+    assert np.linalg.norm(mol_dip-mol_dip_true) < 1e-5
+
+
+
 if __name__ == '__main__':
     test_orca_density_reader()
     test_orca_gbw_reader()
+    test_orca_gbw_reader_def2tzvp()
