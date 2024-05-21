@@ -1,6 +1,7 @@
 import warnings
 import struct
 import numpy as np
+import pyscf
 from qstack.mathutils.matrix import from_tril
 from qstack.tools import reorder_ao
 
@@ -40,6 +41,16 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
         dm = np.array([from_tril(np.fromfile(f, offset=offset)) for f in path])
     else:
         dm = np.fromfile(path[0], offset=8, count=mol.nao*mol.nao*nspin).reshape((nspin,mol.nao,mol.nao))
+
+
+    is_def2 = 'def2' in pyscf.gto.basis._format_basis_name(mol.basis)
+    has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
+    if is_def2 and has_3d:
+        msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
+        warnings.warn(msg)
+        if reorder_dest is not None:
+            msg = f'\nDensity matrix reordering for ORCA to {reorder_dest} may be compromised.'
+            warnings.warn(msg)
 
     if reorder_dest is not None:
         dm = np.array([reorder_ao(mol, i, src='orca', dest=reorder_dest) for i in dm])
@@ -126,7 +137,6 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
             for i in range(len(c)):
                 c[:,i] = c[indices_full,i]
 
-
         for i in range(len(c)):
             c[:,i] = reorder_ao(mol, c[:,i], src='orca', dest=reorder_dest)
     [_reorder_coeff(c_full[i]) for i in range(c_full.shape[0])]
@@ -137,7 +147,7 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
 
     ls = {iat: lsiat for iat, lsiat in ls.items() if np.any(lsiat!=sorted(lsiat))}
     if ls and not sort_l:
-        msg = f'{fname}: basis set is not sorted wrt angular momenta for atoms # {list(ls.keys())} and is kept as is'
+        msg = f'\n{fname}: basis set is not sorted wrt angular momenta for atoms # {list(ls.keys())} and is kept as is'
         warnings.warn(msg)
 
     if reorder_dest is not None:
