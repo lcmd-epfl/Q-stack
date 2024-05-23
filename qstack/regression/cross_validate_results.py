@@ -25,7 +25,7 @@ def cv_results(X, y,
     if save_pred: predictions_n = []
     if progress:
         import tqdm
-        seeds = tqdm(seeds)
+        seeds = tqdm.tqdm(seeds)
     for seed,n in zip(seeds, range(n_rep)):
         error = hyperparameters(X, y, read_kernel=False, sigma=sigmaarr, eta=etaarr,
                                 akernel=akernel, test_size=test_size, splits=splits,
@@ -104,7 +104,7 @@ def main():
                        test_size=args.test_size, splits=args.splits, printlevel=args.printlevel,
                        adaptive=args.adaptive, train_size=args.train_size, n_rep=args.n_rep,
                        preffix=args.nameout, save=args.save_all, save_pred=args.save_pred,
-                       sparse=args.sparse)
+                       sparse=args.sparse, progress=True)
     print(final)
     np.savetxt(args.nameout+'.txt', final)
 
