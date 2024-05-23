@@ -98,7 +98,7 @@ def main():
         y = y[selected]
     maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
-                          debug=args.debug) ##TODO: add args.random_state and what about debug (obsolete?)
+                          debug=args.debug, random_state=args.random_state)
     for size_train, meanerr, stderr in maes_all:
         print("%d\t%e\t%e" % (size_train, meanerr, stderr))
     maes_all = np.array(maes_all)
