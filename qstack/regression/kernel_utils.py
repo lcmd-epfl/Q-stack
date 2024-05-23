@@ -267,6 +267,9 @@ def get_local_kernel(arg):
         return my_laplacian_kernel
     elif arg in ['myLfast', 'myG']:
         return my_kernel_c(arg)
+    elif arg=='cosine':
+        from sklearn.metrics.pairwise import cosine_similarity
+        return lambda x,y,s: cosine_similarity(x, y)
     else:
         raise Exception(f'{arg} kernel is not implemented') # TODO
 
