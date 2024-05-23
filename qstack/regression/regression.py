@@ -12,7 +12,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
                random_state=defaults.random_state,
-               sparse=None, debug=False):
+               sparse=None, debug=False, save_pred=False):
     """
 
     .. todo::
@@ -64,7 +64,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
             maes.append(np.mean(np.abs(y_test-y_kf_predict)))
             r2_scores.append(r2_score(y_test, y_kf_predict))
         maes_all.append((size_train, np.mean(maes), np.std(maes), np.mean(r2_scores)))
-    return maes_all
+    return maes_all if not save_pred else (maes_all, (y_test, y_kf_predict))
 
 
 def main():
@@ -98,7 +98,7 @@ def main():
         y = y[selected]
     maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
-                          debug=args.debug)
+                          debug=args.debug) ##TODO: add args.random_state and what about debug (obsolete?)
     for size_train, meanerr, stderr in maes_all:
         print("%d\t%e\t%e" % (size_train, meanerr, stderr))
     maes_all = np.array(maes_all)
