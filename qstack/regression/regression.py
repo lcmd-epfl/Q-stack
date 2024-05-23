@@ -86,7 +86,7 @@ def main():
     parser.add_argument('--sparse',        type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='random state for test / train splitting')
     parser.add_argument('--select',        type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
-    parser.add_argument('--name',          type=str,   dest='nameout',     required=True,    help='the name of the output file containting the LC data (.txt).')
+    parser.add_argument('--name',          type=str,   dest='nameout',     required=False, default=None, help='the name of the output file containting the LC data (.txt).')
     args = parser.parse_args()
     print(vars(args))
     if(args.ll): correct_num_threads()
@@ -102,7 +102,8 @@ def main():
     for size_train, meanerr, stderr in maes_all:
         print("%d\t%e\t%e" % (size_train, meanerr, stderr))
     maes_all = np.array(maes_all)
-    np.savetxt(args.nameout, maes_all, header="size_train, meanerr, stderr")
+    if args.nameout is not None:
+        np.savetxt(args.nameout, maes_all, header="size_train, meanerr, stderr")
 
 
 if __name__ == "__main__":
