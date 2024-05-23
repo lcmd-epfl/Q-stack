@@ -7,7 +7,6 @@ from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 from qstack.tools import correct_num_threads
 from qstack.mathutils.fps import do_fps
 
-
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
@@ -84,16 +83,24 @@ def main():
     parser.add_argument('--readkernel',    action='store_true', dest='readk', default=False,  help='if X is kernel')
     parser.add_argument('--sparse',        type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='random state for test / train splitting')
+    parser.add_argument('--select',        type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
+    parser.add_argument('--name',          type=str,   dest='nameout',     required=True,    help='the name of the output file containting the LC data (.txt).')
     args = parser.parse_args()
     print(vars(args))
     if(args.ll): correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
+    if args.f_select != None:
+        selected = np.loadtxt(args.f_select, dtype=int)
+        X = X[selected]
+        y = y[selected]
     maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
                           debug=args.debug)
     for size_train, meanerr, stderr in maes_all:
         print("%d\t%e\t%e" % (size_train, meanerr, stderr))
+    maes_all = np.array(maes_all)
+    np.savetxt(args.nameout, maes_all, header="size_train, meanerr, stderr")
 
 
 if __name__ == "__main__":
