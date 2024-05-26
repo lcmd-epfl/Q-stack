@@ -37,6 +37,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         sparse_idx = do_fps(X_train)[0][:sparse]
 
     if debug:
+        # Ensures reproducibility of the sample selection for each train_size over repetitions (n_rep)
         np.random.seed(666)
 
     maes_all = []
@@ -84,7 +85,7 @@ def main():
     parser.add_argument('--ll',            action='store_true', dest='ll',    default=False,  help='if correct for the numper of threads')
     parser.add_argument('--readkernel',    action='store_true', dest='readk', default=False,  help='if X is kernel')
     parser.add_argument('--sparse',        type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
-    parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='random state for test / train splitting')
+    parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='seed for the numpy.random.RandomState for test / train split generator')
     parser.add_argument('--select',        type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
     parser.add_argument('--name',          type=str,   dest='nameout',     required=False, default=None, help='the name of the output file containting the LC data (.txt).')
     args = parser.parse_args()
