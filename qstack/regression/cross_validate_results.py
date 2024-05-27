@@ -17,7 +17,8 @@ def cv_results(X, y,
             gdict=defaults.gdict, akernel=defaults.kernel, test_size=defaults.test_size,
             train_size=defaults.train_size, splits=defaults.splits, printlevel=0,
             adaptive=False, read_kernel=False, n_rep=defaults.n_rep, save=False,
-            preffix='unknown', save_pred=False, progress=False, sparse=None):
+            preffix='unknown', save_pred=False, progress=False, sparse=None,
+            debug=None):
 
     hyper_runs = []
     lc_runs = []
@@ -35,7 +36,7 @@ def cv_results(X, y,
         maes_all = regression(X, y, read_kernel=False, sigma=sigma[-1], eta=eta[-1],
                               akernel=akernel, test_size=test_size, train_size=train_size,
                               n_rep=1, debug=None, save_pred=save_pred, #what about debug ?
-                              sparse=sparse, random_state=seed)
+                              sparse=sparse, random_state=seed, debug=debug)
         if save_pred:
             res, pred = maes_all[1]
             maes_all = maes_all[0]
@@ -85,6 +86,7 @@ def main():
     parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--name',      type=str,   dest='nameout',       required=True, help='the name of the output file')
     parser.add_argument('--select',      type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
+    parser.add_argument('--debug',         action='store_true', dest='debug', default=False,  help='enable debug')
     args = parser.parse_args()
     if(args.readk): args.sigma = [np.nan]
     if(args.ll): correct_num_threads()
@@ -104,7 +106,7 @@ def main():
                        test_size=args.test_size, splits=args.splits, printlevel=args.printlevel,
                        adaptive=args.adaptive, train_size=args.train_size, n_rep=args.n_rep,
                        preffix=args.nameout, save=args.save_all, save_pred=args.save_pred,
-                       sparse=args.sparse, progress=True)
+                       sparse=args.sparse, progress=True, debug=args.debug)
     print(final)
     np.savetxt(args.nameout+'.txt', final)
 
