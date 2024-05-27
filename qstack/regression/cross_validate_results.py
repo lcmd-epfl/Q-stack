@@ -35,8 +35,8 @@ def cv_results(X, y,
         mae, stdev, eta, sigma = zip(*error)
         maes_all = regression(X, y, read_kernel=False, sigma=sigma[-1], eta=eta[-1],
                               akernel=akernel, test_size=test_size, train_size=train_size,
-                              n_rep=1, debug=None, save_pred=save_pred, #what about debug ?
-                              sparse=sparse, random_state=seed, debug=debug)
+                              n_rep=1, debug=debug, save_pred=save_pred, #what about debug ?
+                              sparse=sparse, random_state=seed)
         if save_pred:
             res, pred = maes_all[1]
             maes_all = maes_all[0]
