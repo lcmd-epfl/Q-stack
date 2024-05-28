@@ -3,7 +3,6 @@
 import numpy as np
 import scipy
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 from qstack.tools import correct_num_threads
 from qstack.mathutils.fps import do_fps
@@ -44,7 +43,6 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     for size in train_size:
         size_train = int(np.floor(len(y_train)*size)) if size <= 1.0 else size
         maes = []
-        r2_scores = []
         for rep in range(n_rep):
             train_idx = np.random.choice(all_indices_train, size = size_train, replace=False)
             y_kf_train = y_train[train_idx]
@@ -63,8 +61,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
             alpha = scipy.linalg.solve(K_solve, y_solve, assume_a='pos')
             y_kf_predict = np.dot(Ks, alpha)
             maes.append(np.mean(np.abs(y_test-y_kf_predict)))
-            r2_scores.append(r2_score(y_test, y_kf_predict))
-        maes_all.append((size_train, np.mean(maes), np.std(maes), np.mean(r2_scores)))
+        maes_all.append((size_train, np.mean(maes), np.std(maes)))
     return maes_all if not save_pred else (maes_all, (y_test, y_kf_predict))
 
 
