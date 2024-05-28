@@ -18,11 +18,11 @@ def cv_results(X, y,
             train_size=defaults.train_size, splits=defaults.splits, printlevel=0,
             adaptive=False, read_kernel=False, n_rep=defaults.n_rep, save=False,
             preffix='unknown', save_pred=False, progress=False, sparse=None,
-            debug=None):
+            debug=None, seed0=0):
 
     hyper_runs = []
     lc_runs = []
-    seeds = np.arange(n_rep)
+    seeds = seed0+np.arange(n_rep)
     if save_pred: predictions_n = []
     if progress:
         import tqdm
