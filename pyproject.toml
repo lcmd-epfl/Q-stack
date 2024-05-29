@@ -1,0 +1,51 @@
+[build-system]
+requires = [
+    "setuptools",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qstack"
+#version = "0.0.0"
+dynamic = ["version"]
+description = "Stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+authors = [
+    {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+
+requires-python = ">=3.9"
+dependencies = [
+    'numpy',
+    'scipy',
+    'pyscf',
+    #'scikit-learn',
+    #'equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core',
+]
+
+[project.optional-dependencies]
+regression = ["scikit-learn"]
+equio = ["equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core"]
+dev = ["tqdm"]  # those are deps for the tests
+
+[project.urls]
+Repository = "https://github.com/lcmd-epfl/Q-stack.git"
+"Bug Tracker" = "https://github.com/lcmd-epfl/Q-stack/issues"
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests","examples"]
+namespaces = false
+[tool.setuptools.package-data]
+"*" = ['regression/lib/manh.c', 'spahm/rho/basis_opt/*.bas']

@@ -33,29 +33,14 @@ def check_for_openmp():
     return not result
 
 
-def get_requirements():
-    fname = f"{os.path.dirname(os.path.realpath(__file__))}/requirements.txt"
-    with open(fname) as f:
-        install_requires = f.read().splitlines()
-    return install_requires
-
-
 if __name__ == '__main__':
     openmp_enabled = check_for_openmp()
 
     setup(
-        name='qstack',
         version=get_git_version_hash(),
-        description='Stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning',
-        url='https://github.com/lcmd-epfl/Q-stack',
-        python_requires='==3.9.*',
-        install_requires=get_requirements(),
-        packages=setuptools.find_packages(exclude=['tests', 'examples']),
         ext_modules=[Extension('qstack.regression.lib.manh',
                                ['qstack/regression/lib/manh.c'],
                                extra_compile_args=['-fopenmp', '-std=gnu11'] if openmp_enabled else ['-std=gnu11'],
                                extra_link_args=['-lgomp'] if openmp_enabled else [])
                     ],
-        include_package_data=True,
-        package_data={'': ['regression/lib/manh.c', 'spahm/rho/basis_opt/*.bas']},
     )
