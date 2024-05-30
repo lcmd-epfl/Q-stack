@@ -1,3 +1,4 @@
+import setuptools
 from setuptools import setup, find_packages, Extension
 import subprocess
 import os, tempfile, shutil
