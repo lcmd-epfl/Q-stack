@@ -81,20 +81,40 @@ def dori(mol, dm, grid_level=1):
     print(drho_dr.shape)
     print(d2rho_dr2.shape)
 
+
+
+    drho_dr_squared = np.einsum('xi,xi->i', drho_dr, drho_dr)
+    k2 = drho_dr_squared / rho**2
+
+
+    H = rho * d2rho_dr2 - np.einsum('xi,yi->xyi', drho_dr, drho_dr)
+    H_drho_dr = np.einsum('xyi,yi->xi', H, drho_dr)
+    dk2_dr = 2.0 / rho**3 * H_drho_dr
+
+    dk2_dr_square = np.einsum('xi,xi->i', dk2_dr, dk2_dr)
+
+    theta = dk2_dr_square / k2**3
+
+
+
+
+
+
     k = drho_dr / rho
-    print(k.shape)
     k2 = np.einsum('xi,xi->i', k, k)
-    print(k2.shape)
 
-    #dk2_dr = 2.0 / rho**3 *
+    H = rho * d2rho_dr2 - np.einsum('xi,yi->xyi', drho_dr, drho_dr)
+    H_drho_dr = np.einsum('xyi,yi->xi', H, drho_dr)
+    dk2_dr = 2.0 / rho**3 * H_drho_dr
 
+    dk2_dr_square = np.einsum('xi,xi->i', dk2_dr, dk2_dr)
 
+    theta0 = dk2_dr_square / k2**3
 
-
-
-
-
-
+    print()
+    print()
+    print(np.linalg.norm(theta-theta0))
+    exit(0)
 
 
     #print(dk2_dr.shape)
