@@ -49,74 +49,73 @@ def eval_rho(mol, ao, dm):
     return rho, drho_dr, d2rho_dr2
 
 
-def compute_dori():
-    """ Inner function to compute DORI
-    J. Chem. Theory Comput. 2014, 10, 9, 3745–3756
-    """
-    return None
-
-
-def dori(mol, dm, grid_level=1):
-    """Computed DORI
+def compute_dori(mol, dm, coords):
+    r""" Inner function to compute DORI.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        dm ...
+        dm (2d array): density matrix
         grid_level (int): Controls the number of radial and angular points.
 
+        mol : an instance of :class:`Mole`
+        dm : 2D array of (nao,nao)
+            Density matrix (assumed Hermitian)
+        coords : 2D array of (3,ngrids)
+            Grid coordinates
+
     Returns:
-        ...
+        1D array of (ngrids)
+            Computed DORI
+
+    Reference:
+        J. Chem. Theory Comput. 2014, 10, 9, 3745–3756 (10.1021/ct500490b)
+
+    Definitions:
+        $$ \mathrm{DORI}(\vec r) \equiv \gamma(\vec r) = \frac{\theta(\vec r)}{1+\theta(\vec r)} $$
+        $$ \theta = \frac{|\nabla (k^2)|^2}{|\vec k|^6} $$
+        $$ \vec k(\vec r) = \frac{\nabla \rho(\vec r)}{\rho(\vec r)} $$
+
+    Maths:
+        $$
+        \vec\nabla \left(\left|\frac{\vec\nabla \rho}{\rho}\right|^2\right)
+        = \frac{2\left(\rho\cdot\vec\nabla\vec\nabla^\dagger\rho
+        - \vec\nabla\rho \vec\nabla^\dagger\rho)\right)\vec\nabla\rho}{\rho^3}
+        \equiv \vec\nabla \left(|\vec k|^2\right)
+        = 2\left(\frac{\vec\nabla\vec\nabla^\dagger\rho}{\rho}-\vec k \vec k^\dagger\right)\vec k
+        $$
     """
 
-
-    grid = make_grid_for_rho(mol, grid_level=grid_level)
-
-    print(grid)
-
-    weights = grid.weights
-    ao_value = eval_ao(mol, grid.coords, deriv=2)
-
+    ao_value = eval_ao(mol, coords, deriv=2)
     rho, drho_dr, d2rho_dr2 = eval_rho(mol, ao_value, dm)
-    print(rho.shape)
-    print(drho_dr.shape)
-    print(d2rho_dr2.shape)
-
-
-
-    drho_dr_squared = np.einsum('xi,xi->i', drho_dr, drho_dr)
-    k2 = drho_dr_squared / rho**2
-
-
-    H = rho * d2rho_dr2 - np.einsum('xi,yi->xyi', drho_dr, drho_dr)
-    H_drho_dr = np.einsum('xyi,yi->xi', H, drho_dr)
-    dk2_dr = 2.0 / rho**3 * H_drho_dr
-
-    dk2_dr_square = np.einsum('xi,xi->i', dk2_dr, dk2_dr)
-
-    theta = dk2_dr_square / k2**3
-
-
-
-
-
 
     k = drho_dr / rho
     k2 = np.einsum('xi,xi->i', k, k)
-
-    H = rho * d2rho_dr2 - np.einsum('xi,yi->xyi', drho_dr, drho_dr)
-    H_drho_dr = np.einsum('xyi,yi->xi', H, drho_dr)
-    dk2_dr = 2.0 / rho**3 * H_drho_dr
+    H = d2rho_dr2 / rho - np.einsum('xi,yi->xyi', k, k)
+    dk2_dr = 2.0 * np.einsum('xyi,yi->xi', H, k)
 
     dk2_dr_square = np.einsum('xi,xi->i', dk2_dr, dk2_dr)
+    theta = dk2_dr_square / k2**3
+    gamma = theta / (1.0 + theta)
+    # gamma = dk2_dr_square / (dk2_dr_square + k2**3)
 
-    theta0 = dk2_dr_square / k2**3
-
-    print()
-    print()
-    print(np.linalg.norm(theta-theta0))
-    exit(0)
+    return gamma
 
 
-    #print(dk2_dr.shape)
+def dori(mol, dm, grid_level=1):
+    """Compute DORI
 
-    return None
+    Args:
+        mol : an instance of :class:`Mole`
+        dm : 2D array of (nao,nao)
+            Density matrix (assumed Hermitian)
+
+    Returns:
+        1D array of (ngrids)
+            Computed DORI
+
+    """
+
+    grid = make_grid_for_rho(mol, grid_level=grid_level)
+    dori = compute_dori(mol, dm, grid.coords)
+
+    return dori
