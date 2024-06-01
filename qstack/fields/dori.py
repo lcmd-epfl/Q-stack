@@ -1,5 +1,6 @@
 import numpy as np
 from pyscf.dft.numint import eval_ao, _dot_ao_dm, _contract_rho
+from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
 from qstack.fields.dm import make_grid_for_rho
 
 
@@ -60,7 +61,7 @@ def compute_dori(mol, dm, coords):
         mol : an instance of :class:`Mole`
         dm : 2D array of (nao,nao)
             Density matrix (assumed Hermitian)
-        coords : 2D array of (3,ngrids)
+        coords : 2D array of (ngrids,3)
             Grid coordinates
 
     Returns:
@@ -101,21 +102,52 @@ def compute_dori(mol, dm, coords):
     return gamma
 
 
-def dori(mol, dm, grid_level=1):
+def dori(mol, dm, grid_type='dft',
+                  grid_level=1,
+                  nx=80, ny=80, nz=80, resolution=RESOLUTION, margin=BOX_MARGIN,
+                  cubename=None):
     """Compute DORI
 
     Args:
-        mol : an instance of :class:`Mole`
+        mol : an instance of :class:`Mole`.
         dm : 2D array of (nao,nao)
-            Density matrix (assumed Hermitian)
+            Density matrix (assumed Hermitian).
+    Kwargs:
+        grid_type : str
+            Type of grid, 'dft' for a DFT grid and 'cube' for a cubic grid.
+        grid_level : int
+            For a DFT grid, the grid level.
+        nx, ny, nz : int
+            For a cubic grid,
+            the number of grid point divisions in x, y, z directions.
+            Conflicts to keyword resolution.
+        resolution: float
+            For a cubic grid,
+            the resolution of the mesh grid in the cube box.
+            Conflicts to keywords nx, ny, nz.
+        cubename : str
+            For a cubic grid,
+            path to save a cube file to.
 
     Returns:
-        1D array of (ngrids)
-            Computed DORI
+        Tuple of:
+            1D array of (ngrids) --- computed DORI
+            2D array of (ngrids,3) --- grid coordinates
+            1D array of (ngrids) --- grid weights
 
     """
 
-    grid = make_grid_for_rho(mol, grid_level=grid_level)
-    dori = compute_dori(mol, dm, grid.coords)
+    if grid_type=='dft':
+        grid = make_grid_for_rho(mol, grid_level=grid_level)
+        weights = grid.weights
+        coords  = grid.coords
+    elif grid_type=='cube':
+        grid = Cube(mol, nx, ny, nz, resolution, margin)
+        weights = np.ones(grid.get_ngrids())
+        coords  = grid.get_coords()
+    dori = compute_dori(mol, dm, coords)
 
-    return dori
+    if grid_type=='cube' and cubename:
+        grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename, comment='DORI')
+
+    return dori, coords, weights

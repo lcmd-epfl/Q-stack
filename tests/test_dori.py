@@ -27,8 +27,10 @@ def test_dori():
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
     c  = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
 
-    x = dori(mol, dm)
+    x = dori(mol, dm, grid_type='cube')
     print(x)
+    y = dori(mol, dm, grid_type='dft')
+    print(y)
 
 
 
