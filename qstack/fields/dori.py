@@ -50,7 +50,7 @@ def eval_rho(mol, ao, dm):
     return rho, drho_dr, d2rho_dr2
 
 
-def compute_dori(mol, dm, coords):
+def compute_dori(mol, dm, coords, eps=1e-4):
     r""" Inner function to compute DORI.
 
     Args:
@@ -62,7 +62,9 @@ def compute_dori(mol, dm, coords):
         dm : 2D array of (nao,nao)
             Density matrix (assumed Hermitian)
         coords : 2D array of (ngrids,3)
-            Grid coordinates
+            Grid coordinates (in Bohr)
+        eps : float
+            if |rho| < eps then dori = 0
 
     Returns:
         1D array of (ngrids)
@@ -89,9 +91,10 @@ def compute_dori(mol, dm, coords):
     ao_value = eval_ao(mol, coords, deriv=2)
     rho, drho_dr, d2rho_dr2 = eval_rho(mol, ao_value, dm)
 
-    k = drho_dr / rho
+    idx = np.where(abs(rho)>=eps)[0]
+    k = drho_dr[...,idx] / rho[idx]
     k2 = np.einsum('xi,xi->i', k, k)
-    H = d2rho_dr2 / rho - np.einsum('xi,yi->xyi', k, k)
+    H = d2rho_dr2[...,idx] / rho[idx] - np.einsum('xi,yi->xyi', k, k)
     dk2_dr = 2.0 * np.einsum('xyi,yi->xi', H, k)
 
     dk2_dr_square = np.einsum('xi,xi->i', dk2_dr, dk2_dr)
@@ -99,7 +102,9 @@ def compute_dori(mol, dm, coords):
     gamma = theta / (1.0 + theta)
     # gamma = dk2_dr_square / (dk2_dr_square + k2**3)
 
-    return gamma
+    gamma_full = np.zeros(coords.shape[0])
+    gamma_full[idx] = gamma
+    return gamma_full
 
 
 def dori(mol, dm, grid_type='dft',
