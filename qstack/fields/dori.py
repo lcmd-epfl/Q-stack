@@ -67,8 +67,9 @@ def compute_dori(mol, dm, coords, eps=1e-4):
             if |rho| < eps then dori = 0
 
     Returns:
-        1D array of (ngrids)
-            Computed DORI
+        Tuple of
+            1D array of (ngrids): DORI
+            1D array of (ngrids): density
 
     Reference:
         J. Chem. Theory Comput. 2014, 10, 9, 3745–3756 (10.1021/ct500490b)
@@ -104,7 +105,9 @@ def compute_dori(mol, dm, coords, eps=1e-4):
 
     gamma_full = np.zeros(coords.shape[0])
     gamma_full[idx] = gamma
-    return gamma_full
+
+    s2rho = np.copysign(rho, [sorted(np.linalg.eigh(h)[0])[1] for h in d2rho_dr2.T])
+    return gamma_full, rho, s2rho
 
 
 def dori(mol, dm, grid_type='dft',
@@ -150,9 +153,11 @@ def dori(mol, dm, grid_type='dft',
         grid = Cube(mol, nx, ny, nz, resolution, margin)
         weights = np.ones(grid.get_ngrids())
         coords  = grid.get_coords()
-    dori = compute_dori(mol, dm, coords)
+    dori, rho, s2rho = compute_dori(mol, dm, coords)
 
     if grid_type=='cube' and cubename:
-        grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename, comment='DORI')
+        grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename+'.dori.cube', comment='DORI')
+        grid.write(rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.rho.cube', comment='electron density rho')
+        grid.write(s2rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.sgnL2rho.cube', comment='sgn(lambda_2)*rho')
 
-    return dori, coords, weights
+    return dori, rho, s2rho, coords, weights
