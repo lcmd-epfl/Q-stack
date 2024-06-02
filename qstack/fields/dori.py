@@ -40,9 +40,9 @@ def eval_rho(mol, ao, dm):
 
     for i in range(3):
         drho_dr[i] = _contract_rho(dAO_dr[i], DM_AO)
-        DM_dAO_dr = _dot_ao_dm(mol, dAO_dr[i], dm, None, shls_slice, ao_loc)
+        DM_dAO_dr_i = _dot_ao_dm(mol, dAO_dr[i], dm, None, shls_slice, ao_loc)
         for j in range(i, 3):
-            d2rho_dr2[i,j] = d2rho_dr2[j,i] = _contract_rho(dAO_dr[i], DM_dAO_dr)
+            d2rho_dr2[i,j] = d2rho_dr2[j,i] = _contract_rho(dAO_dr[j], DM_dAO_dr_i)
     d2rho_dr2 += np.einsum('...ip,ip->...i', d2AO_dr2, DM_AO)
     d2rho_dr2 *= 2.0
     drho_dr   *= 2.0
