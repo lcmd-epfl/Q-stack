@@ -4,6 +4,20 @@ import os
 import numpy as np
 import qstack.regression.hyperparameters as hyperparameters
 import qstack.regression.regression as regression
+import qstack.spahm.compute_spahm as espahm
+import qstack.compound as compound
+
+def test_generate_reps():
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data/mols/')
+    xyzlist = [os.path.join(path,s) for s in sorted(os.listdir(path)) if ".xyz" in s]
+    mols = [compound.xyz_to_mol(f, basis='minao', charge=0, spin=0) for f in xyzlist]
+    xmols = [espahm.get_spahm_representation(mol, 'lb')[0] for mol in mols]
+    maxlen = max([len(x) for x in xmols])
+    X = np.array([np.pad(x, pad_width=(0,maxlen-len(x)), constant_values=0) for x in xmols])
+    xfile = os.path.join(path, 'X_lb.npy')
+    Xtrue = np.load(xfile)
+    #print(xyzlist)
+    assert(np.allclose(X,Xtrue))
 
 def test_hyperparameters():
     path = os.path.dirname(os.path.realpath(__file__))
@@ -35,6 +49,7 @@ def test_regression():
     assert(np.allclose(lc, true_lc))
 
 def main():
+    test_generate_reps()
     test_hyperparameters()
     test_regression()
 
