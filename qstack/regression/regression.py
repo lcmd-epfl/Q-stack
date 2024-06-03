@@ -83,17 +83,13 @@ def main():
     parser.add_argument('--readkernel',    action='store_true', dest='readk', default=False,  help='if X is kernel')
     parser.add_argument('--sparse',        type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='seed for the numpy.random.RandomState for test / train split generator')
-    parser.add_argument('--select',        type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
     parser.add_argument('--name',          type=str,   dest='nameout',     required=False, default=None, help='the name of the output file containting the LC data (.txt).')
     args = parser.parse_args()
     print(vars(args))
     if(args.ll): correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    if args.f_select != None:
-        selected = np.loadtxt(args.f_select, dtype=int)
-        X = X[selected]
-        y = y[selected]
+    
     maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
                           debug=args.debug, random_state=args.random_state)

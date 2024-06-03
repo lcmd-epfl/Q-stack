@@ -128,7 +128,6 @@ def main():
     parser.add_argument('--readkernel', action='store_true', dest='readk', default=False,  help='if X is kernel')
     parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--name',      type=str,   dest='nameout',       required=False, default=None,  help='the name of the output file')
-    parser.add_argument('--select',      type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
     args = parser.parse_args()
     if(args.readk): args.sigma = [np.nan]
     print(vars(args))
@@ -136,10 +135,6 @@ def main():
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    if args.f_select != None:
-        selected = np.loadtxt(args.f_select, dtype=int)
-        X = X[selected]
-        y = y[selected]
 
     errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel, sparse=args.sparse,
                              test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)

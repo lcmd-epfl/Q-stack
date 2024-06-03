@@ -85,7 +85,6 @@ def main():
     parser.add_argument('--readkernel', action='store_true', dest='readk', default=False,  help='if X is kernel')
     parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--name',      type=str,   dest='nameout',       required=True, help='the name of the output file')
-    parser.add_argument('--select',      type=str,   dest='f_select',       required=False, help='a txt file containing the indices of the selected representations')
     parser.add_argument('--debug',         action='store_true', dest='debug', default=False,  help='enable debug')
     args = parser.parse_args()
     if(args.readk): args.sigma = [np.nan]
@@ -96,11 +95,6 @@ def main():
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    if args.f_select != None:
-        selected = np.loadtxt(args.f_select, dtype=int)
-        X = X[selected]
-        y = y[selected]
-        args.nameout = args.nameout+'_'+args.f_select.split('.')[-2]
     print(vars(args))
     final = cv_results(X, y, sigmaarr=args.sigma, etaarr=args.eta, akernel=args.akernel,
                        test_size=args.test_size, splits=args.splits, printlevel=args.printlevel,
