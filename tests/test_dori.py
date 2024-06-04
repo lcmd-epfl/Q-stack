@@ -26,7 +26,7 @@ def test_dori():
     path = os.path.dirname(os.path.realpath(__file__))
     mol  = compound.xyz_to_mol(path+'/data/dori/H6CN____monA_0012.xyz', 'sto3g', charge=1, spin=0)
     dm = get_converged_dm(mol, 'HF')
-    dori1, rho1, s2rho1, _, _ = dori(mol, dm, grid_type='cube', resolution=0.5)
+    dori1, rho1, s2rho1, _, _ = dori(mol, dm=dm, grid_type='cube', resolution=0.5)
     dori0, rho0, s2rho0 = np.loadtxt(path+'/data/dori/H6CN____monA_0012.dori.dat').T
     dori0 = 4.0 * dori0/(1-dori0) / (4.0 * dori0/(1-dori0) + 1) # TODO the C code gives theta 4 times smaller than this code
     assert np.all(abs(s2rho0-s2rho1)<1e-4)
