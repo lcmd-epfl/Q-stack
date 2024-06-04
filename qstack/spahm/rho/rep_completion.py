@@ -6,7 +6,7 @@ import sys,os
 from os.path import join, isfile, isdir
 import numpy as np
 import pyscf
-from  qstack import compound, spahm
+from  qstack import compound
 import qstack.tools as tls
 from . import utils, dmb_rep_atom as dmba, dmb_rep_bond as dmbb
 

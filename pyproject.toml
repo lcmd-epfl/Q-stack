@@ -13,8 +13,17 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 authors = [
-    {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},
+    {name = "Alberto Fabrisio"},  # orcid = "0000-0002-4440-3149"
+    {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},  # orcid = "0000-0003-2250-9898"
+    {name = "Yannick Calvino", email = "yannick.calvinoalonso@epfl.ch"},  # orcid = "0009-0008-9573-7772"
+    {name = "Liam Marsh", email = "liam.marsh@epfl.ch"},  # orcid = "0000-0002-7276-5673"
 ]
+maintainers = [
+    {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},  # orcid = "0000-0003-2250-9898"
+    {name = "Yannick Calvino", email = "yannick.calvinoalonso@epfl.ch"},  # orcid = "0009-0008-9573-7772"
+    {name = "Liam Marsh", email = "liam.marsh@epfl.ch"},  # orcid = "0000-0002-7276-5673"
+]
+
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: C",
@@ -29,14 +38,19 @@ dependencies = [
     'numpy',
     'scipy',
     'pyscf',
+    'tqdm',
     #'scikit-learn',
     #'equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core',
 ]
 
 [project.optional-dependencies]
+qml = ["ase"]
 regression = ["scikit-learn"]
+wigner = ["sympy"]
 equio = ["equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core"]
-dev = ["tqdm"]  # those are deps for the tests
+all = ["qstack[qml,regression,wigner,equio]"]
+
+#dev = ["tqdm"]  # those are deps for the tests
 
 [project.urls]
 Repository = "https://github.com/lcmd-epfl/Q-stack.git"
