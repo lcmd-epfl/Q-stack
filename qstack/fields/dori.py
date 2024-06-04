@@ -4,15 +4,19 @@ from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
 from qstack.fields.dm import make_grid_for_rho
 
 
-def eval_rho(mol, ao, dm):
+def eval_rho(mol, AO, dAO_dr, d2AO_dr2, dm):
     r'''Calculate the electron density and the density derivatives.
 
     Taken from pyscf/dft/numint.py and modified to return second derivative matrices.
 
     Args:
         mol : an instance of :class:`Mole`
-        ao : 3D array of shape (10,ngrids,nao).
-            ao[0] is AO value and ao[1:3] are the AO gradients, ao[4:10] are AO second derivatives
+        AO : 2D array of shape (ngrids,nao).
+            Atomic oribitals values on the grid
+        dAO_dr : 3D array of (3,ngrids,nao)
+            Atomic oribitals derivatives values
+        d2AO_dr2 : 4D array of (3,3,ngrids,nao)
+            Atomic oribitals second derivatives values
         dm : 2D array of (nao,nao)
             Density matrix (assumed Hermitian)
 
@@ -23,41 +27,38 @@ def eval_rho(mol, ao, dm):
             3D array of (3,3,ngrids) to store 2nd derivatives
     '''
 
-    ngrids, nao = ao.shape[-2:]
     shls_slice = (0, mol.nbas)
     ao_loc = mol.ao_loc_nr()
 
-    AO = ao[0]
-    dAO_dr = ao[1:4]
-    d2AO_dr2 = np.zeros((3, 3, ngrids, nao))
-    for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
-        d2AO_dr2[i,j] = d2AO_dr2[j,i] = ao[4+k]
-
     DM_AO = _dot_ao_dm(mol, AO, dm, None, shls_slice, ao_loc)
     rho = _contract_rho(AO, DM_AO)
-    drho_dr = np.zeros((3, ngrids))
-    d2rho_dr2 = np.zeros((3, 3, ngrids))
+    drho_dr = np.zeros((3, len(rho)))
+    d2rho_dr2 = np.zeros((3, 3, len(rho)))
 
     for i in range(3):
         drho_dr[i] = _contract_rho(dAO_dr[i], DM_AO)
         DM_dAO_dr_i = _dot_ao_dm(mol, dAO_dr[i], dm, None, shls_slice, ao_loc)
         for j in range(i, 3):
             d2rho_dr2[i,j] = d2rho_dr2[j,i] = _contract_rho(dAO_dr[j], DM_dAO_dr_i)
-    d2rho_dr2 += np.einsum('...ip,ip->...i', d2AO_dr2, DM_AO)
+    d2rho_dr2 += np.einsum('xyip,ip->xyi', d2AO_dr2, DM_AO)
     d2rho_dr2 *= 2.0
     drho_dr   *= 2.0
 
     return rho, drho_dr, d2rho_dr2
 
 
-def eval_rho_df(mol, ao, c):
+def eval_rho_df(mol, AO, dAO_dr, d2AO_dr2, c):
     r'''Calculate the electron density and the density derivatives
         for a fitted density.
 
     Args:
         mol : an instance of :class:`Mole`
-        ao : 3D array of shape (10,ngrids,nao).
-            ao[0] is AO value and ao[1:3] are the AO gradients, ao[4:10] are AO second derivatives
+        AO : 2D array of shape (ngrids,nao).
+            Atomic oribitals values on the grid
+        dAO_dr : 3D array of (3,ngrids,nao)
+            Atomic oribitals derivatives values
+        d2AO_dr2 : 4D array of (3,3,ngrids,nao)
+            Atomic oribitals second derivatives values
         c : 1D array of (nao)
             density fitting coefficients
 
@@ -67,6 +68,11 @@ def eval_rho_df(mol, ao, c):
             2D array of (3,ngrids) to store density derivatives;
             3D array of (3,3,ngrids) to store 2nd derivatives
     '''
+
+    rho       = np.einsum('ip,p->i', AO, c)
+    drho_dr   = np.einsum('xip,p->xi', dAO_dr, c)
+    d2rho_dr2 = np.einsum('xyip,p->xyi', d2AO_dr2, c)
+    return rho, drho_dr, d2rho_dr2
 
 
 def compute_rho(mol, coords, dm=None, c=None):
@@ -91,10 +97,17 @@ def compute_rho(mol, coords, dm=None, c=None):
     if (c is None)==(dm is None):
         raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
     ao_value = eval_ao(mol, coords, deriv=2)
+
+    AO = ao_value[0]
+    dAO_dr = ao_value[1:4]
+    d2AO_dr2 = np.zeros((3, 3, *ao_value.shape[-2:]))
+    for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
+        d2AO_dr2[i,j] = d2AO_dr2[j,i] = ao_value[4+k]
+
     if dm is not None:
-        return eval_rho(mol, ao_value, dm)
+        return eval_rho(mol, AO, dAO_dr, d2AO_dr2, dm)
     if c is not None:
-        return eval_rho_df(mol, ao_value, c)
+        return eval_rho_df(mol, AO, dAO_dr, d2AO_dr2, c)
 
 
 def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
