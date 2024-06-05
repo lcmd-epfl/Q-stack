@@ -2,21 +2,20 @@ import numpy as np
 from pyscf.dft.numint import eval_ao, _dot_ao_dm, _contract_rho
 from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
 from qstack.fields.dm import make_grid_for_rho
+from tqdm import tqdm
 
 
-def eval_rho(mol, AO, dAO_dr, d2AO_dr2, dm):
+def eval_rho(mol, ao, dm):
     r'''Calculate the electron density and the density derivatives.
 
     Taken from pyscf/dft/numint.py and modified to return second derivative matrices.
 
     Args:
         mol : an instance of :class:`Mole`
-        AO : 2D array of shape (ngrids,nao).
-            Atomic oribitals values on the grid
-        dAO_dr : 3D array of (3,ngrids,nao)
-            Atomic oribitals derivatives values
-        d2AO_dr2 : 4D array of (3,3,ngrids,nao)
-            Atomic oribitals second derivatives values
+        ao : 3D array of shape (10,ngrids,nao):
+            ao[0] : atomic oribitals values on the grid
+            ao[1:4] : atomic oribitals derivatives values
+            ao[4:] : atomic oribitals second derivatives values
         dm : 2D array of (nao,nao)
             Density matrix (assumed Hermitian)
 
@@ -27,38 +26,35 @@ def eval_rho(mol, AO, dAO_dr, d2AO_dr2, dm):
             3D array of (3,3,ngrids) to store 2nd derivatives
     '''
 
-    shls_slice = (0, mol.nbas)
-    ao_loc = mol.ao_loc_nr()
-
-    DM_AO = _dot_ao_dm(mol, AO, dm, None, shls_slice, ao_loc)
-    rho = _contract_rho(AO, DM_AO)
+    AO, dAO_dr, d2AO_dr2 = np.split(ao, [1,4])
+    DM_AO = _dot_ao_dm(mol, AO[0], dm, None, None, None)
+    rho = _contract_rho(AO[0], DM_AO)
     drho_dr = np.zeros((3, len(rho)))
     d2rho_dr2 = np.zeros((3, 3, len(rho)))
 
+    triu_idx = {(i,j): k for k, (i,j) in enumerate(zip(*np.triu_indices(3)))}
     for i in range(3):
         drho_dr[i] = _contract_rho(dAO_dr[i], DM_AO)
-        DM_dAO_dr_i = _dot_ao_dm(mol, dAO_dr[i], dm, None, shls_slice, ao_loc)
+        DM_dAO_dr_i = _dot_ao_dm(mol, dAO_dr[i], dm, None, None, None)
         for j in range(i, 3):
-            d2rho_dr2[i,j] = d2rho_dr2[j,i] = _contract_rho(dAO_dr[j], DM_dAO_dr_i)
-    d2rho_dr2 += np.einsum('xyip,ip->xyi', d2AO_dr2, DM_AO)
-    d2rho_dr2 *= 2.0
+            d2rho_dr2[i,j] = _contract_rho(dAO_dr[j], DM_dAO_dr_i)
+            d2rho_dr2[i,j] += np.einsum('ip,ip->i',  d2AO_dr2[triu_idx[(i,j)]], DM_AO)
+            d2rho_dr2[j,i] = d2rho_dr2[i,j]
     drho_dr   *= 2.0
-
+    d2rho_dr2 *= 2.0
     return rho, drho_dr, d2rho_dr2
 
 
-def eval_rho_df(mol, AO, dAO_dr, d2AO_dr2, c):
+def eval_rho_df(mol, ao, c):
     r'''Calculate the electron density and the density derivatives
         for a fitted density.
 
     Args:
         mol : an instance of :class:`Mole`
-        AO : 2D array of shape (ngrids,nao).
-            Atomic oribitals values on the grid
-        dAO_dr : 3D array of (3,ngrids,nao)
-            Atomic oribitals derivatives values
-        d2AO_dr2 : 4D array of (3,3,ngrids,nao)
-            Atomic oribitals second derivatives values
+        ao : 3D array of shape (10,ngrids,nao):
+            ao[0] : atomic oribitals values on the grid
+            ao[1:4] : atomic oribitals derivatives values
+            ao[4:] : atomic oribitals second derivatives values
         c : 1D array of (nao)
             density fitting coefficients
 
@@ -69,9 +65,12 @@ def eval_rho_df(mol, AO, dAO_dr, d2AO_dr2, c):
             3D array of (3,3,ngrids) to store 2nd derivatives
     '''
 
-    rho       = np.einsum('ip,p->i', AO, c)
-    drho_dr   = np.einsum('xip,p->xi', dAO_dr, c)
-    d2rho_dr2 = np.einsum('xyip,p->xyi', d2AO_dr2, c)
+    rho_all   = np.einsum('xip,p->xi', ao, c)
+    rho       = rho_all[0]
+    drho_dr   = rho_all[1:4]
+    d2rho_dr2 = np.zeros((3, 3, len(rho)))
+    for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
+        d2rho_dr2[i,j] = d2rho_dr2[j,i] = rho_all[4+k]
     return rho, drho_dr, d2rho_dr2
 
 
@@ -96,18 +95,18 @@ def compute_rho(mol, coords, dm=None, c=None):
     '''
     if (c is None)==(dm is None):
         raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
-    ao_value = eval_ao(mol, coords, deriv=2)
-
-    AO = ao_value[0]
-    dAO_dr = ao_value[1:4]
-    d2AO_dr2 = np.zeros((3, 3, *ao_value.shape[-2:]))
-    for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
-        d2AO_dr2[i,j] = d2AO_dr2[j,i] = ao_value[4+k]
-
+    ao = eval_ao(mol, coords, deriv=2)
     if dm is not None:
-        return eval_rho(mol, AO, dAO_dr, d2AO_dr2, dm)
+        return eval_rho(mol, ao, dm)
     if c is not None:
-        return eval_rho_df(mol, AO, dAO_dr, d2AO_dr2, c)
+        return eval_rho_df(mol, ao, c)
+
+
+def compute_s2rho(rho, d2rho_dr2, eps=1e-4): #TODO docs
+    s2rho = np.zeros_like(rho)
+    idx = np.where(rho>=eps)
+    s2rho[idx] = np.copysign(rho[idx], [sorted(np.linalg.eigh(h)[0])[1] for h in d2rho_dr2.T[idx]])
+    return s2rho
 
 
 def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
@@ -161,7 +160,7 @@ def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
     return gamma_full
 
 
-def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4):
+def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, mem=1):
     """Wrapper to compute DORI on a given grid
 
     Args:
@@ -175,10 +174,26 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4):
             Density fitting coefficients (confilicts with dm)
         eps : float
             density threshold for DORI
+        mem : max. memory (GiB) that can be allocated to compute
+              the AO and their derivatives
     """
-    rho, drho_dr, d2rho_dr2 = compute_rho(mol, coords, dm=dm, c=c)
+
+    max_size = mem * 2**30  # mem * 1 GiB
+    point_size = 10 * mol.nao * np.float64().itemsize  # memory needed for 1 grid point
+    dgrid = max_size // point_size
+
+    rho = np.zeros(len(coords))
+    drho_dr = np.zeros((3, len(coords)))
+    d2rho_dr2 = np.zeros((3, 3, len(coords)))
+    for i in tqdm(range(0, len(coords), dgrid)):
+        s = np.s_[i:i+dgrid]
+        rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c)
+        rho[s] = rho_i
+        drho_dr[:,s] = drho_dr_i
+        d2rho_dr2[:,:,s] = d2rho_dr2_i
+
     dori = compute_dori(rho, drho_dr, d2rho_dr2, eps=eps)
-    s2rho = np.copysign(rho, [sorted(np.linalg.eigh(h)[0])[1] for h in d2rho_dr2.T])
+    s2rho = compute_s2rho(rho, d2rho_dr2, eps=eps)
     return dori, rho, s2rho
 
 
