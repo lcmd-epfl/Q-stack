@@ -35,7 +35,7 @@ def test_derivatives():
     assert 1e-7  > np.linalg.norm(sum(d2rho_dr2[i,i] for i in range(3))-rho0[4])
 
 
-def test_dori_num():
+def test_dori_deriv():
     path = os.path.dirname(os.path.realpath(__file__))
     mol  = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'cc-pvdz', charge=0, spin=0)
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
@@ -68,6 +68,15 @@ def test_dori():
     assert np.all(abs(dori0-dori1)<5e-5)
 
 
+def test_dori_num():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol  = compound.xyz_to_mol(path+'/data/dori/H6CN____monA_0012.xyz', 'sto3g', charge=1, spin=0)
+    dm = np.load(path+'/data/dori/H6CN____monA_0012.hf.sto3g.dm.npy')
+    dori1, _, _, _, _ = dori(mol, dm=dm, grid_type='cube', resolution=0.5, alg='a', mem=1/1024)
+    dori2, _, _, _, _ = dori(mol, dm=dm, grid_type='cube', resolution=0.5, alg='n', mem=1/512)
+    assert np.all(abs(dori2-dori1)<1e-11)
+
+
 def test_dori_df():
     path = os.path.dirname(os.path.realpath(__file__))
     mol  = compound.xyz_to_mol(path+'/data/dori/H6CN____monA_0012.xyz', 'cc-pvdz jkfit', charge=1, spin=0)
@@ -81,6 +90,7 @@ def test_dori_df():
 
 if __name__ == '__main__':
     test_derivatives()
-    test_dori_num()
+    test_dori_deriv()
     test_dori()
     test_dori_df()
+    test_dori_num()

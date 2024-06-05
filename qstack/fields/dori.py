@@ -1,3 +1,4 @@
+from itertools import accumulate
 import numpy as np
 from pyscf.dft.numint import eval_ao, _dot_ao_dm, _contract_rho
 from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
@@ -5,7 +6,7 @@ from qstack.fields.dm import make_grid_for_rho
 from tqdm import tqdm
 
 
-def eval_rho(mol, ao, dm):
+def eval_rho(mol, ao, dm, deriv=2):
     r'''Calculate the electron density and the density derivatives.
 
     Taken from pyscf/dft/numint.py and modified to return second derivative matrices.
@@ -18,6 +19,9 @@ def eval_rho(mol, ao, dm):
             ao[4:] : atomic oribitals second derivatives values
         dm : 2D array of (nao,nao)
             Density matrix (assumed Hermitian)
+    Kwargs:
+        deriv : int
+            Compute with deriv-order derivatives
 
     Returns:
         A tuple of:
@@ -29,23 +33,28 @@ def eval_rho(mol, ao, dm):
     AO, dAO_dr, d2AO_dr2 = np.split(ao, [1,4])
     DM_AO = _dot_ao_dm(mol, AO[0], dm, None, None, None)
     rho = _contract_rho(AO[0], DM_AO)
-    drho_dr = np.zeros((3, len(rho)))
-    d2rho_dr2 = np.zeros((3, 3, len(rho)))
+    if deriv==0:
+        return rho
 
-    triu_idx = {(i,j): k for k, (i,j) in enumerate(zip(*np.triu_indices(3)))}
+    drho_dr = np.zeros((3, len(rho)))
+    if deriv==2:
+        d2rho_dr2 = np.zeros((3, 3, len(rho)))
+        triu_idx = {(i,j): k for k, (i,j) in enumerate(zip(*np.triu_indices(3)))}
+
     for i in range(3):
-        drho_dr[i] = _contract_rho(dAO_dr[i], DM_AO)
-        DM_dAO_dr_i = _dot_ao_dm(mol, dAO_dr[i], dm, None, None, None)
-        for j in range(i, 3):
-            d2rho_dr2[i,j] = _contract_rho(dAO_dr[j], DM_dAO_dr_i)
-            d2rho_dr2[i,j] += np.einsum('ip,ip->i',  d2AO_dr2[triu_idx[(i,j)]], DM_AO)
-            d2rho_dr2[j,i] = d2rho_dr2[i,j]
-    drho_dr   *= 2.0
-    d2rho_dr2 *= 2.0
+        drho_dr[i] = 2.0*_contract_rho(dAO_dr[i], DM_AO)
+        if deriv==2:
+            DM_dAO_dr_i = 2 * _dot_ao_dm(mol, dAO_dr[i], dm, None, None, None)
+            for j in range(i, 3):
+                d2rho_dr2[i,j] = _contract_rho(dAO_dr[j], DM_dAO_dr_i) + 2.0*np.einsum('ip,ip->i', d2AO_dr2[triu_idx[(i,j)]], DM_AO)
+                d2rho_dr2[j,i] = d2rho_dr2[i,j]
+
+    if deriv==1:
+        return rho, drho_dr
     return rho, drho_dr, d2rho_dr2
 
 
-def eval_rho_df(mol, ao, c):
+def eval_rho_df(mol, ao, c, deriv=2):
     r'''Calculate the electron density and the density derivatives
         for a fitted density.
 
@@ -57,6 +66,9 @@ def eval_rho_df(mol, ao, c):
             ao[4:] : atomic oribitals second derivatives values
         c : 1D array of (nao)
             density fitting coefficients
+    Kwargs:
+        deriv : int
+            Compute with deriv-order derivatives
 
     Returns:
         A tuple of:
@@ -65,16 +77,19 @@ def eval_rho_df(mol, ao, c):
             3D array of (3,3,ngrids) to store 2nd derivatives
     '''
 
-    rho_all   = np.einsum('xip,p->xi', ao, c)
-    rho       = rho_all[0]
-    drho_dr   = rho_all[1:4]
-    d2rho_dr2 = np.zeros((3, 3, len(rho)))
-    for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
-        d2rho_dr2[i,j] = d2rho_dr2[j,i] = rho_all[4+k]
-    return rho, drho_dr, d2rho_dr2
+    rho_all = np.einsum('xip,p->xi', np.atleast_3d(ao), c)
+    if deriv==0:
+        return rho_all[0]
+    if deriv==1:
+        return rho_all[0], rho_all[1:4]
+    if deriv==2:
+        d2rho_dr2 = np.zeros((3, 3, rho_all.shape[-1]))
+        for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
+            d2rho_dr2[i,j] = d2rho_dr2[j,i] = rho_all[4+k]
+        return rho_all[0], rho_all[1:4], d2rho_dr2
 
 
-def compute_rho(mol, coords, dm=None, c=None):
+def compute_rho(mol, coords, dm=None, c=None, deriv=2):
     r'''Wrapper to calculate the electron density and the density derivatives.
 
     Args:
@@ -86,20 +101,22 @@ def compute_rho(mol, coords, dm=None, c=None):
             Density matrix (assumed Hermitian) (confilicts with c)
         c : 1D array of (nao)
             density fitting coefficients (confilicts with dm)
+        deriv : int
+            Compute with deriv-order derivatives
 
     Returns:
         A tuple of:
-            1D array of size ngrids to store electron density;
-            2D array of (3,ngrids) to store density derivatives;
-            3D array of (3,3,ngrids) to store 2nd derivatives
+            1D array of size ngrids to store electron density
+            2D array of (3,ngrids) to store density derivatives (if deriv>0)
+            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv>1)
     '''
     if (c is None)==(dm is None):
         raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
-    ao = eval_ao(mol, coords, deriv=2)
+    ao = eval_ao(mol, coords, deriv=deriv).reshape(-1, len(coords), mol.nao)
     if dm is not None:
-        return eval_rho(mol, ao, dm)
+        return eval_rho(mol, ao, dm, deriv=deriv)
     if c is not None:
-        return eval_rho_df(mol, ao, c)
+        return eval_rho_df(mol, ao, c, deriv=deriv)
 
 
 def compute_s2rho(rho, d2rho_dr2, eps=1e-4): #TODO docs
@@ -160,7 +177,36 @@ def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
     return gamma_full
 
 
-def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, mem=1):
+def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4):  # TODO doc
+    def grad_num(func, grid, eps=1e-4, **kwargs):
+        g = np.zeros_like(grid)
+        for j in range(3):
+            u = np.eye(1, 3, j)  # unit vector || jth dimension
+            e1  = func(grid+eps*u, **kwargs)
+            e2  = func(grid-eps*u, **kwargs)
+            e11 = func(grid+2*eps*u, **kwargs)
+            e22 = func(grid-2*eps*u, **kwargs)
+            g[:,j] = (8.0*e1-8.0*e2 + e22-e11) / (12.0*eps)
+        return g
+
+    def compute_k2(coords, mol=None, dm=None):
+        rho, drho_dr = compute_rho(mol, coords, dm=dm, c=c, deriv=1)
+        k = drho_dr / rho
+        return np.einsum('xi,xi->i', k, k)
+
+    rho = compute_rho(mol, coords, dm=dm, c=c, deriv=0)
+    good_idx = np.where(rho>=eps)[0]
+    dori = np.zeros_like(rho)
+    if len(good_idx):
+        k2 = compute_k2(coords[good_idx], mol=mol, dm=dm)
+        dk2_dr = grad_num(compute_k2, coords[good_idx], eps=1e-4, mol=mol, dm=dm)
+        dk2_dr_square = np.einsum('ix,ix->i', dk2_dr, dk2_dr)
+        theta = dk2_dr_square / k2**3
+        dori[good_idx] = theta / (theta + 1.0)
+    return dori, rho
+
+
+def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1):
     """Wrapper to compute DORI on a given grid
 
     Args:
@@ -174,30 +220,44 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, mem=1):
             Density fitting coefficients (confilicts with dm)
         eps : float
             density threshold for DORI
-        mem : max. memory (GiB) that can be allocated to compute
-              the AO and their derivatives
+        alg : str
+            [a]nalytical or [n]umerical computation
+        mem : float
+            max. memory (GiB) that can be allocated to compute
+            the AO and their derivatives
     """
 
-    max_size = mem * 2**30  # mem * 1 GiB
+    max_size = int(mem * 2**30)  # mem * 1 GiB
     point_size = 10 * mol.nao * np.float64().itemsize  # memory needed for 1 grid point
     dgrid = max_size // point_size
-
     rho = np.zeros(len(coords))
-    drho_dr = np.zeros((3, len(coords)))
-    d2rho_dr2 = np.zeros((3, 3, len(coords)))
-    for i in tqdm(range(0, len(coords), dgrid)):
-        s = np.s_[i:i+dgrid]
-        rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c)
-        rho[s] = rho_i
-        drho_dr[:,s] = drho_dr_i
-        d2rho_dr2[:,:,s] = d2rho_dr2_i
 
-    dori = compute_dori(rho, drho_dr, d2rho_dr2, eps=eps)
-    s2rho = compute_s2rho(rho, d2rho_dr2, eps=eps)
-    return dori, rho, s2rho
+    if alg in [*accumulate('analytical')]:
+        drho_dr = np.zeros((3, len(coords)))
+        d2rho_dr2 = np.zeros((3, 3, len(coords)))
+        for i in tqdm(range(0, len(coords), dgrid)):
+            s = np.s_[i:i+dgrid]
+            rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c)
+            rho[s] = rho_i
+            drho_dr[:,s] = drho_dr_i
+            d2rho_dr2[:,:,s] = d2rho_dr2_i
+        dori = compute_dori(rho, drho_dr, d2rho_dr2, eps=eps)
+        s2rho = compute_s2rho(rho, d2rho_dr2, eps=eps)
+        return dori, rho, s2rho
+
+    elif alg in [*accumulate('numerical')]:
+        dori = np.zeros_like(rho)
+        for i in tqdm(range(0, len(coords), dgrid)):
+            s = np.s_[i:i+dgrid]
+            dori_i, rho_i = compute_dori_num(mol, coords[s], dm=dm, c=c, eps=eps) # TODO probably make 1st derivative also numerical
+            dori[s] = dori_i
+            rho[s] = rho_i
+        return dori, rho, None # TODO add s2rho
 
 
-def dori(mol, dm=None, c=None, eps=1e-4,
+def dori(mol, dm=None, c=None,
+         eps=1e-4, alg='analytical',
+         mem=1,
          grid_type='dft',
          grid_level=1,
          nx=80, ny=80, nz=80, resolution=RESOLUTION, margin=BOX_MARGIN,
@@ -213,6 +273,8 @@ def dori(mol, dm=None, c=None, eps=1e-4,
             Density fitting coefficients (confilicts with dm)
         eps : float
             density threshold for DORI
+        alg : str
+            [a]nalytical or [n]umerical computation
         grid_type : str
             Type of grid, 'dft' for a DFT grid and 'cube' for a cubic grid.
         grid_level : int
@@ -228,6 +290,9 @@ def dori(mol, dm=None, c=None, eps=1e-4,
         cubename : str
             For a cubic grid,
             name for the cube files to save the results to.
+        mem : float
+              max. memory (GiB) that can be allocated to compute
+              the AO and their derivatives
 
     Returns:
         Tuple of:
@@ -248,7 +313,7 @@ def dori(mol, dm=None, c=None, eps=1e-4,
         weights = np.ones(grid.get_ngrids())
         coords  = grid.get_coords()
 
-    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps)
+    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps, alg=alg.lower(), mem=mem)
 
     if grid_type=='cube' and cubename:
         grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename+'.dori.cube', comment='DORI')
