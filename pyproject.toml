@@ -47,8 +47,9 @@ dependencies = [
 qml = ["ase"]
 regression = ["scikit-learn"]
 wigner = ["sympy"]
+gmol = ["cell2mol"]
 equio = ["equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core"]
-all = ["qstack[qml,regression,wigner,equio]"]
+all = ["qstack[qml,regression,wigner,equio,gmol]"]
 
 #dev = ["tqdm"]  # those are deps for the tests
 

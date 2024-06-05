@@ -108,8 +108,18 @@ def gmol_to_mol(fin, basis="def2-svp"):
         pyscf Mole: pyscf Mole object.
     """
 
-    from cell2mol.tmcharge_common import Cell, atom, molecule, ligand, metal
-    from cell2mol.tmcharge_common import labels2formula
+    try:
+        from cell2mol.tmcharge_common import Cell, atom, molecule, ligand, metal
+        from cell2mol.tmcharge_common import labels2formula
+    except ImportError:
+            print("""
+
+ERROR: cannot import ĉell2mol. Have you installed qstack with the \gmol\" option?\n\n
+(for instance, with `pip install qstack[gmol] or `pip install qstack[all]``)
+
+""")
+    raise
+
 
     # Open and read the file
     if fin.endswith(".gmol"):
