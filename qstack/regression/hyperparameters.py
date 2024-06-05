@@ -10,7 +10,7 @@ from qstack.mathutils.fps import do_fps
 
 def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel, gdict=defaults.gdict,
-           akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits,
+           akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits, idx_test=None,
            printlevel=0, adaptive=False, read_kernel=False, sparse=None, random_state=0):
     """
 
@@ -67,9 +67,18 @@ def hyperparameters(X, y,
         gwrap = [gkernel, gdict]
     kernel = get_kernel(akernel, gwrap)
     if read_kernel is False:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+        if idx_test is None:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+        else:
+            idx_train = np.delete(np.arange(len(X)), idx_test)
+            X_train, y_train = X[idx_train], y[idx_train]
+            X_test = X[idx_test]
     else:
-        idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
+        if idx_test is None:
+            idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
+        else:
+            idx_train = np.delete(np.arange(len(X)), idx_test)
+            y_train = y[idx_train]
         X_train = X[np.ix_(idx_train,idx_train)]
         sigma = [np.nan]
 

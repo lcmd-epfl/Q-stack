@@ -10,7 +10,7 @@ from qstack.mathutils.fps import do_fps
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
-               random_state=defaults.random_state,
+               random_state=defaults.random_state, idx_test=None,
                sparse=None, debug=False, save_pred=False):
     """
 
@@ -19,11 +19,21 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     """
     if read_kernel is False:
         kernel = get_kernel(akernel, [gkernel, gdict])
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+        if idx_test is None:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+        else:
+            idx_train = np.delete(np.arange(len(X)), idx_test)
+            X_train, y_train = X[idx_train], y[idx_train]
+            X_test, y_test = X[idx_test], y[idx_test]
         K_all  = kernel(X_train, X_train, 1.0/sigma)
         Ks_all = kernel(X_test,  X_train, 1.0/sigma)
     else:
-        idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
+        if idx_test is None:
+            idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
+        else:
+            idx_train = np.delete(np.arange(len(X)), idx_test)
+            idx_test = idx_test
+            y_train, y_test = y[idx_train], y[idx_test]
         K_all  = X[np.ix_(idx_train,idx_train)]
         Ks_all = X[np.ix_(idx_test, idx_train)]
 
