@@ -7,6 +7,7 @@ import qstack.regression.regression as regression
 import qstack.regression.final_error as final_error
 import qstack.regression.condition as condition
 import qstack.regression.oos as oos
+import qstack.regression.cross_validate_results as cv_results
 import qstack.spahm.compute_spahm as espahm
 import qstack.compound as compound
 
@@ -118,6 +119,19 @@ def test_oos():
     assert np.allclose(pred1, pred2)
     pred3 = oos.oos(X, X[idx_train], weights, sigma=3.162278e+01, random_state=666)
     assert np.allclose(pred3, y[idx_train])
+
+def test_cross_validate_results():
+    path = os.path.dirname(os.path.realpath(__file__))
+    X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
+    y = np.loadtxt(os.path.join(path, 'data/mols/dipole.dat'))
+    lc = cv_results.cv_results(X, y)
+    true_lc = [(1, 0.96457399, 0.70560469),
+               (2, 0.78990697, 0.58179988),
+               (4, 0.7336549 , 0.59839317),
+               (6, 0.7288867 , 0.50714861),
+               (8, 0.72604955, 0.48307486)]
+    assert(np.allclose(lc, true_lc))
+
 
 
 if __name__ == '__main__':
