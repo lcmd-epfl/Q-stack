@@ -69,7 +69,7 @@ def cv_results(X, y,
         lc_runs.append(maes_all)
     lc_runs = np.array(lc_runs)
     hyper_runs = np.array(hyper_runs, dtype=object)
-    lc = list(zip(lc_runs[:,:,0].mean(axis=0), lc_runs[:,:,1].mean(axis=0), lc_runs[:,:,1].std(axis=0), lc_runs[:,:,3].mean(axis=0)))
+    lc = list(zip(lc_runs[:,:,0].mean(axis=0), lc_runs[:,:,1].mean(axis=0), lc_runs[:,:,1].std(axis=0)))
     lc = np.array(lc)
     if save == True:
         np.save(f"{preffix}_{n_rep}-hyper-runs.npy", hyper_runs)
@@ -109,9 +109,6 @@ def main():
     args = parser.parse_args()
     if(args.readk): args.sigma = [np.nan]
     if(args.ll): correct_num_threads()
-
-    #Removing extensions to save intermediate results with proper filenames
-    args.nameout = '-'.join(args.nameout.split('.')[:-1])
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
