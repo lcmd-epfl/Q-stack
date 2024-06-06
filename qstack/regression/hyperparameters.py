@@ -3,15 +3,15 @@
 import sys
 import numpy as np
 import scipy
-from sklearn.model_selection import train_test_split, KFold
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
-from qstack.tools import correct_num_threads
+from sklearn.model_selection import KFold
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
+
 
 def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel, gdict=defaults.gdict,
-           akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits, idx_test=None,
-           printlevel=0, adaptive=False, read_kernel=False, sparse=None, random_state=0):
+           akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits, idx_test=None, idx_train=None,
+           printlevel=0, adaptive=False, read_kernel=False, sparse=None, random_state=defaults.random_state):
     """ Performs a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
 
     Args:
@@ -25,6 +25,7 @@ def hyperparameters(X, y,
         test_size (float or int): test set fraction (or number of samples)
         splits (int): K number of splits for the Kfold cross-validation
         idx_test (list): list of indices for the test-set (based on the sequence in X
+        idx_train (list): list of indices for the training set (based on the sequence in X)
         printlevel (int): controls level of output printing
         adaptative (bool): to expand the grid search adaptatively
         read_kernel (bool): if 'X' is a kernel and not an array of representations
@@ -48,10 +49,7 @@ def hyperparameters(X, y,
                 y_solve = y_kf_train
                 Ks = K_all [np.ix_(test_idx,train_idx)]
             else:
-                K_NM    = K_all [np.ix_(train_idx,sparse_idx)]
-                K_solve = K_NM.T @ K_NM
-                K_solve[np.diag_indices_from(K_solve)] += eta
-                y_solve = K_NM.T @ y_kf_train
+                K_solve, y_solve = sparse_regression_kernel(K_all[train_idx], y_kf_train, sparse_idx, eta)
                 Ks = K_all [np.ix_(test_idx,sparse_idx)]
 
             try:
@@ -84,19 +82,12 @@ def hyperparameters(X, y,
     else:
         gwrap = [gkernel, gdict]
     kernel = get_kernel(akernel, gwrap)
+
+    idx_train, _, y_train, _ = train_test_split_idx(y=y, idx_test=idx_test, idx_train=idx_train,
+                                                    test_size=test_size, random_state=random_state)
     if read_kernel is False:
-        if idx_test is None:
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
-        else:
-            idx_train = np.delete(np.arange(len(X)), idx_test)
-            X_train, y_train = X[idx_train], y[idx_train]
-            X_test = X[idx_test]
+        X_train = X[idx_train]
     else:
-        if idx_test is None:
-            idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
-        else:
-            idx_train = np.delete(np.arange(len(X)), idx_test)
-            y_train = y[idx_train]
         X_train = X[np.ix_(idx_train,idx_train)]
         sigma = [np.nan]
 
@@ -137,8 +128,10 @@ def hyperparameters(X, y,
         print('next iteration:', work_sigma, flush=True)
     return errors
 
+
 def main():
     import argparse
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program finds the optimal hyperparameters.')
     parser.add_argument('--x',      type=str,   dest='repr',       required=True, help='path to the representations file')
     parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
@@ -163,7 +156,9 @@ def main():
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
 
-    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel, sparse=args.sparse,
+    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
+                             akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict,
+                             sparse=args.sparse,
                              test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
     errors = np.array(errors)
     if args.nameout is not None:
@@ -172,6 +167,7 @@ def main():
     print('error        stdev          eta          sigma')
     for error in errors:
         print("%e %e | %e %e" % tuple(error))
+
 
 if __name__ == "__main__":
     main()
