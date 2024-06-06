@@ -6,7 +6,7 @@ from qstack.fields.dm import make_grid_for_rho
 from tqdm import tqdm
 
 
-def eval_rho(mol, ao, dm, deriv=2):
+def eval_rho_dm(mol, ao, dm, deriv=2):
     r'''Calculate the electron density and the density derivatives.
 
     Taken from pyscf/dft/numint.py and modified to return second derivative matrices.
@@ -89,7 +89,7 @@ def eval_rho_df(mol, ao, c, deriv=2):
         return rho_all[0], rho_all[1:4], d2rho_dr2
 
 
-def compute_rho(mol, coords, dm=None, c=None, deriv=2):
+def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
     r'''Wrapper to calculate the electron density and the density derivatives.
 
     Args:
@@ -103,6 +103,8 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2):
             density fitting coefficients (confilicts with dm)
         deriv : int
             Compute with deriv-order derivatives
+        eps : float
+            Min. density to compute the derivatives for
 
     Returns:
         A tuple of:
@@ -112,14 +114,44 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2):
     '''
     if (c is None)==(dm is None):
         raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
-    ao = eval_ao(mol, coords, deriv=deriv).reshape(-1, len(coords), mol.nao)
     if dm is not None:
-        return eval_rho(mol, ao, dm, deriv=deriv)
+        eval_rho = lambda ao, deriv: eval_rho_dm(mol, ao.reshape(-1, ao.shape[-2], ao.shape[-1]), dm, deriv=deriv)
     if c is not None:
-        return eval_rho_df(mol, ao, c, deriv=deriv)
+        eval_rho = lambda ao, deriv: eval_rho_df(mol, ao.reshape(-1, ao.shape[-2], ao.shape[-1]), c, deriv=deriv)
+
+    ao0 = eval_ao(mol, coords, deriv=0)
+    rho = eval_rho(ao0, deriv=0)
+    if deriv==0:
+        return rho
+    good_idx = np.where(rho>=eps)[0]
+    drho_dr = np.zeros((3,len(coords)))
+    d2rho_dr2 = np.zeros((3,3,len(coords)))
+    if len(good_idx)>0:
+        ao = eval_ao(mol, coords[good_idx], deriv=deriv)
+        ret = eval_rho(ao, deriv=deriv)
+        drho_dr[:,good_idx] = ret[1]
+        if deriv==2:
+            d2rho_dr2[:,:,good_idx] = ret[2]
+    if deriv==1:
+        return rho, drho_dr
+    return rho, drho_dr, d2rho_dr2
 
 
-def compute_s2rho(rho, d2rho_dr2, eps=1e-4): #TODO docs
+def compute_s2rho(rho, d2rho_dr2, eps=1e-4):
+    """Compute the sign of 2nd eigenvalue of density Hessian × density
+
+    Args:
+        rho : 1D array of (ngrids)
+            Electron density
+        d2rho_dr2 : 3D array of (3,3,ngrids)
+            Density 2nd derivatives
+    Kwargs:
+        eps : float
+            density threshold
+    Returns:
+        1D array of (ngrids) --- electron density * sgn(second eigenvalue of d^2rho/dr^2)
+                                 for density>=eps
+    """
     s2rho = np.zeros_like(rho)
     idx = np.where(rho>=eps)
     s2rho[idx] = np.copysign(rho[idx], [sorted(np.linalg.eigh(h)[0])[1] for h in d2rho_dr2.T[idx]])
@@ -127,7 +159,7 @@ def compute_s2rho(rho, d2rho_dr2, eps=1e-4): #TODO docs
 
 
 def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
-    r""" Inner function to compute DORI.
+    r""" Inner function to compute DORI analytically
 
     Args:
         rho : 1D array of (ngrids)
@@ -177,36 +209,59 @@ def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
     return gamma_full
 
 
-def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4):  # TODO doc
-    def grad_num(func, grid, eps=1e-4, **kwargs):
+def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4, dx=1e-4):
+    r""" Inner function to compute DORI seminumerically
+    See documentation to compute_dori().
+
+    Args:
+        mol : an instance of :class:`Mole`
+        coords : 2D array of (ngrids,3)
+            Grid coordinates (in Bohr)
+    Kwargs:
+        dm : 2D array of (nao,nao)
+            Density matrix (assumed Hermitian) (confilicts with c)
+        c : 1D array of (nao)
+            density fitting coefficients (confilicts with dm)
+        eps : float
+            Density threshold (if |rho|<eps then dori=0)
+        dx : float
+            Step (in Bohr) to take the numerical derivatives
+
+    Returns:
+        1D array of (ngrids): DORI
+        1D array of (ngrids): electron density
+    """
+
+    def grad_num(func, grid, d, **kwargs):
         g = np.zeros_like(grid)
         for j in range(3):
             u = np.eye(1, 3, j)  # unit vector || jth dimension
-            e1  = func(grid+eps*u, **kwargs)
-            e2  = func(grid-eps*u, **kwargs)
-            e11 = func(grid+2*eps*u, **kwargs)
-            e22 = func(grid-2*eps*u, **kwargs)
-            g[:,j] = (8.0*e1-8.0*e2 + e22-e11) / (12.0*eps)
+            e1  = func(grid+d*u, **kwargs)
+            e2  = func(grid-d*u, **kwargs)
+            e11 = func(grid+2*d*u, **kwargs)
+            e22 = func(grid-2*d*u, **kwargs)
+            g[:,j] = (8.0*e1-8.0*e2 + e22-e11) / (12.0*d)
         return g
 
-    def compute_k2(coords, mol=None, dm=None):
+    def compute_k2(coords, mol=None, dm=None, c=None):
         rho, drho_dr = compute_rho(mol, coords, dm=dm, c=c, deriv=1)
         k = drho_dr / rho
         return np.einsum('xi,xi->i', k, k)
 
     rho = compute_rho(mol, coords, dm=dm, c=c, deriv=0)
+
     good_idx = np.where(rho>=eps)[0]
     dori = np.zeros_like(rho)
     if len(good_idx):
-        k2 = compute_k2(coords[good_idx], mol=mol, dm=dm)
-        dk2_dr = grad_num(compute_k2, coords[good_idx], eps=1e-4, mol=mol, dm=dm)
+        k2 = compute_k2(coords[good_idx], mol=mol, dm=dm, c=c)
+        dk2_dr = grad_num(compute_k2, coords[good_idx], d=dx, mol=mol, dm=dm, c=c)
         dk2_dr_square = np.einsum('ix,ix->i', dk2_dr, dk2_dr)
         theta = dk2_dr_square / k2**3
         dori[good_idx] = theta / (theta + 1.0)
     return dori, rho
 
 
-def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1):
+def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1, dx=1e-4):
     """Wrapper to compute DORI on a given grid
 
     Args:
@@ -222,9 +277,16 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
             density threshold for DORI
         alg : str
             [a]nalytical or [n]umerical computation
+        dx : float
+            Step (in Bohr) to take the numerical derivatives
         mem : float
             max. memory (GiB) that can be allocated to compute
             the AO and their derivatives
+    Returns:
+        1D array of (ngrids) --- computed DORI
+        1D array of (ngrids) --- electron density
+        1D array of (ngrids) --- electron density * sgn(second eigenvalue of d^2rho/dr^2)
+                                 for density>=eps (only with alg='analytical').
     """
 
     max_size = int(mem * 2**30)  # mem * 1 GiB
@@ -237,7 +299,9 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
         d2rho_dr2 = np.zeros((3, 3, len(coords)))
         for i in tqdm(range(0, len(coords), dgrid)):
             s = np.s_[i:i+dgrid]
-            rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c)
+            rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c, eps=eps)
+            # Yes the data is copied around too much (three times).
+            # We tried to make compute_rho() write directly to these but didn't gain a lot.
             rho[s] = rho_i
             drho_dr[:,s] = drho_dr_i
             d2rho_dr2[:,:,s] = d2rho_dr2_i
@@ -249,10 +313,10 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
         dori = np.zeros_like(rho)
         for i in tqdm(range(0, len(coords), dgrid)):
             s = np.s_[i:i+dgrid]
-            dori_i, rho_i = compute_dori_num(mol, coords[s], dm=dm, c=c, eps=eps) # TODO probably make 1st derivative also numerical
+            dori_i, rho_i = compute_dori_num(mol, coords[s], dm=dm, c=c, eps=eps, dx=dx)
             dori[s] = dori_i
             rho[s] = rho_i
-        return dori, rho, None # TODO add s2rho
+        return dori, rho, None
 
 
 def dori(mol, dm=None, c=None,
@@ -299,6 +363,7 @@ def dori(mol, dm=None, c=None,
             1D array of (ngrids) --- computed DORI
             1D array of (ngrids) --- electron density
             1D array of (ngrids) --- electron density * sgn(second eigenvalue of d^2rho/dr^2)
+                                     for density>=eps (only with alg='analytical').
             2D array of (ngrids,3) --- grid coordinates
             1D array of (ngrids) --- grid weights
 
