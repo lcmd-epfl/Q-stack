@@ -1,42 +1,51 @@
 #!/usr/bin/env python3
+
 import numpy as np
 import scipy
-from sklearn.model_selection import train_test_split
-from qstack.regression.kernel_utils import get_kernel, defaults
-from qstack.tools import correct_num_threads
+from qstack.regression.kernel_utils import get_kernel, defaults, train_test_split_idx
 
-def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel,
-                test_size=defaults.test_size,
+
+def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
+                akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
+                test_size=defaults.test_size, idx_test=None, idx_train=None,
                 random_state=defaults.random_state,
-                return_pred=False, save_alpha=None):
+                return_pred=False, return_alpha=False, save_alpha=None):
     """
 
     .. todo::
         Write the docstring
     """
+    idx_train, idx_test, y_train, y_test = train_test_split_idx(y=y, idx_test=idx_test, idx_train=idx_train,
+                                                                test_size=test_size, random_state=random_state)
     if read_kernel is False:
-        kernel = get_kernel(akernel)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
+        kernel = get_kernel(akernel, [gkernel, gdict])
+        X_train, X_test = X[idx_train], X[idx_test]
         K_all  = kernel(X_train, X_train, 1.0/sigma)
         Ks_all = kernel(X_test,  X_train, 1.0/sigma)
     else:
-        idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
         K_all  = X[np.ix_(idx_train,idx_train)]
         Ks_all = X[np.ix_(idx_test, idx_train)]
+
     K_all[np.diag_indices_from(K_all)] += eta
     alpha = scipy.linalg.solve(K_all, y_train, assume_a='pos')
     y_kf_predict = np.dot(Ks_all, alpha)
     aes = np.abs(y_test-y_kf_predict)
     if save_alpha:
         np.save(save_alpha, alpha)
-    if return_pred:
+    if return_pred and return_alpha:
+        return aes, y_kf_predict, alpha
+    elif return_pred:
         return aes, y_kf_predict
+    elif return_alpha:
+        return aes, alpha
     else:
         return aes
+
 
 def main():
     import sys
     import argparse
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program computes the full-training error for each molecule.')
     parser.add_argument('--x',          type=str,   dest='repr',        required=True,              help='path to the representations file')
     parser.add_argument('--y',          type=str,   dest='prop',        required=True,              help='path to the properties file')
@@ -55,6 +64,6 @@ def main():
     aes = final_error(X, y, sigma=args.sigma, eta=args.eta, akernel=args.kernel, test_size=args.test_size, save_alpha=args.save_alpha, random_state=random_state)
     np.savetxt(sys.stdout, aes, fmt='%e')
 
+
 if __name__ == "__main__":
     main()
-

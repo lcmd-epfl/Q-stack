@@ -4,6 +4,9 @@ import os
 import numpy as np
 import qstack.regression.hyperparameters as hyperparameters
 import qstack.regression.regression as regression
+import qstack.regression.final_error as final_error
+import qstack.regression.condition as condition
+import qstack.regression.oos as oos
 import qstack.spahm.compute_spahm as espahm
 import qstack.compound as compound
 
@@ -65,8 +68,64 @@ def test_regression_sparse():
     assert(np.allclose(lc, true_lc))
 
 
+def test_regression_idx():
+    path = os.path.dirname(os.path.realpath(__file__))
+    X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
+    y = np.loadtxt(os.path.join(path, 'data/mols/dipole.dat'))
+    error0 = 0.6217848772505417
+    # use sklearn
+    error = regression.regression(X, y, sigma=3.162278e+01, eta=1.000000e+00, debug=True, train_size=[1.0], random_state=666)
+    assert np.allclose(error[0][1], error0)
+    idx_train, idx_test = [0, 9, 3, 4, 8, 1, 6, 2], [5,7]  # correspond to this random state
+    # pass test idx
+    error = regression.regression(X, y, sigma=3.162278e+01, eta=1.000000e+00, debug=True, train_size=[1.0], idx_test=idx_test)
+    assert np.allclose(error[0][1], error0)
+    # pass train idx
+    error = regression.regression(X, y, sigma=3.162278e+01, eta=1.000000e+00, debug=True, train_size=[1.0], idx_train=idx_train)
+    assert np.allclose(error[0][1], error0)
+    # pass both idx
+    error = regression.regression(X, y, sigma=3.162278e+01, eta=1.000000e+00, debug=True, train_size=[1.0], idx_test=idx_test, idx_train=idx_train)
+    assert np.allclose(error[0][1], error0)
+    # pass negative idx
+    error = regression.regression(X, y, sigma=3.162278e+01, eta=1.000000e+00, debug=True, train_size=[1.0], idx_test=np.array(idx_test)-len(y))
+    assert np.allclose(error[0][1], error0)
+
+
+def test_final_error():
+    path = os.path.dirname(os.path.realpath(__file__))
+    X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
+    y = np.loadtxt(os.path.join(path, 'data/mols/dipole.dat'))
+    error0 = 0.6217848772505417
+    mol_errors = final_error.final_error(X, y, sigma=3.162278e+01, eta=1.000000e+00, random_state=666)
+    assert np.allclose(mol_errors.mean(), error0)
+
+
+def test_cond():
+    path = os.path.dirname(os.path.realpath(__file__))
+    X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
+    c = condition.condition(X, sigma=3.162278e+01, eta=1.000000e+00, random_state=0)
+    c0 = 7.071059858021516
+    assert np.allclose(c, c0)
+
+
+def test_oos():
+    path = os.path.dirname(os.path.realpath(__file__))
+    X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
+    y = np.loadtxt(os.path.join(path, 'data/mols/dipole.dat'))
+    _, pred1, weights = final_error.final_error(X, y, sigma=3.162278e+01, eta=1e-10, random_state=666, return_pred=True, return_alpha=True)
+    idx_train, idx_test = [0, 9, 3, 4, 8, 1, 6, 2], [5,7]  # correspond to this random state
+    pred2 = oos.oos(X, X[idx_test], weights, sigma=3.162278e+01, random_state=666)
+    assert np.allclose(pred1, pred2)
+    pred3 = oos.oos(X, X[idx_train], weights, sigma=3.162278e+01, random_state=666)
+    assert np.allclose(pred3, y[idx_train])
+
+
 if __name__ == '__main__':
     test_generate_reps()
     test_hyperparameters()
     test_regression()
     test_regression_sparse()
+    test_regression_idx()
+    test_final_error()
+    test_cond()
+    test_oos()

@@ -1,24 +1,35 @@
 #!/usr/bin/env python3
-import numpy as np
-from sklearn.model_selection import train_test_split
-from qstack.regression.kernel_utils import get_kernel, defaults
-from qstack.tools import correct_num_threads
 
-def condition(X, sigma=defaults.sigma, eta=defaults.eta, akernel=defaults.kernel, test_size=defaults.test_size):
+import numpy as np
+from qstack.regression.kernel_utils import get_kernel, defaults, train_test_split_idx
+
+
+def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
+              akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
+              test_size=defaults.test_size, idx_test=None, idx_train=None,
+              random_state=defaults.random_state):
     """
 
     .. todo::
         Write the docstring
     """
-    kernel = get_kernel(akernel)
-    X_train, X_test, y_train, y_test = train_test_split(X, np.arange(len(X)), test_size=test_size, random_state=0)
-    K_all  = kernel(X_train, X_train, 1.0/sigma)
+
+    idx_train, _, _, _ = train_test_split_idx(y=np.arange(len(X)), idx_test=idx_test, idx_train=idx_train,
+                                              test_size=test_size, random_state=random_state)
+    if read_kernel is False:
+        kernel = get_kernel(akernel, [gkernel, gdict])
+        X_train = X[idx_train]
+        K_all  = kernel(X_train, X_train, 1.0/sigma)
+    else:
+        K_all  = X[np.ix_(idx_train,idx_train)]
     K_all[np.diag_indices_from(K_all)] += eta
     cond   = np.linalg.cond(K_all)
     return cond
 
+
 def main():
     import argparse
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program computes the condition number for the kernel matrix.')
     parser.add_argument('--x',      type=str,   dest='repr',      required=True,              help='path to the representations file')
     parser.add_argument('--eta',    type=float, dest='eta',       default=defaults.eta,       help='eta hyperparameter (default='+str(defaults.eta)+')')
@@ -33,6 +44,6 @@ def main():
     c = condition(X, sigma=args.sigma, eta=args.eta, akernel=args.kernel, test_size=args.test_size)
     print("%.1e"%c)
 
+
 if __name__ == "__main__":
     main()
-

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 
+import warnings
 import numpy as np
 import scipy
-from sklearn.model_selection import train_test_split
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
-from qstack.tools import correct_num_threads
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
 from qstack.mathutils.fps import do_fps
+
 
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
-               random_state=defaults.random_state, idx_test=None,
+               random_state=defaults.random_state, idx_test=None, idx_train=None,
                sparse=None, debug=False, save_pred=False):
-    """ Produces learning cruves (LC) data, for various training sizes, using kernel ridge regression and the user specified parameters
+    """ Produces learning curves (LC) data, for various training sizes, using kernel ridge regression and the user specified parameters
 
     Args:
         X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
@@ -27,7 +27,8 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         train_size (list): list of training set size fractions used to evaluate the points on the LC
         n_rep (int): the number of repetition for each point (using random sampling)
         random_state (int): the seed used for random number generator (controls train/test splitting)
-        idx_test (list): list of indices for the test-set (based on the sequence in X
+        idx_test (list): list of indices for the test set (based on the sequence in X)
+        idx_train (list): list of indices for the training set (based on the sequence in X)
         sparse (int): the number of reference environnments to consider for sparse regression
         debug (bool): to use a fixed seed for random sampling (for reproducibility)
         save_pred (bool): to return all predicted targets
@@ -36,23 +37,15 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         The computed LC, as a list containing all its points (train size, MAE, std)
         If save_pres is True, a tuple with (results, (target values, predicted values))
     """
+
+    idx_train, idx_test, y_train, y_test = train_test_split_idx(y=y, idx_test=idx_test, idx_train=idx_train,
+                                                                test_size=test_size, random_state=random_state)
     if read_kernel is False:
         kernel = get_kernel(akernel, [gkernel, gdict])
-        if idx_test is None:
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
-        else:
-            idx_train = np.delete(np.arange(len(X)), idx_test)
-            X_train, y_train = X[idx_train], y[idx_train]
-            X_test, y_test = X[idx_test], y[idx_test]
+        X_train, X_test = X[idx_train], X[idx_test]
         K_all  = kernel(X_train, X_train, 1.0/sigma)
         Ks_all = kernel(X_test,  X_train, 1.0/sigma)
     else:
-        if idx_test is None:
-            idx_train, idx_test, y_train, y_test = train_test_split(np.arange(len(y)), y, test_size=test_size, random_state=random_state)
-        else:
-            idx_train = np.delete(np.arange(len(X)), idx_test)
-            idx_test = idx_test
-            y_train, y_test = y[idx_train], y[idx_test]
         K_all  = X[np.ix_(idx_train,idx_train)]
         Ks_all = X[np.ix_(idx_test, idx_train)]
 
@@ -96,6 +89,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 def main():
     import argparse
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program computes the learning curve.')
     parser.add_argument('--x',             type=str,   dest='repr',       required=True, help='path to the representations file')
     parser.add_argument('--y',             type=str,   dest='prop',       required=True, help='path to the properties file')
@@ -118,7 +112,7 @@ def main():
     if(args.ll): correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    
+
     maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
                           debug=args.debug, random_state=args.random_state)

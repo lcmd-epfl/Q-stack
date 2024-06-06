@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 
-import sys
 import numpy as np
-import scipy
-from sklearn.model_selection import train_test_split, KFold
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
+from qstack.regression.kernel_utils import defaults, ParseKwargs
 from qstack.regression.hyperparameters import hyperparameters
 from qstack.regression.regression import regression
-from qstack.tools import correct_num_threads
-import qstack.spahm.rho.utils as utils
-
 
 
 def cv_results(X, y,
@@ -91,6 +85,7 @@ def cv_results(X, y,
 
 def main():
     import argparse
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search inbcluded).')
     parser.add_argument('--x',      type=str,   dest='repr',       required=True, help='path to the representations file')
     parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
@@ -114,7 +109,7 @@ def main():
     args = parser.parse_args()
     if(args.readk): args.sigma = [np.nan]
     if(args.ll): correct_num_threads()
-    
+
     #Removing extensions to save intermediate results with proper filenames
     args.nameout = '-'.join(args.nameout.split('.')[:-1])
 
@@ -129,4 +124,6 @@ def main():
     print(final)
     np.savetxt(args.nameout+'.txt', final)
 
-if __name__ == '__main__' : main()
+
+if __name__ == '__main__':
+    main()

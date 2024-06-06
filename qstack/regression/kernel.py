@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
+
 import numpy as np
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
-from qstack.tools import correct_num_threads
-import sys
+
 
 def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
     """ Computes a kernel using a list of representations.
@@ -16,7 +16,7 @@ def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defau
         gdict (): Dictionary like input string to initialize global kernel parameters. Defaults to {'alpha':1.0, 'normalize':1}.
 
     Returns:
-        A numpy ndarray containing the kernel. 
+        A numpy ndarray containing the kernel.
     """
     if len(Y) == 0 :
         Y = X
@@ -24,9 +24,11 @@ def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defau
     K = kernel(X, Y, 1.0/sigma)
     return K
 
+
 def main():
     import argparse
     import os
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program computes kernel.')
     parser.add_argument('--x',      type=str,   dest='repr',      required=True,           help='path to the representations file')
     parser.add_argument('--sigma',  type=float, dest='sigma',     default=defaults.sigma,  help='sigma hyperparameter (default='+str(defaults.sigma)+')')
@@ -45,6 +47,7 @@ def main():
         X = [np.load(f, allow_pickle=True) for f in x_files]
     K = kernel(X, sigma=args.sigma, akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict)
     np.save(args.dir+'/K_'+os.path.splitext(os.path.basename(args.repr))[0]+'_'+args.akernel+'_'+f"{args.gkernel}"+f"_norm{'_'.join([str(v) for v in args.gdict.values()])}_"+"%e"%args.sigma, K)
+
 
 if __name__ == "__main__":
     main()

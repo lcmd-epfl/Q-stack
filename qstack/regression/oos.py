@@ -1,24 +1,32 @@
 #!/usr/bin/env python3
-import numpy as np
-from sklearn.model_selection import train_test_split
-from qstack.regression.kernel_utils import get_kernel, defaults
-from qstack.tools import correct_num_threads
 
-def oos(X, X_oos, alpha, sigma=defaults.sigma, akernel=defaults.kernel, test_size=defaults.test_size):
+import numpy as np
+from qstack.regression.kernel_utils import get_kernel, defaults, train_test_split_idx
+
+
+def oos(X, X_oos, alpha, sigma=defaults.sigma,
+        akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
+        test_size=defaults.test_size, idx_test=None, idx_train=None,
+        random_state=defaults.random_state):
     """
 
     .. todo::
         Write the docstring
     """
-    kernel = get_kernel(akernel)
-    X_train, _, _, _ = train_test_split(X, np.zeros(len(X)), test_size=test_size, random_state=0)
+
+    idx_train, _, _, _, = train_test_split_idx(y=np.arange(len(X)), idx_test=idx_test, idx_train=idx_train,
+                                               test_size=test_size, random_state=random_state)
+    kernel = get_kernel(akernel, [gkernel, gdict])
+    X_train = X[idx_train]
     K = kernel(X_oos, X_train, 1.0/sigma)
     y = K @ alpha
     return y
 
+
 def main():
     import sys
     import argparse
+    from qstack.tools import correct_num_threads
     parser = argparse.ArgumentParser(description='This program makes prediction for OOS.')
     parser.add_argument('--x',      type=str,       dest='repr',      required=True,              help='path to the representations file')
     parser.add_argument('--x-oos',  type=str,       dest='x_oos',     required=True,              help='path to the OOS representations file')
@@ -36,6 +44,6 @@ def main():
     y = oos(X, X_oos, alpha, sigma=args.sigma, akernel=args.kernel, test_size=args.test_size)
     np.savetxt(sys.stdout, y, fmt='%e')
 
+
 if __name__ == "__main__":
     main()
-
