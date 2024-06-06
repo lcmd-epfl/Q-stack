@@ -13,7 +13,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 
 authors = [
-    {name = "Alberto Fabrisio"},  # orcid = "0000-0002-4440-3149"
+    {name = "Alberto Fabrizio"},  # orcid = "0000-0002-4440-3149"
     {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},  # orcid = "0000-0003-2250-9898"
     {name = "Yannick Calvino", email = "yannick.calvinoalonso@epfl.ch"},  # orcid = "0009-0008-9573-7772"
     {name = "Liam Marsh", email = "liam.marsh@epfl.ch"},  # orcid = "0000-0002-7276-5673"

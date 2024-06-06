@@ -3,17 +3,7 @@
 import numpy as np
 import scipy
 
-try:
-    from sklearn.model_selection import train_test_split
-except ImportError:
-    print("""
-
-ERROR: cannot import scikit-learn. Have you installed qstack with the \"regression\" option?\n\n
-(for instance, with `pip install qstack[regression] or `pip install qstack[all]``)
-
-""")
-    raise
-
+from sklearn.model_selection import train_test_split
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 from qstack.tools import correct_num_threads
 from qstack.mathutils.fps import do_fps
