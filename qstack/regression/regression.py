@@ -3,7 +3,7 @@
 import warnings
 import numpy as np
 import scipy
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
 
 
@@ -55,7 +55,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     else:
         if read_kernel:
             raise RuntimeError('Cannot do FPS with kernels')
-        sparse_idx = do_fps(X_train)[0][:sparse]
+        sparse_idx = do_fps(X_train)[0][:sparse] # indices within the training set
 
     if debug:
         # Ensures reproducibility of the sample selection for each train_size over repetitions (n_rep)
@@ -74,10 +74,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                 y_solve = y_kf_train
                 Ks = Ks_all[:,train_idx]
             else:
-                K_NM    = K_all [np.ix_(train_idx,sparse_idx)]
-                K_solve = K_NM.T @ K_NM
-                K_solve[np.diag_indices_from(K_solve)] += eta
-                y_solve = K_NM.T @ y_kf_train
+                K_solve, y_solve = sparse_regression_kernel(K_all[train_idx], y_kf_train, sparse_idx, eta)
                 Ks = Ks_all[:,sparse_idx]
 
             alpha = scipy.linalg.solve(K_solve, y_solve, assume_a='pos')

@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import scipy
 from sklearn.model_selection import KFold
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
 
 
@@ -49,10 +49,7 @@ def hyperparameters(X, y,
                 y_solve = y_kf_train
                 Ks = K_all [np.ix_(test_idx,train_idx)]
             else:
-                K_NM    = K_all [np.ix_(train_idx,sparse_idx)]
-                K_solve = K_NM.T @ K_NM
-                K_solve[np.diag_indices_from(K_solve)] += eta
-                y_solve = K_NM.T @ y_kf_train
+                K_solve, y_solve = sparse_regression_kernel(K_all[train_idx], y_kf_train, sparse_idx, eta)
                 Ks = K_all [np.ix_(test_idx,sparse_idx)]
 
             try:

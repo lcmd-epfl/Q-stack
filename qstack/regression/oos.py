@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
+from qstack.mathutils.fps import do_fps
 
 
 def oos(X, X_oos, alpha, sigma=defaults.sigma,
         akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
         test_size=defaults.test_size, idx_test=None, idx_train=None,
-        random_state=defaults.random_state):
+        sparse=None, random_state=defaults.random_state):
     """ Perform prediction on an out-of-sample (OOS) set.
 
     Args:
         X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
         X_oos (numpy.2darray[Noos,Nfeat]): array of OOS representations.
-        alpha (numpy.1darray(Ntrain)): regression weights.
+        alpha (numpy.1darray(Ntrain or sparse)): regression weights.
         sigma (float): width of the kernel
         akernel (str): local kernel (Laplacian, Gaussian, linear)
         gkernel (str): global kernel (REM, average)
@@ -22,6 +23,7 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
         random_state (int): the seed used for random number generator (controls train/test splitting)
         idx_test (list): list of indices for the test set (based on the sequence in X)
         idx_train (list): list of indices for the training set (based on the sequence in X)
+        sparse (int): the number of reference environnments to consider for sparse regression
 
     Returns:
         np.1darray(Noos) : predictions on the OOS set
@@ -31,6 +33,9 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
                                                test_size=test_size, random_state=random_state)
     kernel = get_kernel(akernel, [gkernel, gdict])
     X_train = X[idx_train]
+    if sparse:
+        sparse_idx = do_fps(X_train)[0][:sparse]
+        X_train = X_train[sparse_idx]
     K = kernel(X_oos, X_train, 1.0/sigma)
     y = K @ alpha
     return y
@@ -50,6 +55,7 @@ def main():
     parser.add_argument('--gkernel',       type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default '+str(defaults.gkernel)+')')
     parser.add_argument('--gdict',         nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
     parser.add_argument('--ll',     action='store_true', dest='ll',   default=False,              help='if correct for the numper of threads')
+    parser.add_argument('--sparse',           type=int,            dest='sparse',       default=None,                  help='regression basis size for sparse learning')
     parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='random state for test / train splitting')
     args = parser.parse_args()
     print(vars(args))
@@ -59,7 +65,7 @@ def main():
     alpha   = np.load(args.alpha)
     y = oos(X, X_oos, alpha, sigma=args.sigma,
             akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict,
-            test_size=args.test_size, random_state=args.random_state)
+            test_size=args.test_size, sparse=args.sparse, random_state=args.random_state)
     np.savetxt(sys.stdout, y, fmt='%e')
 
 

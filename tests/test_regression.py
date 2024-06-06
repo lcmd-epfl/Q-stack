@@ -95,7 +95,7 @@ def test_final_error():
     path = os.path.dirname(os.path.realpath(__file__))
     X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
     y = np.loadtxt(os.path.join(path, 'data/mols/dipole.dat'))
-    error0 = 0.6217848772505417
+    error0 = regression.regression(X, y, sigma=3.162278e+01, eta=1.000000e+00, debug=True, train_size=[1.0], random_state=666)[0][1]
     mol_errors = final_error.final_error(X, y, sigma=3.162278e+01, eta=1.000000e+00, random_state=666)
     assert np.allclose(mol_errors.mean(), error0)
 

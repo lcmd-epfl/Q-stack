@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
+from qstack.mathutils.fps import do_fps
 
 
 def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
               akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
               test_size=defaults.test_size, idx_test=None, idx_train=None,
-              random_state=defaults.random_state):
+              sparse=None, random_state=defaults.random_state):
     """ Compute kernel matrix condition number
 
     Args:
@@ -22,6 +23,7 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         random_state (int): the seed used for random number generator (controls train/test splitting)
         idx_test (list): list of indices for the test set (based on the sequence in X)
         idx_train (list): list of indices for the training set (based on the sequence in X)
+        sparse (int): the number of reference environnments to consider for sparse regression
 
     Returns:
         float : condition number
@@ -35,8 +37,17 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         K_all  = kernel(X_train, X_train, 1.0/sigma)
     else:
         K_all  = X[np.ix_(idx_train,idx_train)]
-    K_all[np.diag_indices_from(K_all)] += eta
-    cond   = np.linalg.cond(K_all)
+
+    if not sparse:
+        K_all[np.diag_indices_from(K_all)] += eta
+        K_solve = K_all
+    else:
+        if read_kernel:
+            raise RuntimeError('Cannot do FPS with kernels')
+        sparse_idx = do_fps(X_train)[0][:sparse]
+        K_solve, _ = sparse_regression_kernel(K_all, np.zeros(len(K_all)), sparse_idx, eta)
+
+    cond = np.linalg.cond(K_solve)
     return cond
 
 
@@ -53,6 +64,7 @@ def main():
     parser.add_argument('--test',             type=float,          dest='test_size',    default=defaults.test_size,    help='test set fraction (default='+str(defaults.test_size)+')')
     parser.add_argument('--ll',               action='store_true', dest='ll',           default=False,                 help='if correct for the numper of threads')
     parser.add_argument('--readkernel',       action='store_true', dest='readk',        default=False,                 help='if X is kernel')
+    parser.add_argument('--sparse',           type=int,            dest='sparse',       default=None,                  help='regression basis size for sparse learning')
     parser.add_argument('--random_state',     type=int,            dest='random_state', default=defaults.random_state, help='seed for the numpy.random.RandomState for test / train split generator')
     args = parser.parse_args()
     print(vars(args))
@@ -60,7 +72,7 @@ def main():
     X = np.load(args.repr)
     c = condition(X, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
                   akernel=args.kernel, gkernel=args.gkernel, gdict=args.gdict,
-                  test_size=args.test_size, random_state=args.random_state)
+                  test_size=args.test_size, sparse=args.sparse, random_state=args.random_state)
     print("%.1e"%c)
 
 
