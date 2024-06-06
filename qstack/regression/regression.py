@@ -12,10 +12,29 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
                random_state=defaults.random_state, idx_test=None,
                sparse=None, debug=False, save_pred=False):
-    """
+    """ Produces learning cruves (LC) data, for various training sizes, using kernel ridge regression and the user specified parameters
 
-    .. todo::
-        Write the docstring
+    Args:
+        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
+        y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
+        read_kernel (bool): if 'X' is a kernel and not an array of representations
+        sigma (float): width of the kernel
+        eta (float): regularization strength for matrix inversion
+        akernel (str): local kernel (Laplacian, Gaussian, linear)
+        gkernel (str): global kernel (REM, average)
+        gdit (dict): parameters of the global kernels
+        test_size (float or int): test set fraction (or number of samples)
+        train_size (list): list of training set size fractions used to evaluate the points on the LC
+        n_rep (int): the number of repetition for each point (using random sampling)
+        random_state (int): the seed used for random number generator (controls train/test splitting)
+        idx_test (list): list of indices for the test-set (based on the sequence in X
+        sparse (int): the number of reference environnments to consider for sparse regression
+        debug (bool): to use a fixed seed for random sampling (for reproducibility)
+        save_pred (bool): to return all predicted targets
+
+    Returns:
+        The computed LC, as a list containing all its points (train size, MAE, std)
+        If save_pres is True, a tuple with (results, (target values, predicted values))
     """
     if read_kernel is False:
         kernel = get_kernel(akernel, [gkernel, gdict])
