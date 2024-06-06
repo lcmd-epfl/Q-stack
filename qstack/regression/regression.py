@@ -113,7 +113,8 @@ def main():
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
 
-    maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel,
+    maes_all = regression(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
+                          akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict,
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
                           debug=args.debug, random_state=args.random_state)
     for size_train, meanerr, stderr in maes_all:

@@ -159,7 +159,9 @@ def main():
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
 
-    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta, akernel=args.akernel, sparse=args.sparse,
+    errors = hyperparameters(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
+                             akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict,
+                             sparse=args.sparse,
                              test_size=args.test_size, splits=args.splits, printlevel=args.printlevel, adaptive=args.adaptive)
     errors = np.array(errors)
     if args.nameout is not None:

@@ -5,14 +5,14 @@ from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 
 
 def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
-    """ Computes a kernel using a list of representations.
+    """ Computes a kernel between sets A and B (or A and A) using their representations.
 
     Args:
-        X (list of arrays): Representations.
-        Y (list of arrays): Property???. Defaults to [].
-        sigma (): Sigma hyperparameter. Defaults to 32.0.
-        akernel (): Kernel type (G for Gaussian, L for Laplacian, and myL for Laplacian for open-shell systems). Defaults to L
-        gkernel (): Global kernel type (agv for average, rem for REMatch kernel, None for local kernels). Defaults to None.
+        X (list of arrays): Representation of A
+        Y (list of arrays): Representation of B.
+        sigma (): Sigma hyperparameter.
+        akernel (): Kernel type (G for Gaussian, L for Laplacian, and myL for Laplacian for open-shell systems).
+        gkernel (): Global kernel type (agv for average, rem for REMatch kernel, None for local kernels).
         gdict (): Dictionary like input string to initialize global kernel parameters. Defaults to {'alpha':1.0, 'normalize':1}.
 
     Returns:
