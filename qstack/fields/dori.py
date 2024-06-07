@@ -261,7 +261,7 @@ def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4, dx=1e-4):
     return dori, rho
 
 
-def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1, dx=1e-4):
+def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1, dx=1e-4, progress=False):
     """Wrapper to compute DORI on a given grid
 
     Args:
@@ -282,6 +282,9 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
         mem : float
             max. memory (GiB) that can be allocated to compute
             the AO and their derivatives
+        progress : bool
+            if print a progress bar
+
     Returns:
         1D array of (ngrids) --- computed DORI
         1D array of (ngrids) --- electron density
@@ -292,12 +295,16 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
     max_size = int(mem * 2**30)  # mem * 1 GiB
     point_size = 10 * mol.nao * np.float64().itemsize  # memory needed for 1 grid point
     dgrid = max_size // point_size
+    grid_chunks = range(0, len(coords), dgrid)
+    if progress:
+        grid_chunks = tqdm(grid_chunks)
+
     rho = np.zeros(len(coords))
 
     if alg in [*accumulate('analytical')]:
         drho_dr = np.zeros((3, len(coords)))
         d2rho_dr2 = np.zeros((3, 3, len(coords)))
-        for i in tqdm(range(0, len(coords), dgrid)):
+        for i in grid_chunks:
             s = np.s_[i:i+dgrid]
             rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c, eps=eps)
             # Yes the data is copied around too much (three times).
@@ -311,7 +318,7 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
 
     elif alg in [*accumulate('numerical')]:
         dori = np.zeros_like(rho)
-        for i in tqdm(range(0, len(coords), dgrid)):
+        for i in grid_chunks:
             s = np.s_[i:i+dgrid]
             dori_i, rho_i = compute_dori_num(mol, coords[s], dm=dm, c=c, eps=eps, dx=dx)
             dori[s] = dori_i
@@ -321,11 +328,11 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
 
 def dori(mol, dm=None, c=None,
          eps=1e-4, alg='analytical',
-         mem=1,
          grid_type='dft',
          grid_level=1,
          nx=80, ny=80, nz=80, resolution=RESOLUTION, margin=BOX_MARGIN,
-         cubename=None):
+         cubename=None,
+         dx=1e-4, mem=1, progress=False):
     """Compute DORI
 
     Args:
@@ -357,6 +364,10 @@ def dori(mol, dm=None, c=None,
         mem : float
               max. memory (GiB) that can be allocated to compute
               the AO and their derivatives
+        dx : float
+            Step (in Bohr) to take the numerical derivatives
+        progress : bool
+            if print a progress bar
 
     Returns:
         Tuple of:
@@ -378,7 +389,7 @@ def dori(mol, dm=None, c=None,
         weights = np.ones(grid.get_ngrids())
         coords  = grid.get_coords()
 
-    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps, alg=alg.lower(), mem=mem)
+    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps, alg=alg.lower(), mem=mem, dx=dx, progress=progress)
 
     if grid_type=='cube' and cubename:
         grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename+'.dori.cube', comment='DORI')
