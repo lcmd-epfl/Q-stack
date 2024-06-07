@@ -3,8 +3,8 @@ import glob
 from types import SimpleNamespace
 import numpy as np
 import ase.io
-from qstack.qml.slatm import get_slatm_rxn
-from qstack.qml.b2r2 import get_b2r2
+from qstack_qml.slatm import get_slatm_rxn
+from qstack_qml.b2r2 import get_b2r2
 
 
 class Rxn_data:

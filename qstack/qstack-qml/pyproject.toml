@@ -5,18 +5,15 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "qstack"
-#version = "0.0.0"
-dynamic = ["version"]
-description = "Stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning"
+name = "qstack-qml"
+version = "0.0.1"
+description = "A set of geometric descriptors used by qstack (codes for dedicated pre- and post-processing tasks for Quantum Machine Learning)"
 readme = "README.md"
 license = {file = "LICENSE"}
 
 authors = [
-    {name = "Alberto Fabrizio"},  # orcid = "0000-0002-4440-3149"
     {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},  # orcid = "0000-0003-2250-9898"
     {name = "Yannick Calvino", email = "yannick.calvinoalonso@epfl.ch"},  # orcid = "0009-0008-9573-7772"
-    {name = "Liam Marsh", email = "liam.marsh@epfl.ch"},  # orcid = "0000-0002-7276-5673"
 ]
 maintainers = [
     {name = "Ksenia Briling", email = "ksenia.briling@epfl.ch"},  # orcid = "0000-0003-2250-9898"
@@ -26,11 +23,9 @@ maintainers = [
 
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: C",
     "License :: OSI Approved :: MIT License",
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "Programming Language :: Python :: Implementation :: CPython",
 ]
 
 # note: minimal versions were just copy-pasted from requirements.txt, some earlier versions may also work
@@ -38,19 +33,9 @@ requires-python = ">=3.9"
 dependencies = [
     'numpy >= 1.22.3',
     'scipy >= 1.10',
-    'pyscf >= 2.0.1',
     'tqdm >= 4.66',
-    #'scikit-learn',
-    #'equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core',
+    'ase >= 3.22',
 ]
-
-[project.optional-dependencies]
-#qml = ["qstack-qml @ file://qstack/qstack-qml"]  # this is managed in setup.py because of course.
-regression = ["scikit-learn >= 0.24.2"]
-wigner = ["sympy >= 1.5"]
-gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2"]  #	branch:	dev, date: 2024-06-06
-equio = ["equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core"]
-all = ["qstack[qml,regression,wigner,equio,gmol]"]
 
 [project.urls]
 Repository = "https://github.com/lcmd-epfl/Q-stack.git"
@@ -61,5 +46,4 @@ Repository = "https://github.com/lcmd-epfl/Q-stack.git"
 where = ["."]
 exclude = ["tests","examples"]
 namespaces = false
-[tool.setuptools.package-data]
-"*" = ['regression/lib/manh.c', 'spahm/rho/basis_opt/*.bas']
+
