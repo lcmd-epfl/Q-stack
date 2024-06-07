@@ -49,8 +49,8 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
         msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
         warnings.warn(msg)
         if reorder_dest is not None:
-            msg = f'\nDensity matrix reordering for ORCA to {reorder_dest} may be compromised.'
-            warnings.warn(msg)
+            msg = f'\nDensity matrix reordering for ORCA to {reorder_dest} is compromised.'
+            raise RuntimeError(msg)
 
     if reorder_dest is not None:
         dm = np.array([reorder_ao(mol, i, src='orca', dest=reorder_dest) for i in dm])
@@ -120,7 +120,6 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
     def _reorder_coeff(c):
         # In ORCA, at least def2-SVP and def2-TZVP for 3d metals
         # are not sorted wrt angular momenta
-        # TODO add the fix to read_density()   #if gto.basis._format_basis_name(mol.basis)=='def2tzvp':
         if ls_from_orca is not None:
             indices_full = np.arange(mol.nao)
             for iat, ls in ls_from_orca.items():
@@ -136,10 +135,10 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
                 indices_full[atom_slice] = indices[:] + ao_limits[0]
             for i in range(len(c)):
                 c[:,i] = c[indices_full,i]
-
         for i in range(len(c)):
             c[:,i] = reorder_ao(mol, c[:,i], src='orca', dest=reorder_dest)
-    [_reorder_coeff(c_full[i]) for i in range(c_full.shape[0])]
+    for i in range(c_full.shape[0]):
+        _reorder_coeff(c_full[i])
 
 
 def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
