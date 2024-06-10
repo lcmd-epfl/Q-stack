@@ -32,7 +32,7 @@ classifiers = [
 requires-python = ">=3.9"
 dependencies = [
     'numpy >= 1.22.3',
-    'scipy >= 1.10',
+    'scipy >= 1.1.0',
     'tqdm >= 4.66',
     'ase >= 3.22',
 ]
