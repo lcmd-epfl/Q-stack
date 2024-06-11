@@ -38,11 +38,52 @@ def bond(mols, dms,
             vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             allvec[iomod,imol,:len(vec)] = vec
 
+    return allvec
+
+def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
+             pairfile=None, dump_and_exit=False, same_basis=True,
+             bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
+             elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
+             with_symbols=False, only_z=[], merge=True):
+
+    if not dump_and_exit:
+        dms     = utils.mols_guess(mols, xyzlist, guess,
+                               xc=defaults.xc, spin=spin, readdm=readdm, printlevel=printlevel)
+    else:
+        dms = []
+
+    if len(only_z) > 0:
+        all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z])
+    else:
+        all_atoms   = np.array([mol.elements for mol in mols])
+
+    allvec  = bond(mols, dms, bpath, cutoff, omods,
+                   spin=spin, elements=elements,
+                   only_m0=only_m0, zeros=zeros, split=split, printlevel=printlevel,
+                   pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
+    maxlen=allvec.shape[-1]
+    natm = allvec.shape[-2]
+
     if split is False:
         shape  = (len(omods), -1, maxlen)
-        atidx  = np.where(np.array([[1]*zin + [0]*(natm-zin) for zin in zinmols]).flatten())
+        atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
+        all_atoms = all_atoms.flatten()
+        allvec = allvec.squeeze()
+    elif with_symbols:
+        msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
+        raise RuntimeError()
+
+    if printlevel>0: print(allvec.shape)
+
+    if merge is True:
+        allvec = np.hstack(allvec)
+        if with_symbols:
+            allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
+    elif with_symbols:
+        allvec = np.array([[(z, v) for v,z in zip(modvec, all_atoms)] for modvec in allvec], dtype=object)
     return allvec
+
 def main():
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
     parser.add_argument('--mol',           type=str,            dest='filename',       required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
@@ -88,38 +129,17 @@ def main():
         charge  = utils.get_chsp(args.charge, len(xyzlist))
         spin    = utils.get_chsp(args.spin,   len(xyzlist))
     mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
-    if args.with_symbols:
-        if len(args.only_z) > 0:
-            all_atoms   = np.array([z for mol in mols for z in mol.elements if z in args.only_z]).flatten()
-        else:
-            all_atoms   = np.array([mol.elements for mol in mols]).flatten()
-    if not args.dump_and_exit:
-        dms     = utils.mols_guess(mols, xyzlist, args.guess,
-                               xc=defaults.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print)
+    
+    reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print,
+                      pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
+                      bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
+                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split)
+    if args.print > 0: print(reps.shape)
+    if args.merge:
+        np.save(args.name_out+'_'+'_'.join(args.omod), reps)
     else:
-        dms = []
-    allvec  = bond(mols, dms, args.bpath, args.cutoff, args.omod,
-                   spin=args.spin, elements=args.elements,
-                   only_m0=args.only_m0, zeros=args.zeros, split=args.split, printlevel=args.print,
-                   pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis, only_z=args.only_z)
-
-    if args.print>1: print(allvec.shape)
-    ### I think this was needed for a particular case but can't remember which one
-    #allvec = np.squeeze(allvec)
-    #allvec = np.array(allvec, ndmin=2)
-
-    if args.spin:
-        if args.merge is False:
-            for omod, vec in zip(args.omod, allvec):
-                if args.with_symbols: allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
-                np.save(args.name_out+'_'+omod, vec)
-        else:
-            allvec = np.hstack(allvec)
-            if args.with_symbols: allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
-            np.save(args.name_out+'_'+'_'.join(args.omod), allvec)
-    else:
-        if args.with_symbols: allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
-        np.save(args.name_out+'_'+'_'.join(args.omod), allvec)
+        for vec, omod in zip(reps, args.omod):
+            np.save(args.name_out+'_'+omod, vec)
 
 if __name__ == "__main__":
     main()
