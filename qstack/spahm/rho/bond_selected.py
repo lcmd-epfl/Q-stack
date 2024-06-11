@@ -19,6 +19,7 @@ parser.add_argument('--xc',            type=str,            dest='xc',          
 parser.add_argument('--dir',           type=str,            dest='dir',            default='./',                     help=f'directory to save the output in (default=current dir)')
 parser.add_argument('--cutoff',        type=float,          dest='cutoff',         default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
 parser.add_argument('--bpath',         type=str,            dest='bpath',          default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
+parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
 parser.add_argument('--omod',          type=str,            dest='omod',           default=defaults.omod, nargs='+', help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
 parser.add_argument('--print',         type=int,            dest='print',          default=0,                        help='printing level')
 parser.add_argument('--onlym0',        action='store_true', dest='only_m0',        default=False,                    help='use only functions with m=0')
@@ -41,7 +42,7 @@ def main():
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
     dms  = utils.mols_guess(mols, xyzlist, args.guess,
                             xc=args.xc, spin=args.spin, printlevel=args.print)
-    mybasis, idx, M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print)
+    mybasis, idx, M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print, same_basis=args.same_basis)
 
     for j, (bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
         if args.print>0: print('mol', j, flush=True)

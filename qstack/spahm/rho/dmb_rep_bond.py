@@ -76,7 +76,7 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
     return qqs, qqs4q
 
 
-def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel):
+def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_basis=False):
     qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols)]
     qqs0 = sorted(set(qqs0))
     if printlevel>1: print(qqs0)
