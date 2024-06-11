@@ -56,6 +56,11 @@ def test_orca_gbw_reader():
     assert np.allclose(e421, e)
     assert np.all(occ421==occ)
 
+    c400, e400, occ400 = qstack.orcaio.read_gbw(mol, path+'/data/orca/H2O.orca400.gbw', sort_l=False)
+    compare_MO(c, c400)
+    assert np.allclose(e400, e)
+    assert np.all(occ400==occ)
+
 
 def test_orca_gbw_reader_def2tzvp():
     path = os.path.dirname(os.path.realpath(__file__))

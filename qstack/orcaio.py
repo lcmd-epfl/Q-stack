@@ -128,7 +128,10 @@ def _parse_gbw(fname):
 
     with open(fname, "rb") as f:
         coefficients_ab, energies_ab, occupations_ab = read_mos()
-        ls = read_basis()
+        try:
+            ls = read_basis()
+        except:  # Orca version 4.0
+            ls = {}
         return coefficients_ab, energies_ab, occupations_ab, ls
 
 
@@ -174,7 +177,7 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
     """Read orbitals from an ORCA output.
 
     Tested on Orca versions 4.2 and 5.0.
-    Does not work for Orca version 4.0.
+    Limited for Orca version 4.0 (cannot read the basis set).
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -192,6 +195,8 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
            nao is number of atomic/molecular orbitals.
     """
     c, e, occ, ls = _parse_gbw(fname)
+    if not ls and sort_l:
+        raise RuntimeError(f'{fname}: basis set information not found. Cannot check if the basis set is sorted wrt angular momenta. Put sort_l=False to ignore')
 
     ls = {iat: lsiat for iat, lsiat in ls.items() if np.any(lsiat!=sorted(lsiat))}
     if ls and not sort_l:
