@@ -41,14 +41,20 @@ def test_orca_gbw_reader():
     c = mf.mo_coeff
     e = mf.mo_energy
     occ = mf.mo_occ
+    def compare_MO(c0, c1):
+        for s in range(c0.shape[0]):
+            for i in range(c0.shape[-1]):
+                assert 5e-3 > min(np.linalg.norm(c0[s,:,i]-c1[s,:,i]), np.linalg.norm(c0[s,:,i] + c1[s,:,i]))
 
     c504, e504, occ504 = qstack.orcaio.read_gbw(mol, path+'/data/orca/H2O.orca504.gbw')
-    for s in range(c.shape[0]):
-        for i in range(c.shape[-1]):
-            assert 5e-3 > min(np.linalg.norm(c[s,:,i]-c504[s,:,i]), np.linalg.norm(c[s,:,i] + c504[s,:,i]))
+    compare_MO(c, c504)
+    assert np.allclose(e504, e)
+    assert np.all(occ504==occ)  # fine since they contain only 0.0 and 1.0
 
-    assert np.linalg.norm(e504-e) < 1e-5
-    assert np.linalg.norm(occ504-occ) == 0.0  # fine since they contain only 0.0 and 1.0
+    c421, e421, occ421 = qstack.orcaio.read_gbw(mol, path+'/data/orca/H2O.orca421.gbw')
+    compare_MO(c, c421)
+    assert np.allclose(e421, e)
+    assert np.all(occ421==occ)
 
 
 def test_orca_gbw_reader_def2tzvp():
@@ -62,7 +68,6 @@ def test_orca_gbw_reader_def2tzvp():
     mol_dip = _dipole_moment(mol, dm)
     mol_dip_true = np.array([-0.98591, -2.20093, 2.61135])
     assert np.linalg.norm(mol_dip-mol_dip_true) < 1e-5
-
 
 
 if __name__ == '__main__':

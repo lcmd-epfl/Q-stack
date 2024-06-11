@@ -1,4 +1,4 @@
-! HF sto-3g LARGEPRINT
+! HF sto-3g LARGEPRINT keepdens
 *xyz 1 2
 O      0.063738   -0.275703    0.000016
 H     -0.031835    0.137894    0.569004
