@@ -9,9 +9,33 @@ from .utils import defaults
 
 def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
-         spin=None, elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
+         spin=None, elements=None, only_m0=False, zeros=False, printlevel=0,
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
+    """ Computes SPAHM-b representations for a set of molecules.
 
+    Args:
+        - mols (list): the list of molecules (pyscf.Mole objects)
+        - dms (list of numpy.ndarray): list of guess density matrices for each molecule
+        - bpath (str): path to the directory containing bond-optimized basis-functions (.bas)
+        - cutoff (float): the cutoff distance (angstrom) between atoms to be considered as bond
+        - omods (list of str): the selected mode for open-shell computations
+        - spin (list of int): list of spins for each molecule
+        - elements (list of str): list of all elements present in the set of molecules
+        - only_m0 (bool): use only basis functions with `m=0`
+        - zeros (bool): add zeros features for non-existing bond pairs
+        - printlevel (int): level of verbosity
+        - pairfile (str): path to the pairfile (if None, atom pairs are detected automatically)
+        - dump_and_exit (bool): to save pairfile for the set of molecules (without generating representaitons)
+        - same_basis (bool): to use the same bond-optimized basis function for all atomic pairs (ZZ.bas == CC.bas for any Z)
+        - only_z (list of str): restrict the atomic representations to atom types in this list
+
+    Returns:
+        A numpy.ndarray with the atomic spahm-b representations for each molecule (Nmods,Nmolecules,NatomMax,Nfeatures).
+        with:   - Nmods: the alpha and beta components of the representation
+                - Nmolecules: the number of molecules in the set
+                - NatomMax: the maximum number of atoms in one molecule
+                - Nfeatures: the number of features (for each omods)
+    """
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
                                                                      pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
@@ -45,7 +69,42 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              with_symbols=False, only_z=[], merge=True):
+    """ Computes and reshapes an array of SPAHM-b representation
 
+    Args:
+        - mols (list): the list of molecules (pyscf.Mole objects)
+        - xyzlist (list of str): list with the paths to the xyz files
+        - guess (str): the guess Hamiltonian
+        - xc (str): the exchange-correlation functionals
+        - dms (list of numpy.ndarray): list of guess density matrices for each molecule
+        - readdm (str): path to the .npy file containins density matrices
+        - bpath (str): path to the directory containing bond-optimized basis-functions (.bas)
+        - cutoff (float): the cutoff distance (angstrom) between atoms to be considered as bond
+        - omods (list of str): the selected mode for open-shell computations
+        - spin (list of int): list of spins for each molecule
+        - elements (list of str): list of all elements present in the set of molecules
+        - only_m0 (bool): use only basis functions with `m=0`
+        - zeros (bool): add zeros features for non-existing bond pairs
+        - printlevel (int): level of verbosity
+        - pairfile (str): path to the pairfile (if None, atom pairs are detected automatically)
+        - dump_and_exit (bool): to save pairfile for the set of molecules (without generating representaitons)
+        - same_basis (bool): to use the same bond-optimized basis function for all atomic pairs (ZZ.bas == CC.bas for any Z)
+        - only_z (list of str): restrict the atomic representations to atom types in this list
+        - split (bool): to split the final array into molecules
+        - with_symbols (bool): to associate atomic symbol to representations in final array
+        - merge (bool): to concatenate alpha and beta representations to a single feature vector
+
+    Returns:
+        A numpy.ndarray with all representations with shape (Nmods,Nmolecules,NatomsMax,Nfeatures)
+        with:   - Nmods: the alpha and beta components of the representation
+                - Nmolecules: the number of molecules in the set
+                - NatomMax: the maximum number of atoms in one molecule
+                - Nfeatures: the number of features (for each omods)
+        reshaped according to:
+            - if split==True: collapses Nmolecules and returns (Nmods,Natoms,Nfeatures) (where Natoms is the total number of atoms in the set of molecules)
+            - if merge==True: collapses Nmods and returns (Natoms,Nfeatures*2)
+            - if with_symbols==True: returns (Natoms, 2) containging the atom symbols along 1st dim and one of the above arrays
+    """
     if not dump_and_exit:
         dms     = utils.mols_guess(mols, xyzlist, guess,
                                xc=defaults.xc, spin=spin, readdm=readdm, printlevel=printlevel)
@@ -59,7 +118,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
 
     allvec  = bond(mols, dms, bpath, cutoff, omods,
                    spin=spin, elements=elements,
-                   only_m0=only_m0, zeros=zeros, split=split, printlevel=printlevel,
+                   only_m0=only_m0, zeros=zeros, printlevel=printlevel,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
@@ -130,7 +189,7 @@ def main():
         spin    = utils.get_chsp(args.spin,   len(xyzlist))
     mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
     
-    reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=args.spin, readdm=args.readdm, printlevel=args.print,
+    reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=spin, readdm=args.readdm, printlevel=args.print,
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
                       elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split)
