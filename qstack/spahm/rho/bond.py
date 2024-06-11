@@ -91,7 +91,7 @@ def main():
     parser.add_argument('--guess',         type=str,            dest='guess',          default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         type=str,            dest='units',          default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         type=str,            dest='basis'  ,        default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--ecp',           type=str,            dest='ecp'  ,          default=None,                     help='Effective core potential to be used (default: None)')
+    parser.add_argument('--ecp',        dest='ecp',        default=None,                  type=str, help=f'effective core potential to use (default: None)')
     parser.add_argument('--charge',        type=str,            dest='charge',         default=None,                     help='charge / path to a file with a list of thereof')
     parser.add_argument('--spin',          type=str,            dest='spin',           default=None,                     help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--xc',            type=str,            dest='xc',             default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
