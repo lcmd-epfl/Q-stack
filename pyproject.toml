@@ -34,20 +34,19 @@ classifiers = [
 ]
 
 # note: minimal versions were just copy-pasted from requirements.txt, some earlier versions may also work
+# note: maximal versions are just the latest versions to exist when compatibility checks were made, later versions may also work
 requires-python = ">=3.9"
 dependencies = [
-    'numpy >= 1.22.3',
-    'scipy >= 1.10',
-    'pyscf >= 2.0.1',
+    'numpy >= 1.22.3, < 1.27',
+    'scipy >= 1.1.0, < 1.14',
+    'pyscf >= 2.0.1, < 2.6',
     'tqdm >= 4.66',
-    #'scikit-learn',
-    #'equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core',
 ]
 
 [project.optional-dependencies]
 #qml = ["qstack-qml @ file://qstack/qstack-qml"]  # this is managed in setup.py because of course.
-regression = ["scikit-learn >= 0.24.2"]
-wigner = ["sympy >= 1.5"]
+regression = ["scikit-learn >= 0.24.2, < 1.6"]
+wigner = ["sympy >= 1.5, < 1.13"]
 gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2"]  #	branch:	dev, date: 2024-06-06
 equio = ["equistore-core @ git+https://github.com/lab-cosmo/equistore.git@e5b9dc365369ba2584ea01e9d6a4d648008aaab8#subdirectory=python/equistore-core"]
 all = ["qstack[qml,regression,wigner,equio,gmol]"]

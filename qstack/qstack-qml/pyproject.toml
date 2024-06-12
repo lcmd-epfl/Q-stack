@@ -29,12 +29,13 @@ classifiers = [
 ]
 
 # note: minimal versions were just copy-pasted from requirements.txt, some earlier versions may also work
-requires-python = ">=3.9"
+# note: maximal versions are just the latest versions to exist when compatibility checks were made, later versions may also work
+requires-python = ">= 3.9"
 dependencies = [
-    'numpy >= 1.22.3',
-    'scipy >= 1.1.0',
+    'numpy >= 1.22.3, < 1.27',
+    'scipy >= 1.1.0, < 1.14',
     'tqdm >= 4.66',
-    'ase >= 3.22',
+    'ase >= 3.22, < 3.24',
 ]
 
 [project.urls]
