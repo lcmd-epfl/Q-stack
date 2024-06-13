@@ -1,7 +1,8 @@
 import numpy as np
 import pyscf
 from pyscf import scf, tdscf
-from qstack import compound, fields
+from qstack import compound
+from qstack.fields import moments
 
 def get_cis(mf, nstates):
     """
@@ -26,7 +27,7 @@ def get_cis_tdm(td):
 
 def get_holepart(mol, x, coeff):
     """Computes the hole and particle density matrices (atomic orbital basis) of selected states.
-    
+
     Args:
         mol (pyscf Mole): pyscf Mole object.
         x (numpy ndarray): Response vector (nstates×occ×virt) normalized to 1.
@@ -71,11 +72,11 @@ def exciton_properties_c(mol, hole, part):
         part (numpy ndarray): Particle density matrix.
 
     Returns:
-        Three floats: the hole-particle distance, the hole size, and the particle size respectively. 
+        Three floats: the hole-particle distance, the hole size, and the particle size respectively.
     """
 
-    hole_N, hole_r, hole_r2 = fields.moments.r2_c(hole, mol)
-    part_N, part_r, part_r2 = fields.moments.r2_c(part, mol)
+    hole_N, hole_r, hole_r2 = moments.r2_c(hole, mol)
+    part_N, part_r, part_r2 = moments.r2_c(part, mol)
 
     dist = np.linalg.norm(hole_r-part_r)
     hole_extent = np.sqrt(hole_r2-hole_r@hole_r)
@@ -91,7 +92,7 @@ def exciton_properties_dm(mol, hole, part):
         part (numpy ndarray): Particle density matrix.
 
     Returns:
-        Three floats: the hole-particle distance, the hole size, and the particle size respectively. 
+        Three floats: the hole-particle distance, the hole size, and the particle size respectively.
     """
 
     with mol.with_common_orig((0,0,0)):

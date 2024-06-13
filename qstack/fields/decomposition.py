@@ -1,7 +1,7 @@
 import numpy as np
 import scipy
 from pyscf import scf
-import qstack
+from qstack import compound
 
 def decompose(mol, dm, auxbasis):
     """Fit molecular density onto an atom-centered basis. 
@@ -15,8 +15,8 @@ def decompose(mol, dm, auxbasis):
         A copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object, and a 1D numpy array containing the decomposition coefficients. 
     """
 
-    auxmol = qstack.compound.make_auxmol(mol, auxbasis)
-    S, eri2c, eri3c = qstack.fields.decomposition.get_integrals(mol, auxmol)
+    auxmol = compound.make_auxmol(mol, auxbasis)
+    S, eri2c, eri3c = get_integrals(mol, auxmol)
     c = get_coeff(dm, eri2c, eri3c)
     return auxmol, c
 

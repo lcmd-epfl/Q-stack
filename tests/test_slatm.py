@@ -1,7 +1,7 @@
 import os
 import glob
 import numpy as np
-from qstack.qml.slatm import get_slatm_for_dataset
+from qstack_qml.slatm import get_slatm_for_dataset
 
 
 def test_slatm_global():

@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 
 import sys
-import sympy
+
+try:
+    import sympy
+except ImportError:
+    print("""
+
+ERROR: cannot import sympy. Have you installed qstack with the \"wigner\" option?\n\n
+(for instance, with `pip install qstack[wigner]` or `pip install qstack[all]`)
+
+""")
+    raise
 
 def xyz(n,m,k):
 # computes the integral of x^2k y^2n z^2m over a sphere

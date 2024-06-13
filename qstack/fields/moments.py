@@ -1,6 +1,6 @@
 import numpy as np
 import pyscf
-from qstack import compound, fields
+from qstack import compound
 
 def first(mol, rho):
     """ Computes the transition dipole moments.

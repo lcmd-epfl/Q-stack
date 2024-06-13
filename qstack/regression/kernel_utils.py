@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 from types import SimpleNamespace
-import qstack
+from qstack.regression import __path__ as REGMODULE_PATH
 
 
 class ParseKwargs(argparse.Action):
@@ -120,7 +120,6 @@ def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     .. todo::
         Write the docstring
     """
-    from qstack.regression.kernel_utils import get_kernel
     species = sorted(max_sizes.keys())
     mol1_dict = mol_to_dict(mol1, species)
     mol2_dict = mol_to_dict(mol2, species)
@@ -213,7 +212,6 @@ def my_laplacian_kernel(X, Y, gamma):
   np.exp(K, K)
   return K
 
-
 def my_kernel_c(akernel):
     """
 
@@ -225,9 +223,9 @@ def my_kernel_c(akernel):
     array_2d_double = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags='CONTIGUOUS')
     def kernel_func_c(X, Y, gamma):
         try:
-            manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh.so")
+            manh = ctypes.cdll.LoadLibrary(REGMODULE_PATH[0]+"/lib/manh.so")
         except:
-            manh = ctypes.cdll.LoadLibrary(qstack.regression.__path__[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
+            manh = ctypes.cdll.LoadLibrary(REGMODULE_PATH[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
         if akernel == 'myLfast':
             kfunc = manh.manh
         elif akernel == 'myG':
