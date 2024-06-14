@@ -165,7 +165,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
     print(max_atoms, max_size, flush=True)
     K_global = np.zeros((n_x, n_y))
     print("Computing global kernel elements:\n[", sep='', end='', flush=True)
-    if X[0] == Y[0]:
+    if Y is X:
         self = True
     else:
         self = False
