@@ -175,6 +175,38 @@ def _parse_gbw(fname):
         return coefficients_ab, energies_ab, occupations_ab, ls
 
 
+def _get_indices(mol, ls_from_orca):
+    """ Get coefficient needed to reorder the AO read from Orca.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        ls_from_orca : dict of {int : [int]} with a list of basis functions
+                       angular momenta for those atoms (not elements!)
+                       whose basis functions are *not* sorted wrt to angular momenta.
+                       The lists represent the Orca order.
+
+    Returns:
+        numpy int 1darray of (nao,) containing the indices to be used as
+                c_reordered = c_orca[indices]
+    """
+    if ls_from_orca is None:
+        return None
+    ao_limits = mol.offset_ao_by_atom()[:,2:]
+    indices_full = np.arange(mol.nao)
+    for iat, ls in ls_from_orca.items():
+        indices = []
+        i = 0
+        for il, l in enumerate(ls):
+            indices.append((l, il, i + np.arange(2*l+1)))
+            i += 2*l+1
+        indices = sorted(indices, key=lambda x: (x[0], x[1]))
+        indices = np.array([j for i in indices for j in i[2]])
+        atom_slice = np.s_[ao_limits[iat][0]:ao_limits[iat][1]]
+        indices_full[atom_slice] = indices[:] + ao_limits[iat][0]
+    assert np.all(sorted(indices_full)==np.arange(mol.nao))
+    return indices_full
+
+
 def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
     """ Reorder coefficient read from ORCA .gbw
 
@@ -192,22 +224,10 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
     def _reorder_coeff(c):
         # In ORCA, at least def2-SVP and def2-TZVP for 3d metals
         # are not sorted wrt angular momenta
-        if ls_from_orca is not None:
-            indices_full = np.arange(mol.nao)
-            for iat, ls in ls_from_orca.items():
-                indices = []
-                i = 0
-                for il, l in enumerate(ls):
-                    indices.append((l, il, i + np.arange(2*l+1)))
-                    i += 2*l+1
-                indices = sorted(indices, key=lambda x: (x[0], x[1]))
-                indices = np.array([j for i in indices for j in i[2]])
-                ao_limits = mol.offset_ao_by_atom()[iat][2:]
-                atom_slice = np.s_[ao_limits[0]:ao_limits[1]]
-                indices_full[atom_slice] = indices[:] + ao_limits[0]
-            for i in range(len(c)):
-                c[:,i] = c[indices_full,i]
+        idx = _get_indices(mol, ls_from_orca)
         for i in range(len(c)):
+            if idx is not None:
+                c[:,i] = c[idx,i]
             c[:,i] = reorder_ao(mol, c[:,i], src='orca', dest=reorder_dest)
     for i in range(c_full.shape[0]):
         _reorder_coeff(c_full[i])

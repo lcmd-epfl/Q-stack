@@ -2,8 +2,10 @@
 
 import os
 import numpy as np
-import qstack
 from pyscf.data import elements
+import qstack
+from qstack.tools import reorder_ao
+
 
 def _dipole_moment(mol, dm):
     charges = mol.atom_charges()
@@ -64,9 +66,8 @@ def test_orca_gbw_reader():
 
 def test_orca_gbw_reader_def2tzvp():
     path = os.path.dirname(os.path.realpath(__file__))
-    mol = qstack.compound.xyz_to_mol(path+'/data/orca/CEHZOF/CEHZOF.xyz', 'def2tzvp', charge=1, spin=1, ecp='def2tzvp')
+    mol = qstack.compound.xyz_to_mol(path+'/data/orca/CEHZOF/CEHZOF.xyz', 'def2tzvp', ecp='def2tzvp')
     c504, e504, occ504 = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
-
     dm = np.zeros_like(c504)
     for i, (ci, occi) in enumerate(zip(c504, occ504)):
         dm[i,:,:] = (ci[:,occi>0] * occi[occi>0]) @ ci[:,occi>0].T
@@ -85,8 +86,26 @@ def test_orca_input_reader():
     assert np.allclose(mol.atom_coords(), mol0.atom_coords())
 
 
+def test_orca_density_reader_def2tzvp():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol = qstack.compound.xyz_to_mol(path+'/data/orca/CEHZOF/CEHZOF.xyz', 'def2tzvp', ecp='def2tzvp')
+    c, e, occ = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
+    c = c.squeeze()
+    occ = occ.squeeze()
+    dm0 = (c[:,occ>0] * occ[occ>0]) @ c[:,occ>0].T
+
+    dm = qstack.orcaio.read_density(mol, 'CEHZOF_1_SPE', directory=path+'/data/orca/CEHZOF', version=504, reorder_dest=None)
+    Co_idx = [mol.atom_symbol(i) for i in range(mol.natm)].index('Co')
+    ls_from_orca = {Co_idx : [0]*6 + [1]*3 + [2]*3 + [1, 2, 3]}
+    idx = qstack.orcaio._get_indices(mol, ls_from_orca)
+    dm = dm[np.ix_(idx,idx)]
+    dm = reorder_ao(mol, dm, src='orca', dest='pyscf')
+    assert np.linalg.norm(dm-dm0) < 1e-14
+
+
 if __name__ == '__main__':
     test_orca_input_reader()
     test_orca_density_reader()
     test_orca_gbw_reader()
     test_orca_gbw_reader_def2tzvp()
+    test_orca_density_reader_def2tzvp()
