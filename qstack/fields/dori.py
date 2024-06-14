@@ -13,10 +13,10 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
 
     Args:
         mol : an instance of :class:`Mole`
-        ao : 3D array of shape (10,ngrids,nao):
+        ao : 3D array of shape (*,ngrids,nao):
             ao[0] : atomic oribitals values on the grid
-            ao[1:4] : atomic oribitals derivatives values
-            ao[4:] : atomic oribitals second derivatives values
+            ao[1:4] : atomic oribitals derivatives values (if deriv>=1)
+            ao[4:10] : atomic oribitals second derivatives values (if deriv==2)
         dm : 2D array of (nao,nao)
             Density matrix (assumed Hermitian)
     Kwargs:
@@ -25,9 +25,9 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
 
     Returns:
         A tuple of:
-            1D array of size ngrids to store electron density;
-            2D array of (3,ngrids) to store density derivatives;
-            3D array of (3,3,ngrids) to store 2nd derivatives
+            1D array of size ngrids to store electron density
+            2D array of (3,ngrids) to store density derivatives (if deriv>=1)
+            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
 
     AO, dAO_dr, d2AO_dr2 = np.split(ao, [1,4])
@@ -60,11 +60,11 @@ def eval_rho_df(mol, ao, c, deriv=2):
 
     Args:
         mol : an instance of :class:`Mole`
-        ao : 3D array of shape (10,ngrids,nao):
+        ao : 3D array of shape (*,ngrids,nao):
             ao[0] : atomic oribitals values on the grid
-            ao[1:4] : atomic oribitals derivatives values
-            ao[4:] : atomic oribitals second derivatives values
-        c : 1D array of (nao)
+            ao[1:4] : atomic oribitals derivatives values (if deriv>=1)
+            ao[4:10] : atomic oribitals second derivatives values (if deriv==2)
+        c : 1D array of (nao,)
             density fitting coefficients
     Kwargs:
         deriv : int
@@ -72,9 +72,9 @@ def eval_rho_df(mol, ao, c, deriv=2):
 
     Returns:
         A tuple of:
-            1D array of size ngrids to store electron density;
-            2D array of (3,ngrids) to store density derivatives;
-            3D array of (3,3,ngrids) to store 2nd derivatives
+            1D array of size ngrids to store electron density
+            2D array of (3,ngrids) to store density derivatives (if deriv>=1)
+            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
 
     rho_all = np.einsum('xip,p->xi', np.atleast_3d(ao), c)
@@ -109,8 +109,8 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
     Returns:
         A tuple of:
             1D array of size ngrids to store electron density
-            2D array of (3,ngrids) to store density derivatives (if deriv>0)
-            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv>1)
+            2D array of (3,ngrids) to store density derivatives (if deriv>=1)
+            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
     if (c is None)==(dm is None):
         raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
@@ -150,7 +150,7 @@ def compute_s2rho(rho, d2rho_dr2, eps=1e-4):
             density threshold
     Returns:
         1D array of (ngrids) --- electron density * sgn(second eigenvalue of d^2rho/dr^2)
-                                 for density>=eps
+                                 if density>=eps else 0
     """
     s2rho = np.zeros_like(rho)
     idx = np.where(rho>=eps)
@@ -289,7 +289,7 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
         1D array of (ngrids) --- computed DORI
         1D array of (ngrids) --- electron density
         1D array of (ngrids) --- electron density * sgn(second eigenvalue of d^2rho/dr^2)
-                                 for density>=eps (only with alg='analytical').
+                                 if density>=eps else 0 (only with alg='analytical').
     """
 
     max_size = int(mem * 2**30)  # mem * 1 GiB
@@ -374,7 +374,7 @@ def dori(mol, dm=None, c=None,
             1D array of (ngrids) --- computed DORI
             1D array of (ngrids) --- electron density
             1D array of (ngrids) --- electron density * sgn(second eigenvalue of d^2rho/dr^2)
-                                     for density>=eps (only with alg='analytical').
+                                     if density>=eps else 0 (only with alg='analytical').
             2D array of (ngrids,3) --- grid coordinates
             1D array of (ngrids) --- grid weights
 
