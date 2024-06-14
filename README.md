@@ -28,11 +28,22 @@ For now, we link to the relevant packages that will be incorporated (among other
       
 ## Install [↑](#contents)
 
-The installation of the library for python use can be done executing the following commands:
+The installation of the library for python use can be done executing one of the following commands:
 
 ```
 python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
+python -m pip install "qstack @ git+https://github.com/lcmd-epfl/Q-stack.git"
+python -m pip install "qstack[all] @ git+https://github.com/lcmd-epfl/Q-stack.git"
+python -m pip install -r requirements.py3.11.txt
 ```
+
+The last two are recommended if you do not know which features you wish to use, since they pull the dependencies required with all 'optional' parts of Q-stack.
+
+If you wish to use a conda environment, an `environment.yml` file is also available, for the conda analogue of the last install command.
+
+A small part of Q-stack, isolated in the `qstack_qml` module name, can be installed on its own, see [the qstack-qml subdirectory's readme](../master/qstack/qstack-qml/README.md).
+
+
 ## Examples [↑](#contents)
 Q-stack comes with several example codes that illustrate some of its key capabilities. To run the examples, go to the example folder and run the following commands:
 
