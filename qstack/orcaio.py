@@ -6,6 +6,46 @@ from qstack.mathutils.matrix import from_tril
 from qstack.tools import reorder_ao
 
 
+def read_input(fname, basis, ecp=None):
+    """Read the structure from an Orca input (XYZ coordinates in simple format only)
+
+    Note: we do not read basis set info from the file.
+    TODO: read also %coords block?
+
+    Args:
+        fname (str) : path to file
+        basis (str/dict) : basis name, path to file, or dict in the pyscf format
+    Kwargs:
+        ecp (str) : ECP to use
+
+    Returns:
+        pyscf Mole object.
+    """
+
+    with open(fname, "r") as f:
+        lines = [x.strip() for x in f.readlines()]
+
+    command_line = '\n'.join(y[1:] for y in filter(lambda x: x.startswith('!'), lines)).lower().split()
+    if 'bohrs' in command_line:
+        unit = 'Bohr'
+    else:
+        unit = 'Angstrom'
+
+    idx_xyz_0, idx_xyz_1 = [y[0] for y in filter(lambda x: x[1].startswith('*'), enumerate(lines))][:2]
+    charge, mult = map(int, lines[idx_xyz_0][1:].split()[1:])
+    molxyz = '\n'.join(lines[idx_xyz_0+1:idx_xyz_1])
+
+    mol = pyscf.gto.Mole()
+    mol.atom = molxyz
+    mol.charge = charge
+    mol.spin = mult-1
+    mol.unit = unit
+    mol.basis = basis
+    mol.ecp = ecp
+    mol.build()
+    return mol
+
+
 def read_density(mol, basename, directory='./', version=500, openshell=False, reorder_dest='pyscf'):
     """Read densities from an ORCA output.
 

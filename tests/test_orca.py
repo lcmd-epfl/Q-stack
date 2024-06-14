@@ -75,7 +75,18 @@ def test_orca_gbw_reader_def2tzvp():
     assert np.linalg.norm(mol_dip-mol_dip_true) < 1e-5
 
 
+def test_orca_input_reader():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol0 = qstack.compound.xyz_to_mol(path+'/data/orca/H2O.xyz', 'sto3g', charge=1, spin=1)
+    mol = qstack.orcaio.read_input(path+'/data/orca/H2O.orca504.inp', 'sto3g')
+    assert mol.natm == mol0.natm
+    assert mol.nelectron == mol0.nelectron
+    assert np.all(mol.elements==mol0.elements)
+    assert np.allclose(mol.atom_coords(), mol0.atom_coords())
+
+
 if __name__ == '__main__':
+    test_orca_input_reader()
     test_orca_density_reader()
     test_orca_gbw_reader()
     test_orca_gbw_reader_def2tzvp()
