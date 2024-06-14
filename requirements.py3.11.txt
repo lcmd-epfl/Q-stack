@@ -1,0 +1,19 @@
+attrs==21.4.0
+certifi==2021.10.8
+h5py==3.11.0
+iniconfig==1.1.1
+packaging==21.3
+pluggy==1.0.0
+py==1.11.0
+pyparsing==3.0.6
+pyscf==2.2.0
+pytest==6.2.5
+numpy===1.22.3
+scipy==1.10
+toml==0.10.2
+scikit-learn==1.5.0
+ase==3.22
+tqdm==4.66
+metatensor-core==0.1.8
+cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2
+qstack/qstack-qml
