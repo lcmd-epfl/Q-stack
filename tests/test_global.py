@@ -3,9 +3,7 @@ import numpy as np
 from qstack.regression import kernel, kernel_utils
 
 
-
 def test_avg_kernel():
-
     path = os.path.dirname(os.path.realpath(__file__))
     X_dir = os.path.join(path, 'data/SPAHM_a_H2O/')
     mollist = [os.path.join(X_dir, s) for s in ['X_H2O.npy', 'X_rotated_H2O.npy', 'X_H2O_dist.npy']]
@@ -19,6 +17,7 @@ def test_avg_kernel():
 
     assert(K.shape == (3,3))
     assert(np.abs(np.sum(K-true_K)) < 1e-05)
+
 
 def test_rem_kernel():
     path = os.path.dirname(os.path.realpath(__file__))
@@ -34,3 +33,7 @@ def test_rem_kernel():
     assert(K.shape == (3,3))
     assert(np.abs(np.sum(K-true_K)) < 1e-05)
 
+
+if __name__ == '__main__':
+    test_avg_kernel()
+    test_rem_kernel()
