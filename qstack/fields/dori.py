@@ -1,4 +1,3 @@
-from itertools import accumulate
 import numpy as np
 from pyscf.dft.numint import eval_ao, _dot_ao_dm, _contract_rho
 from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
@@ -21,13 +20,12 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
             Density matrix (assumed Hermitian)
     Kwargs:
         deriv : int
-            Compute with deriv-order derivatives
+            Compute with up to `deriv`-order derivatives
 
     Returns:
-        A tuple of:
-            1D array of size ngrids to store electron density
-            2D array of (3,ngrids) to store density derivatives (if deriv>=1)
-            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
+        1D array of size ngrids to store electron density
+        2D array of (3,ngrids) to store density derivatives (if deriv>=1)
+        3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
 
     AO, dAO_dr, d2AO_dr2 = np.split(ao, [1,4])
@@ -68,16 +66,15 @@ def eval_rho_df(mol, ao, c, deriv=2):
             density fitting coefficients
     Kwargs:
         deriv : int
-            Compute with deriv-order derivatives
+            Compute with up to `deriv`-order derivatives
 
     Returns:
-        A tuple of:
-            1D array of size ngrids to store electron density
-            2D array of (3,ngrids) to store density derivatives (if deriv>=1)
-            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
+        1D array of size ngrids to store electron density
+        2D array of (3,ngrids) to store density derivatives (if deriv>=1)
+        3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
 
-    rho_all = np.einsum('xip,p->xi', np.atleast_3d(ao), c)
+    rho_all = np.tensordot(np.atleast_3d(ao), c, 1)  # corresponds to np.einsum('xip,p->xi', np.atleast_3d(ao), c)
     if deriv==0:
         return rho_all[0]
     if deriv==1:
@@ -102,15 +99,14 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
         c : 1D array of (nao)
             density fitting coefficients (confilicts with dm)
         deriv : int
-            Compute with deriv-order derivatives
+            Compute with up to `deriv`-order derivatives
         eps : float
             Min. density to compute the derivatives for
 
     Returns:
-        A tuple of:
-            1D array of size ngrids to store electron density
-            2D array of (3,ngrids) to store density derivatives (if deriv>=1)
-            3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
+        1D array of size ngrids to store electron density
+        2D array of (3,ngrids) to store density derivatives (if deriv>=1)
+        3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
     if (c is None)==(dm is None):
         raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
@@ -301,7 +297,7 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
 
     rho = np.zeros(len(coords))
 
-    if alg in [*accumulate('analytical')]:
+    if 'analytical'.startswith(alg.lower()):
         drho_dr = np.zeros((3, len(coords)))
         d2rho_dr2 = np.zeros((3, 3, len(coords)))
         for i in grid_chunks:
@@ -316,7 +312,7 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
         s2rho = compute_s2rho(rho, d2rho_dr2, eps=eps)
         return dori, rho, s2rho
 
-    elif alg in [*accumulate('numerical')]:
+    elif 'numerical'.startswith(alg.lower()):
         dori = np.zeros_like(rho)
         for i in grid_chunks:
             s = np.s_[i:i+dgrid]
@@ -386,14 +382,15 @@ def dori(mol, dm=None, c=None,
         coords  = grid.coords
     elif grid_type=='cube':
         grid = Cube(mol, nx, ny, nz, resolution, margin)
-        weights = np.ones(grid.get_ngrids())
+        weights = np.full(grid.get_ngrids(), np.prod(np.diag(grid.box)) * grid.get_volume_element())
         coords  = grid.get_coords()
 
-    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps, alg=alg.lower(), mem=mem, dx=dx, progress=progress)
+    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps, alg=alg, mem=mem, dx=dx, progress=progress)
 
     if grid_type=='cube' and cubename:
         grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename+'.dori.cube', comment='DORI')
         grid.write(rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.rho.cube', comment='electron density rho')
-        grid.write(s2rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.sgnL2rho.cube', comment='sgn(lambda_2)*rho')
+        if s2rho is not None:
+            grid.write(s2rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.sgnL2rho.cube', comment='sgn(lambda_2)*rho')
 
     return dori, rho, s2rho, coords, weights
