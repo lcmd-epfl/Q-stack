@@ -11,7 +11,7 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
     Taken from pyscf/dft/numint.py and modified to return second derivative matrices.
 
     Args:
-        mol : an instance of :class:`Mole`
+        mol : an instance of :class:`pyscf.gto.Mole`
         ao : 3D array of shape (*,ngrids,nao):
             ao[0] : atomic oribitals values on the grid
             ao[1:4] : atomic oribitals derivatives values (if deriv>=1)
@@ -57,7 +57,7 @@ def eval_rho_df(mol, ao, c, deriv=2):
         for a fitted density.
 
     Args:
-        mol : an instance of :class:`Mole`
+        mol : an instance of :class:`pyscf.gto.Mole`
         ao : 3D array of shape (*,ngrids,nao):
             ao[0] : atomic oribitals values on the grid
             ao[1:4] : atomic oribitals derivatives values (if deriv>=1)
@@ -74,7 +74,8 @@ def eval_rho_df(mol, ao, c, deriv=2):
         3D array of (3,3,ngrids) to store 2nd derivatives (if deriv==2)
     '''
 
-    rho_all = np.tensordot(np.atleast_3d(ao), c, 1)  # corresponds to np.einsum('xip,p->xi', np.atleast_3d(ao), c)
+    maxdim = 1 if deriv==0 else (4 if deriv==1 else 10)
+    rho_all = np.tensordot(ao[:maxdim], c, 1)  # corresponds to np.einsum('xip,p->xi', ao[:maxdim], c)
     if deriv==0:
         return rho_all[0]
     if deriv==1:
@@ -90,7 +91,7 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
     r'''Wrapper to calculate the electron density and the density derivatives.
 
     Args:
-        mol : an instance of :class:`Mole`
+        mol : an instance of :class:`pyscf.gto.Mole`
         coords : 2D array of (ngrids,3)
             Grid coordinates (in Bohr)
     Kwargs:
@@ -121,7 +122,8 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
         return rho
     good_idx = np.where(rho>=eps)[0]
     drho_dr = np.zeros((3,len(coords)))
-    d2rho_dr2 = np.zeros((3,3,len(coords)))
+    if deriv==2:
+        d2rho_dr2 = np.zeros((3,3,len(coords)))
     if len(good_idx)>0:
         ao = eval_ao(mol, coords[good_idx], deriv=deriv)
         ret = eval_rho(ao, deriv=deriv)
@@ -210,7 +212,7 @@ def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4, dx=1e-4):
     See documentation to compute_dori().
 
     Args:
-        mol : an instance of :class:`Mole`
+        mol : an instance of :class:`pyscf.gto.Mole`
         coords : 2D array of (ngrids,3)
             Grid coordinates (in Bohr)
     Kwargs:
@@ -261,7 +263,7 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
     """Wrapper to compute DORI on a given grid
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
+        mol : an instance of :class:`pyscf.gto.Mole`
         coords : 2D array of (ngrids,3)
             Grid coordinates (in Bohr)
     Kwargs:
@@ -302,12 +304,7 @@ def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1
         d2rho_dr2 = np.zeros((3, 3, len(coords)))
         for i in grid_chunks:
             s = np.s_[i:i+dgrid]
-            rho_i, drho_dr_i, d2rho_dr2_i = compute_rho(mol, coords[s], dm=dm, c=c, eps=eps)
-            # Yes the data is copied around too much (three times).
-            # We tried to make compute_rho() write directly to these but didn't gain a lot.
-            rho[s] = rho_i
-            drho_dr[:,s] = drho_dr_i
-            d2rho_dr2[:,:,s] = d2rho_dr2_i
+            rho[s], drho_dr[:,s], d2rho_dr2[:,:,s] = compute_rho(mol, coords[s], dm=dm, c=c, eps=eps)
         dori = compute_dori(rho, drho_dr, d2rho_dr2, eps=eps)
         s2rho = compute_s2rho(rho, d2rho_dr2, eps=eps)
         return dori, rho, s2rho
@@ -332,7 +329,7 @@ def dori(mol, dm=None, c=None,
     """Compute DORI
 
     Args:
-        mol : an instance of :class:`Mole`.
+        mol : an instance of :class:`pyscf.gto.Mole`
     Kwargs:
         dm : 2D array of (nao,nao)
             Density matrix (confilicts with c)
