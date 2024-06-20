@@ -32,7 +32,9 @@ def main():
     parser = argparse.ArgumentParser(description='This program computes kernel.')
     parser.add_argument('--x',      type=str,   dest='repr',      required=True,           help='path to the representations file')
     parser.add_argument('--sigma',  type=float, dest='sigma',     default=defaults.sigma,  help='sigma hyperparameter (default='+str(defaults.sigma)+')')
-    parser.add_argument('--akernel', type=str,   dest='akernel',    default=defaults.kernel, help='kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
+    parser.add_argument('--akernel', type=str,   dest='akernel',    default=defaults.kernel,
+        help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity, "G_sklearn","L_sklearn","G_customc","L_customc","L_custompy" for specific implementations. '
+             '("L_custompy" is suited to open-shell systems) (default '+defaults.kernel+')')
     parser.add_argument('--gdict',     nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
     parser.add_argument('--gkernel', type=str,   dest='gkernel',    default=None, help='global kernel type (agv for average, rem for REMatch kernel, None for local kernels) (default None)')
     parser.add_argument('--dir',    type=str,   dest='dir',       default='./',            help='directory to save the output in (default=current dir)')
