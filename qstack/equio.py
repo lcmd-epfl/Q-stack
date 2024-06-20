@@ -1,7 +1,8 @@
+from functools import reduce
 import numpy as np
 from types import SimpleNamespace
 from pyscf import data
-import equistore.core as equistore
+import metatensor
 import numbers
 
 vector_label_names = SimpleNamespace(
@@ -58,13 +59,25 @@ def _get_tsize(tensor):
     """Computes the size of a tensor.
 
     Args:
-        tensor (equistore TensorMap): Tensor.
+        tensor (metatensor TensorMap): Tensor.
 
     Returns:
         The size of the tensor as an integer.
     """
     return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
 
+def _labels_to_array(labels):
+    """Represents a set of metatensor labels as an array of the labels, using custom dtypes
+    
+    Args:
+        labels (metatensor Labels): Labels
+    
+    Returns:
+        labels (numpy ndarray[ndim=1, structured dtype]): the same labels
+    """
+    values = labels.values
+    dtype = [ (name,values.dtype) for name in labels.names]
+    return values.view(dtype=dtype).reshape(values.shape[0])
 
 def vector_to_tensormap(mol, c):
     """Transform a vector into a tensor map. Used by :py:func:`array_to_tensormap`.
@@ -74,7 +87,7 @@ def vector_to_tensormap(mol, c):
         v (numpy ndarray): Vector.
 
     Returns:
-        A equistore tensor map.
+        A metatensor tensor map.
     """
 
     atom_charges = list(mol.atom_charges())
@@ -104,11 +117,11 @@ def vector_to_tensormap(mol, c):
             block_prop_label_vals[label] = np.arange(properties_count).reshape(-1,1)
             block_samp_label_vals[label] = np.where(atom_charges==q)[0].reshape(-1,1)
 
-    tm_labels = equistore.Labels(vector_label_names.tm, np.array(tm_label_vals))
+    tm_labels = metatensor.Labels(vector_label_names.tm, np.array(tm_label_vals))
 
-    block_comp_labels = {key: equistore.Labels(vector_label_names.block_comp, block_comp_label_vals[key]) for key in blocks}
-    block_prop_labels = {key: equistore.Labels(vector_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
-    block_samp_labels = {key: equistore.Labels(vector_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
+    block_comp_labels = {key: metatensor.Labels(vector_label_names.block_comp, block_comp_label_vals[key]) for key in blocks}
+    block_prop_labels = {key: metatensor.Labels(vector_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
+    block_samp_labels = {key: metatensor.Labels(vector_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
 
     # Fill in the blocks
 
@@ -138,8 +151,8 @@ def vector_to_tensormap(mol, c):
 
     # Build tensor blocks and tensor map
 
-    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=[block_comp_labels[key]], properties=block_prop_labels[key]) for key in tm_label_vals]
-    tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+    tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=[block_comp_labels[key]], properties=block_prop_labels[key]) for key in tm_label_vals]
+    tensor = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensor
 
@@ -149,7 +162,7 @@ def tensormap_to_vector(mol, tensor):
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        tensor (equistore TensorMap): Tensor.
+        tensor (metatensor TensorMap): Tensor.
 
     Returns:
         A numpy ndarray (vector).
@@ -185,7 +198,7 @@ def matrix_to_tensormap(mol, dm):
         v (numpy ndarray): Matrix.
 
     Returns:
-        A equistore tensor map.
+        A metatensor tensor map.
     """
 
     def pairs(list1, list2):
@@ -226,14 +239,14 @@ def matrix_to_tensormap(mol, dm):
                     block_prop_label_vals[label] = pairs(np.arange(properties_count1), np.arange(properties_count2))
                     block_samp_label_vals[label] = pairs(np.where(atom_charges==q1)[0],np.where(atom_charges==q2)[0])
 
-    tm_labels = equistore.Labels(matrix_label_names.tm, np.array(tm_label_vals))
+    tm_labels = metatensor.Labels(matrix_label_names.tm, np.array(tm_label_vals))
 
-    block_prop_labels = {key: equistore.Labels(matrix_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
-    block_samp_labels = {key: equistore.Labels(matrix_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
-    block_comp_labels = {key: [equistore.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key])] for key in blocks}
+    block_prop_labels = {key: metatensor.Labels(matrix_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
+    block_samp_labels = {key: metatensor.Labels(matrix_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
+    block_comp_labels = {key: [metatensor.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key])] for key in blocks}
 
     # Build tensor blocks
-    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+    tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
 
     # Fill in the blocks
 
@@ -293,8 +306,8 @@ def matrix_to_tensormap(mol, dm):
             blocks[key] = np.ascontiguousarray(blocks[key][:,:,_pyscf2gpr_l1_order,:])
 
     # Build tensor map
-    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
-    tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+    tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+    tensor = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensor
 
@@ -304,7 +317,7 @@ def tensormap_to_matrix(mol, tensor):
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        tensor (equistore TensorMap): Tensor.
+        tensor (metatensor TensorMap): Tensor.
 
     Returns:
         A numpy ndarray (matrix).
@@ -352,7 +365,7 @@ def array_to_tensormap(mol, v):
         v (numpy ndarray): Array. It can be a vector or a matrix.
 
     Returns:
-        A equistore tensor map.
+        A metatensor tensor map.
     """
     if v.ndim==1:
         return vector_to_tensormap(mol, v)
@@ -367,15 +380,15 @@ def tensormap_to_array(mol, tensor):
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        tensor (equistore TensorMap): Tensor.
+        tensor (metatensor TensorMap): Tensor.
 
     Returns:
         A numpy ndarray. Matrix or vector, depending on the key names of the tensor.
     """
 
-    if tensor.keys.names==tuple(vector_label_names.tm):
+    if tensor.keys.names==vector_label_names.tm:
         return tensormap_to_vector(mol, tensor)
-    elif tensor.keys.names==tuple(matrix_label_names.tm):
+    elif tensor.keys.names==matrix_label_names.tm:
         return tensormap_to_matrix(mol, tensor)
     else:
         raise Exception(f'Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
@@ -385,16 +398,17 @@ def join(tensors):
     """Merge two or more tensors with the same label names avoiding information duplictaion.
 
     Args:
-        tensors (list): List of equistore TensorMap.
+        tensors (list): List of metatensor TensorMap.
 
     Returns:
-        A equistore TensorMap containing the information of all the input tensors.
+        A metatensor TensorMap containing the information of all the input tensors.
     """
 
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
         raise Exception(f'Cannot merge tensors with different label names')
-    tm_label_vals = sorted(list(set().union(*[set(tensor.keys.tolist()) for tensor in tensors])))
-    tm_labels = equistore.Labels(tensors[0].keys.names, np.array(tm_label_vals))
+    tm_label_vals = set().union(*[set(_labels_to_array(tensor.keys)) for tensor in tensors])
+    tm_label_vals = sorted((tuple(value) for value in tm_label_vals))
+    tm_labels = metatensor.Labels(tensors[0].keys.names, np.array(tm_label_vals))
 
     blocks = {}
     block_comp_labels = {}
@@ -403,7 +417,7 @@ def join(tensors):
     block_samp_label_vals = {}
 
     for label in tm_labels:
-        key = tuple(label.tolist())
+        key = tuple(label.values)
         blocks[key] = []
         block_samp_label_vals[key] = []
         for imol,tensor in enumerate(tensors):
@@ -420,10 +434,10 @@ def join(tensors):
     for key in blocks:
         blocks[key] = np.concatenate(blocks[key])
         block_samp_label_vals[key] = np.array(block_samp_label_vals[key])
-        block_samp_labels[key] = equistore.Labels((_molid_name, *tensor.sample_names), block_samp_label_vals[key])
+        block_samp_labels[key] = metatensor.Labels((_molid_name, *tensor.sample_names), block_samp_label_vals[key])
 
-    tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
-    tensor = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+    tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+    tensor = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensor
 
@@ -432,17 +446,20 @@ def split(tensor):
     """Split a tensor based on the molecule information stored within the input TensorMap.
 
     Args:
-        tensor (equistore TensorMap): Tensor containing several molecules.
+        tensor (metatensor TensorMap): Tensor containing several molecules.
 
     Returns:
-        N equistore TensorMap, where N is equal to the total number of diferent molecules stored within the input TensorMap.
+        N metatensor TensorMap, where N is equal to the total number of diferent molecules stored within the input TensorMap.
     """
 
     if tensor.sample_names[0]!=_molid_name:
         raise Exception(f'Tensor does not seem to contain several molecules')
 
     # Check if the molecule indices are continuous
-    mollist = sorted(set(np.hstack([np.array(tensor.block(keys).samples.tolist())[:,0] for keys in tensor.keys])))
+    mollist = sorted(reduce(
+        lambda a,b: a.union(b),
+        [set(block.samples.column(_molid_name)) for block in tensor.blocks()]
+    ))
     if mollist==list(range(len(mollist))):
         tensors = [None] * len(mollist)
     else:
@@ -451,8 +468,8 @@ def split(tensor):
     # Common labels
     block_comp_labels = {}
     block_prop_labels = {}
-    for label in tensor.keys:
-        key = label.tolist()
+    for label,block in tensor.items():
+        key = tuple(label.values)
         block = tensor.block(label)
         block_comp_labels[key] = block.components
         block_prop_labels[key] = block.properties
@@ -463,20 +480,22 @@ def split(tensor):
         block_samp_labels = {}
 
         for label in tensor.keys:
-            key = label.tolist()
+            key = tuple(label.values)
             block = tensor.block(label)
 
-            samplelbl = [lbl for lbl in block.samples.tolist() if lbl[0]==imol]
-            if len(samplelbl)==0:
+            samples = [(sample_i,lbl) for sample_i,lbl in enumerate(block.samples.values) if lbl[0]==imol]
+            if len(samples)==0:
                 continue
-            sampleidx = [block.samples.position(lbl) for lbl in samplelbl]
+            sampleidx = [t[0] for t in samples]
+            samplelbl = [t[1] for t in samples]
+            #sampleidx = [block.samples.position(lbl) for lbl in samplelbl]
 
             blocks[key] = block.values[sampleidx]
-            block_samp_labels[key] = equistore.Labels(tensor.sample_names[1:], np.array(samplelbl)[:,1:])
+            block_samp_labels[key] = metatensor.Labels(tensor.sample_names[1:], np.array(samplelbl)[:,1:])
 
         tm_label_vals = sorted(list(blocks.keys()))
-        tm_labels = equistore.Labels(tensor.keys.names, np.array(tm_label_vals))
-        tensor_blocks = [equistore.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
-        tensors[imol] = equistore.TensorMap(keys=tm_labels, blocks=tensor_blocks)
+        tm_labels = metatensor.Labels(tensor.keys.names, np.array(tm_label_vals))
+        tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
+        tensors[imol] = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)
 
     return tensors

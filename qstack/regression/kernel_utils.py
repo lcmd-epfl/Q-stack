@@ -205,7 +205,7 @@ def my_laplacian_kernel(X, Y, gamma):
       x = np.array([x] * len(Y))
       d = np.abs(x-Y)
       while len(d.shape)>1:
-        d = np.sum(d, axis=1) # several axis available for np > 1.7.0
+        d = np.sum(d, axis=1) # several axis available for np > 1.7.0  (TODO shall we move this)
       K[i,:] = d
     return K
   K = -gamma * cdist(X, Y)
