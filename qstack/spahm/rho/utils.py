@@ -135,7 +135,7 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
             is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
         # if the given file contains a single representation create a one-element list
         Xs = [np.load(f_in, allow_pickle=True)] if is_single else np.load(f_in, allow_pickle=True)
-    print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
+    if printlevel > 1: print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
     if progress:
         import tqdm
         Xs = tqdm.tqdm(Xs)
@@ -150,7 +150,10 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
                     reps.extend(x[:,1])
                     labels.extend(x[:,0])
             else:
-                reps.extend(x)
+                if sum_local:
+                    reps.append(x.sum(axis=0))
+                else:
+                    reps.extend(x)
         else:
            if is_labeled:
                 reps.append(x[1])
