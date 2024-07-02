@@ -59,7 +59,19 @@ def test_ecp():
     for Xa, Xa_true in zip(X, X_true):
         assert(np.linalg.norm(Xa-Xa_true) < 1e-8) # evaluating representation diff as norm (threshold = 1e-8)
 
+def test_from_list():
+    path = os.path.dirname(os.path.realpath(__file__))
+    path2list = path+'/data/list_water.txt'
+    xyzlist = utils.get_xyzlist(path2list)
+    spins = utils.get_chsp(None, len(xyzlist))
+    charges = utils.get_chsp(None, len(xyzlist))
+    mols = utils.load_mols(xyzlist, charges, spins, 'minao', srcdir=path+'/data/')
+    spahm_b = bond.get_repr(mols, xyzlist, 'LB', spin=spins, same_basis=True)
+    Xtrue = np.load(path+'/data/list_H2O_spahm-b_minao_LB_alpha-beta.npy')
+    assert(np.allclose(Xtrue, spahm_b))
+
 
 if __name__ == '__main__':
     test_water()
+    test_from_list()
 
