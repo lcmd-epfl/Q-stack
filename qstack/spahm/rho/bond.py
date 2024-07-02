@@ -39,7 +39,7 @@ def bond(mols, dms,
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
                                                                      pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
-    if all([spin == None]):
+    if np.array(spin==None, ndmin=1).all():
         omods = [None]
     qqs = qqs0 if zeros else qqs4q
     maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
