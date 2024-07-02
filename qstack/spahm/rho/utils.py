@@ -30,12 +30,14 @@ def get_chsp(fname, n):
     return chsp
 
 
-def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False):
+def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False, srcdir=None):
     mols = []
     if progress:
         import tqdm
         xyzlist = tqdm.tqdm(xyzlist)
     for xyzfile, ch, sp in zip(xyzlist, charge, spin):
+        if srcdir is not None:
+            xyzfile = srcdir+xyzfile
         if printlevel>0: print(xyzfile, flush=True)
         mols.append(compound.xyz_to_mol(xyzfile, basis,
                                         charge=0 if ch is None else ch,
