@@ -39,7 +39,7 @@ def bond(mols, dms,
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
                                                                      pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
-    if spin is None:
+    if all([spin == None]):
         omods = [None]
     qqs = qqs0 if zeros else qqs4q
     maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
@@ -58,7 +58,7 @@ def bond(mols, dms,
     for imol, (mol, dm) in enumerate(zip(mols,dms)):
         if printlevel>0: print('mol', imol, flush=True)
         for iomod, omod in enumerate(omods):
-            DM  = utils.dm_open_mod(dm, omod) if spin else dm
+            DM  = utils.dm_open_mod(dm, omod)
             vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             allvec[iomod,imol,:len(vec)] = vec
 

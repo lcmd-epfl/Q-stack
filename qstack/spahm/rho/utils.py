@@ -66,7 +66,8 @@ def dm_open_mod(dm, omod):
     dmmod = {'sum':   lambda dm: dm[0]+dm[1],
              'diff':  lambda dm: dm[0]-dm[1],
              'alpha': lambda dm: dm[0],
-             'beta':  lambda dm: dm[1]}
+             'beta':  lambda dm: dm[1],
+             None:    lambda dm: dm}
     return dmmod[omod](dm)
 
 
