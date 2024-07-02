@@ -25,21 +25,32 @@ For now, we link to the relevant packages that will be incorporated (among other
 - [ ] https://github.com/lcmd-epfl/ml-density
 - [x] https://github.com/lcmd-epfl/OTPD-basis
 - [x] https://github.com/lcmd-epfl/b2r2-reaction-rep
-      
+
 ## Install [↑](#contents)
 
 The installation of the library for python use can be done executing one of the following commands:
 
-```
+```bash
 python -m pip install git+https://github.com/lcmd-epfl/Q-stack.git
 python -m pip install "qstack @ git+https://github.com/lcmd-epfl/Q-stack.git"
 python -m pip install "qstack[all] @ git+https://github.com/lcmd-epfl/Q-stack.git"
-python -m pip install -r requirements.py3.11.txt
 ```
 
-The last two are recommended if you do not know which features you wish to use, since they pull the dependencies required with all 'optional' parts of Q-stack.
+The last one is recommended if you do not know which features you wish to use, since they pull the dependencies required with all 'optional' parts of Q-stack.
 
-If you wish to use a conda environment, an `environment.yml` file is also available, for the conda analogue of the last install command.
+If you want to be able to edit Q-stack's code after installing, you need to download it yourself, for instance with this series of commands
+
+```bash
+git clone https://github.com/lcmd-epfl/Q-stack
+cd Q-stack
+
+#optionally, run the following line, if you want to be extra-careful about reproducibility, by installing a well-known version of all dependencies
+python -m pip install -r requirements.py3.11.txt   # (or "requirements.py3.9.txt" if you have an older version of python and that first file doesn't work)
+
+python -m pip install -e .[all]    # note: this translates as "install as '-e'ditable, install from this directory ('.'), with optional feature 'all'"
+```
+
+For the optional step above, we also have an `environment.yml` file available, if you prefer working with conda environments.
 
 A small part of Q-stack, isolated in the `qstack_qml` module name, can be installed on its own, see [the qstack-qml subdirectory's readme](../master/qstack/qstack-qml/README.md).
 
