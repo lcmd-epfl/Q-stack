@@ -3,6 +3,7 @@
 import os
 import argparse
 import numpy as np
+from itertools import chain
 from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
 from .utils import defaults
@@ -127,7 +128,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         shape  = (len(omods), -1, maxlen)
         atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
-        all_atoms = all_atoms.flatten()
+        all_atoms = list(chain.from_iterable(all_atoms))
         allvec = allvec.squeeze()
     elif with_symbols:
         msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
