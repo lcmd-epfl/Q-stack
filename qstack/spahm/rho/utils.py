@@ -137,7 +137,7 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
         else:
             is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
         # if the given file contains a single representation create a one-element list
-        Xs = [np.load(f_in, allow_pickle=True)] if is_single else np.load(f_in, allow_pickle=True)
+        Xs = [np.load(os.path.join(path2list,f_in), allow_pickle=True)] if is_single else np.load(os.path.join(path2list,f_in), allow_pickle=True)
     if printlevel > 1: print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
     if progress:
         import tqdm
