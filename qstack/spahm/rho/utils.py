@@ -30,12 +30,14 @@ def get_chsp(fname, n):
     return chsp
 
 
-def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False):
+def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False, srcdir=None):
     mols = []
     if progress:
         import tqdm
         xyzlist = tqdm.tqdm(xyzlist)
     for xyzfile, ch, sp in zip(xyzlist, charge, spin):
+        if srcdir is not None:
+            xyzfile = srcdir+xyzfile
         if printlevel>0: print(xyzfile, flush=True)
         mols.append(compound.xyz_to_mol(xyzfile, basis,
                                         charge=0 if ch is None else ch,
@@ -66,7 +68,8 @@ def dm_open_mod(dm, omod):
     dmmod = {'sum':   lambda dm: dm[0]+dm[1],
              'diff':  lambda dm: dm[0]-dm[1],
              'alpha': lambda dm: dm[0],
-             'beta':  lambda dm: dm[1]}
+             'beta':  lambda dm: dm[1],
+             None:    lambda dm: dm}
     return dmmod[omod](dm)
 
 
@@ -134,8 +137,8 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
         else:
             is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
         # if the given file contains a single representation create a one-element list
-        Xs = [np.load(f_in, allow_pickle=True)] if is_single else np.load(f_in, allow_pickle=True)
-    print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
+        Xs = [np.load(os.path.join(path2list,f_in), allow_pickle=True)] if is_single else np.load(os.path.join(path2list,f_in), allow_pickle=True)
+    if printlevel > 1: print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
     if progress:
         import tqdm
         Xs = tqdm.tqdm(Xs)
@@ -150,7 +153,10 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
                     reps.extend(x[:,1])
                     labels.extend(x[:,0])
             else:
-                reps.extend(x)
+                if sum_local:
+                    reps.append(x.sum(axis=0))
+                else:
+                    reps.extend(x)
         else:
            if is_labeled:
                 reps.append(x[1])
