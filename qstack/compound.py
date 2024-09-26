@@ -18,15 +18,17 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'
         basis (str or dict): Basis set.
         charge (int): Charge of the molecule.
         spin (int): Spin of the molecule (alpha electrons - beta electrons).
+        ignore (bool): If assume molecule closed-shell an assign charge either 0 or -1
+        unit (str): units (Ang or Bohr)
+        ecp (str) : ECP to use
 
     Returns:
         A pyscf Mole object containing the molecule information.
     """
 
     # Open and read the file
-    f = open(fin, "r")
-    molxyz = "\n".join(f.read().split("\n")[2:])
-    f.close()
+    with open(fin, "r") as f:
+        molxyz = "\n".join(f.read().split("\n")[2:])
 
     # Define attributes to the Mole object and build it
     mol = gto.Mole()
