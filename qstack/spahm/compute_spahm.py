@@ -27,12 +27,38 @@ def get_guess_orbitals(mol, guess, xc="pbe", field=None):
         e, v = solveF(mol, fock)
     return e,v
 
+
+def ext_field_generator(mol, field):
+    shls_slice = (0, mol.nbas, 0, mol.nbas)
+    with mol.with_common_orig((0,0,0)):
+        int1e_irp = mol.intor('int1e_irp', shls_slice=shls_slice).reshape(3, 3, mol.nao, mol.nao) # ( | rc nabla | )
+    aoslices = mol.aoslice_by_atom()[:,2:]
+    if field is None:
+        field = (0,0,0)
+    def field_deriv(iat):
+        p0, p1 = aoslices[iat]
+        dmu_dr = np.zeros_like(int1e_irp)  # dim(mu)×dim(r)×nao×nao
+        dmu_dr[:,:,p0:p1,:] -= int1e_irp[:,:,:,p0:p1].transpose((0,1,3,2))  # TODO not sure why minus
+        dmu_dr[:,:,:,p0:p1] -= int1e_irp[:,:,:,p0:p1]  # TODO check/fix E definition
+        dhext_dr = np.einsum('x,xypq->ypq', field, dmu_dr)
+        return dhext_dr
+    return field_deriv
+
+
 def get_guess_orbitals_grad(mol, guess, field=None):
     e, c = get_guess_orbitals(mol, guess[0], field=field)
     mf = grad.rhf.Gradients(scf.RHF(mol))
     s1 = mf.get_ovlp(mol)
-    h1 = guess[1](mf)
+    h0 = guess[1](mf)
+
+    if field is None:
+        h1 = h0
+    else:
+        hext = ext_field_generator(mf.mol, field)
+        h1 = lambda iat: h0(iat) + hext(iat)
+
     return eigenvalue_grad(mol, e, c, s1, h1)
+
 
 def get_guess_dm(mol, guess, xc="pbe", openshell=None, field=None):
     """ Compute the density matrix with the guess Hamiltonian.
