@@ -2,12 +2,13 @@ import numpy as np
 from pyscf import scf, grad
 from qstack.spahm.guesses import solveF, get_guess, get_occ, get_dm, eigenvalue_grad, get_guess_g
 
+
 def get_guess_orbitals(mol, guess, xc="pbe", field=None):
-    """ Compute the guess Hamiltonian.
+    """ Compute the guess Hamiltonian orbitals
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        guess (funct): Method used to compute the guess Hamiltonian. Output of get_guess.
+        guess (func): Method used to compute the guess Hamiltonian. Output of get_guess.
         xc (str): Exchange-correlation functional. Defaults to pbe.
         field (numpy.array(3)): External electric field i.e. $\\vec \\nabla \\phi$
 
@@ -25,10 +26,20 @@ def get_guess_orbitals(mol, guess, xc="pbe", field=None):
                 ao_dip = mol.intor_symmetric('int1e_r', comp=3)
             fock += np.einsum('xij,x->ij', ao_dip, field)
         e, v = solveF(mol, fock)
-    return e,v
+    return e, v
 
 
 def ext_field_generator(mol, field):
+    """ Generator for Hext (i.e. applied uniform electiric field interaction) gradient
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        field (numpy.array(3)): External electric field i.e. $\\vec \\nabla \\phi$
+
+    Returns:
+        func(int: iat): returns the derivative of Hext wrt the coordinates of atom iat, i.e. dHext/dr[iat]
+    """
+
     shls_slice = (0, mol.nbas, 0, mol.nbas)
     with mol.with_common_orig((0,0,0)):
         int1e_irp = mol.intor('int1e_irp', shls_slice=shls_slice).reshape(3, 3, mol.nao, mol.nao) # ( | rc nabla | )
@@ -46,6 +57,18 @@ def ext_field_generator(mol, field):
 
 
 def get_guess_orbitals_grad(mol, guess, field=None):
+    """ Compute the guess Hamiltonian eigenvalues and their derivatives
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        guess (func): Tuple of methods used to compute the guess Hamiltonian and its eigenvalue derivatives. Output of get_guess_g
+        field (numpy.array(3)): External electric field i.e. $\\vec \\nabla \\phi$
+
+    Returns:
+        numpy 1d array (mol.nao,): eigenvalues
+        numpy 3d ndarray (mol.nao,mol.natm,3): gradient of the eigenvalues in Eh/bohr
+    """
+
     e, c = get_guess_orbitals(mol, guess[0], field=field)
     mf = grad.rhf.Gradients(scf.RHF(mol))
     s1 = mf.get_ovlp(mol)
@@ -57,7 +80,7 @@ def get_guess_orbitals_grad(mol, guess, field=None):
         hext = ext_field_generator(mf.mol, field)
         h1 = lambda iat: h0(iat) + hext(iat)
 
-    return eigenvalue_grad(mol, e, c, s1, h1)
+    return e, eigenvalue_grad(mol, e, c, s1, h1)
 
 
 def get_guess_dm(mol, guess, xc="pbe", openshell=None, field=None):
@@ -65,7 +88,7 @@ def get_guess_dm(mol, guess, xc="pbe", openshell=None, field=None):
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        guess (funct): Method used to compute the guess Hamiltonian. Output of get_guess.
+        guess (func): Method used to compute the guess Hamiltonian. Output of get_guess.
         xc (str): Exchange-correlation functional. Defaults to pbe
         openshell (bool): . Defaults to None.
 
@@ -75,6 +98,7 @@ def get_guess_dm(mol, guess, xc="pbe", openshell=None, field=None):
     e,v = get_guess_orbitals(mol, guess, xc, field=field)
     return get_dm(v, mol.nelec, mol.spin if mol.spin>0 or not openshell is None else None)
 
+
 def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
     """ Compute the SPAHM representation.
 
@@ -82,6 +106,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
         mol (pyscf Mole): pyscf Mole object.
         guess_in (str): Method used to obtain the guess Hamiltoninan.
         xc (str): Exchange-correlation functional. Defaults to pbe.
+        field (numpy.array(3)): External electric field i.e. $\\vec \\nabla \\phi$
 
     Returns:
         A numpy ndarray containing the SPAHM representation.
@@ -91,7 +116,20 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
     e1    = get_occ(e, mol.nelec, mol.spin)
     return e1
 
+
 def get_spahm_representation_grad(mol, guess_in, field=None):
+    """ Compute the SPAHM representation and its gradient
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        guess_in (str): Method used to obtain the guess Hamiltoninan.
+        xc (str): Exchange-correlation functional. Defaults to pbe.
+        field (numpy.array(3)): External electric field i.e. $\\vec \\nabla \\phi$
+
+    Returns:
+        numpy 1d array (occ,): the SPAHM representation (Eh).
+        numpy 3d array (occ,mol.natm,3): gradient of the representation (Eh/bohr)
+    """
     guess = get_guess_g(guess_in)
-    agrad = get_guess_orbitals_grad(mol, guess, field=field)
-    return get_occ(agrad, mol.nelec, mol.spin)
+    e, agrad = get_guess_orbitals_grad(mol, guess, field=field)
+    return get_occ(e, mol.nelec, mol.spin), get_occ(agrad, mol.nelec, mol.spin)
