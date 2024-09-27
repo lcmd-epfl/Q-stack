@@ -39,7 +39,7 @@ def test_spahm_ev_grad():
         e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0])
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
-    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=0, spin=0)
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
     guess = spahm.guesses.get_guess_g('lb')
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)
     ngrad = grad_num(spahm_ev, mol, guess)
@@ -53,7 +53,7 @@ def test_spahm_re_grad():
         e = spahm.compute_spahm.get_spahm_representation(mymol, guess_in)
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
-    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=1, spin=1)
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=1, spin=1)
     guess = 'lb'
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess)
     ngrad = grad_num(spahm_re, mol, guess)
@@ -81,7 +81,7 @@ def test_spahm_ev_grad_field():
         e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0], field=field)
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
-    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=0, spin=0)
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
     field = np.array((0.01, 0.01, 0.01))
     guess = spahm.guesses.get_guess_g('lb')
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess, field=field)
@@ -96,7 +96,7 @@ def test_spahm_re_grad_field():
         e = spahm.compute_spahm.get_spahm_representation(mymol, guess_in, field=field)
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
-    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=1, spin=1)
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=1, spin=1)
     field = np.array((0.01, 0.01, 0.01))
     guess = 'lb'
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)
