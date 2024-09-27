@@ -91,7 +91,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
     e1    = get_occ(e, mol.nelec, mol.spin)
     return e1
 
-def get_spahm_representation_grad(mol, guess_in):
+def get_spahm_representation_grad(mol, guess_in, field=None):
     guess = get_guess_g(guess_in)
-    agrad = get_guess_orbitals_grad(mol, guess)
+    agrad = get_guess_orbitals_grad(mol, guess, field=field)
     return get_occ(agrad, mol.nelec, mol.spin)

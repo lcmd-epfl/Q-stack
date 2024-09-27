@@ -90,8 +90,24 @@ def test_spahm_ev_grad_field():
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
+def test_spahm_re_grad_field():
+    def spahm_re(r, mol, guess_in):
+        mymol = build_mol(mol, r)
+        e = spahm.compute_spahm.get_spahm_representation(mymol, guess_in, field=field)
+        return e
+    path  = os.path.dirname(os.path.realpath(__file__))
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=1, spin=1)
+    field = np.array((0.01, 0.01, 0.01))
+    guess = 'lb'
+    agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)
+    ngrad = grad_num(spahm_re, mol, guess)
+    for g1, g2 in zip(ngrad.reshape(mol.natm*3, -1).T, agrad.reshape(-1, mol.natm*3)):
+        assert(np.linalg.norm(g1-g2)<1e-6)
+
+
 if __name__ == '__main__':
     test_spahm_ev_grad()
     test_spahm_re_grad()
     test_spahm_ev_grad_ecp()
     test_spahm_ev_grad_field()
+    test_spahm_re_grad_field()
