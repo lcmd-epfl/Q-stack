@@ -3,6 +3,7 @@
 import os
 import argparse
 import numpy as np
+from itertools import chain
 from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
 from .utils import defaults
@@ -39,7 +40,7 @@ def bond(mols, dms,
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
                                                                      pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
-    if spin is None:
+    if np.array(spin==None, ndmin=1).all():
         omods = [None]
     qqs = qqs0 if zeros else qqs4q
     maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
@@ -58,7 +59,7 @@ def bond(mols, dms,
     for imol, (mol, dm) in enumerate(zip(mols,dms)):
         if printlevel>0: print('mol', imol, flush=True)
         for iomod, omod in enumerate(omods):
-            DM  = utils.dm_open_mod(dm, omod) if spin else dm
+            DM  = utils.dm_open_mod(dm, omod)
             vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             allvec[iomod,imol,:len(vec)] = vec
 
@@ -112,7 +113,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         dms = []
 
     if len(only_z) > 0:
-        all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z])
+        all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z], ndmin=2)
     else:
         all_atoms   = np.array([mol.elements for mol in mols])
 
@@ -122,12 +123,11 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
-
     if split is False:
         shape  = (len(omods), -1, maxlen)
         atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
-        all_atoms = all_atoms.flatten()
+        all_atoms = list(chain.from_iterable(all_atoms))
         allvec = allvec.squeeze()
     elif with_symbols:
         msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
@@ -192,7 +192,7 @@ def main():
     reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=spin, readdm=args.readdm, printlevel=args.print,
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
-                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split)
+                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z)
     if args.print > 0: print(reps.shape)
     if args.merge:
         np.save(args.name_out+'_'+'_'.join(args.omod), reps)
