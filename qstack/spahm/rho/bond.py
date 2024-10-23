@@ -128,7 +128,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
         all_atoms = list(chain.from_iterable(all_atoms))
-        allvec = allvec.squeeze()
+        #allvec = allvec.squeeze()
     elif with_symbols:
         msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
         raise RuntimeError()
