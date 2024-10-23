@@ -258,6 +258,9 @@ def get_local_kernel(arg):
     elif arg=='dot':
         from sklearn.metrics.pairwise import linear_kernel
         return lambda x,y,s: linear_kernel(x, y)
+    elif arg=='cosine':
+        from sklearn.metrics.pairwise import cosine_similarity
+        return lambda x,y,s: cosine_similarity(x, y)
     elif arg=='L':
         from sklearn.metrics.pairwise import laplacian_kernel
         return laplacian_kernel
