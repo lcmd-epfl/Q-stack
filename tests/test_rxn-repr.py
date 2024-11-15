@@ -3,8 +3,7 @@ import glob
 from types import SimpleNamespace
 import numpy as np
 import ase.io
-from qstack_qml.slatm import get_slatm_rxn
-from qstack_qml.b2r2 import get_b2r2
+from qstack.qml import slatm, b2r2
 
 
 class Rxn_data:
@@ -48,17 +47,17 @@ def test_b2r2_n():
 def _test_b2r2(variant):
     data_dir = f'{os.path.dirname(os.path.realpath(__file__))}/data/rxn-repr'
     reactions = Rxn_data(data_dir=data_dir).get_gdb7_data()
-    b2r2 = get_b2r2(reactions, variant=variant)
+    b2r2_1 = b2r2.get_b2r2(reactions, variant=variant)
     b2r2_0 = np.load(f'{data_dir}/b2r2_{variant}.npy')
-    assert(np.linalg.norm(b2r2-b2r2_0) < 1e-10)
+    assert(np.linalg.norm(b2r2_1-b2r2_0) < 1e-10)
 
 
 def test_slatm_rxn():
     data_dir = f'{os.path.dirname(os.path.realpath(__file__))}/data/rxn-repr'
     reactions = Rxn_data(data_dir=data_dir).get_gdb7_data()
-    slatm = get_slatm_rxn(reactions, qml_mbtypes=True, progress=False)
+    slatm_1 = slatm.get_slatm_rxn(reactions, qml_mbtypes=True, progress=False)
     slatm_0 = np.load(f'{data_dir}/slatm_d.npy')
-    assert(np.linalg.norm(slatm-slatm_0) < 1e-10)
+    assert(np.linalg.norm(slatm_1-slatm_0) < 1e-10)
 
 
 if __name__ == '__main__':
