@@ -60,7 +60,7 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, pr
         if printlevel>0: print(xyzfile, flush=True)
         if not readdm:
             e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
-            dm   = guesses.get_dm(v, mol.nelec, mol.spin if spin is not None else None)
+            dm   = guesses.get_dm(v, mol.nelec, mol.spin if spin is not None else None) # mol.spin can not be `None`
         else:
             dm = np.load(readdm+'/'+os.path.basename(xyzfile)+'.npy')
             if spin and dm.ndim==2:
