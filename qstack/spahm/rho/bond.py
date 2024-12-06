@@ -180,8 +180,8 @@ def main():
 
     if args.filename.endswith('xyz'):
         xyzlist = [args.filename]
-        charge  = [int(args.charge) if args.charge is not None else 0]
-        spin    = [int(args.spin)   if args.spin   is not None else None]
+        charge  = np.array([int(args.charge) if args.charge is not None else 0])
+        spin    = np.array([int(args.spin)   if args.spin   is not None else None])
     else:
         xyzlistfile = args.filename
         xyzlist = utils.get_xyzlist(xyzlistfile)
@@ -195,7 +195,10 @@ def main():
                       elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z)
     if args.print > 0: print(reps.shape)
     if args.merge:
-        np.save(args.name_out+'_'+'_'.join(args.omod), reps)
+        if (spin == None).all():
+            np.save(args.name_out, reps)
+        else:
+            np.save(args.name_out+'_'+'_'.join(args.omod), reps)
     else:
         for vec, omod in zip(reps, args.omod):
             np.save(args.name_out+'_'+omod, vec)

@@ -53,14 +53,14 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
     return mols
 
 
-def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, printlevel=0):
+def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=[None], readdm=False, printlevel=0):
     dms = []
     guess = guesses.get_guess(guess)
-    for xyzfile, mol in zip(xyzlist, mols):
+    for xyzfile, mol, sp in zip(xyzlist, mols, spin):
         if printlevel>0: print(xyzfile, flush=True)
         if not readdm:
             e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
-            dm   = guesses.get_dm(v, mol.nelec, mol.spin if spin is not None else None) # mol.spin can not be `None`
+            dm   = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None)
         else:
             dm = np.load(readdm+'/'+os.path.basename(xyzfile)+'.npy')
             if spin and dm.ndim==2:
