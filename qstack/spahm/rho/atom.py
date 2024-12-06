@@ -15,29 +15,19 @@ def check_file(mol_file):
         exit(1)
     return mol_file
 
-
-def get_repr(mol, elements, charge, spin,
-             open_mod=defaults.omod, dm=None,
-             guess=defaults.guess, model=defaults.model, xc=defaults.xc,
-             auxbasis=defaults.auxbasis, only_z=None):
-
-    # User-defined options
+def atom():
     elements = sorted(list(set(elements)))
-    guess = spahm.guesses.get_guess(guess)
-    model = dmba.get_model(model)
+
     df_wrapper, sym_wrapper = model
     ao, ao_len, idx, M = dmba.get_basis_info(elements, auxbasis)
 
-    # Compute density matrices
-    if dm is None:
-        dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin, xc=xc)
-# if only the representations for a given atom type are to be computed restricts the considered atomic indices
     if only_z is not None:
         only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
     else:
         only_i = range(mol.natm) #otherwise consider the full list of atomic indices
 
-    rep = []
+    allvec = np.zeros((len(omods), len(mols), nat))
+
     for omod in open_mod:
         DM      = utils.dm_open_mod(dm, omod) if spin is not None else dm
         c_df    = df_wrapper(mol, DM, auxbasis, only_i=only_i)
@@ -47,6 +37,23 @@ def get_repr(mol, elements, charge, spin,
             break
         rep.append(vectors)
     rep = np.array(rep)
+
+def get_repr(mol, elements, charge, spin,
+             open_mod=defaults.omod, dm=None,
+             guess=defaults.guess, model=defaults.model, xc=defaults.xc,
+             auxbasis=defaults.auxbasis, only_z=None):
+
+    # User-defined options
+
+    guess = spahm.guesses.get_guess(guess)
+    model = dmba.get_model(model)
+
+    # Compute density matrices
+    if dm is None:
+        dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin, xc=xc)
+# if only the representations for a given atom type are to be computed restricts the considered atomic indices
+
+    rep = []
     if spin is not None:
         rep = np.hstack(rep)
 
