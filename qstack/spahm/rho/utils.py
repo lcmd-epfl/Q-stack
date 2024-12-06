@@ -21,12 +21,18 @@ defaults = SimpleNamespace(
 
 
 def get_chsp(fname, n):
-    if fname:
-        chsp = np.loadtxt(fname, dtype=int, ndmin=1)
+    def chsp_converter(chsp):
+        if chsp == 'None':
+            chsp = None
+        else:
+            chsp = int(chsp)
+        return chsp
+    if os.path.isfile(fname):
+        chsp = np.loadtxt(fname, dtype=object, converters=chsp_converter, encoding=None)
         if(len(chsp)!=n):
             raise RuntimeError(f'Wrong lengh of the file {fname}')
     else:
-        chsp = np.zeros(n, dtype=int)
+        raise RuntimeError(f"{fname} can not be found")
     return chsp
 
 

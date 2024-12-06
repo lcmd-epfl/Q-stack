@@ -62,9 +62,11 @@ def test_ecp():
 def test_from_list():
     path = os.path.dirname(os.path.realpath(__file__))
     path2list = path+'/data/list_water.txt'
+    path2spins = path+'/data/list_water_spins.txt'
+    path2charges = path+'/data/list_water_charges.txt'
     xyzlist = utils.get_xyzlist(path2list)
-    spins = utils.get_chsp(None, len(xyzlist))
-    charges = utils.get_chsp(None, len(xyzlist))
+    spins = utils.get_chsp(path2spins, len(xyzlist))
+    charges = utils.get_chsp(path2charges, len(xyzlist))
     mols = utils.load_mols(xyzlist, charges, spins, 'minao', srcdir=path+'/data/')
     spahm_b = bond.get_repr(mols, xyzlist, 'LB', spin=spins, same_basis=True)
     Xtrue = np.load(path+'/data/list_H2O_spahm-b_minao_LB_alpha-beta.npy')
