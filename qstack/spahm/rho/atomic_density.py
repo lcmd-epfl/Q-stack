@@ -4,10 +4,9 @@ from . import lowdin
 
 
 def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
-
     L = lowdin.Lowdin_split(mol, dm)
 
-    if only_i is not None:
+    if len(only_i) > 0:
         dm_slices = mol.aoslice_nr_by_atom()[only_i,2:]
     else:
         dm_slices = mol.aoslice_nr_by_atom()[:,2:]

@@ -6,11 +6,13 @@ import numpy as np
 from itertools import chain
 from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
+from . import dmb_rep_atom as dmba
 from .utils import defaults
 
 def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
+         rep_type='bond',auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
     """ Computes SPAHM-b representations for a set of molecules.
 
@@ -36,11 +38,22 @@ def bond(mols, dms,
                 - NatomMax: the maximum number of atoms in one molecule
                 - Nfeatures: the number of features (for each omods)
     """
-    elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
-                                                                     elements=elements, cutoff=cutoff,
-                                                                     pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
-    qqs = qqs0 if zeros else qqs4q
-    maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
+    maxlen = 0 # This needs fixing `UnboundLocalError`
+    if rep_type == 'bond':
+        elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
+                                                                         elements=elements, cutoff=cutoff,
+                                                                         pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
+        qqs = qqs0 if zeros else qqs4q
+        maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
+    elif rep_type == 'atom':
+        if elements is None:
+            elements = set(*[mol.elements for mol in mols])
+        elements = sorted(list(set(elements)))
+        model = dmba.get_model(model)
+        df_wrapper, sym_wrapper = model
+        ao, ao_len, idx, M = dmba.get_basis_info(elements, auxbasis)
+        maxlen = sum([len(v) for v in idx.values()])
+
     if len(only_z) > 0:
         print(f"Selecting atom-types in {only_z}")
         zinmols = []
@@ -57,7 +70,12 @@ def bond(mols, dms,
         if printlevel>0: print('mol', imol, flush=True)
         for iomod, omod in enumerate(omods):
             DM  = utils.dm_open_mod(dm, omod)
-            vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
+            vec = None # This too !!! (maybe a wrapper or dict)
+            if rep_type == 'bond':
+                vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
+            elif rep_type == 'atom':
+                c_df = df_wrapper(mol, DM, auxbasis, only_i=only_z)
+                vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
             allvec[iomod,imol,:len(vec)] = vec
 
     return allvec
@@ -66,6 +84,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              pairfile=None, dump_and_exit=False, same_basis=True,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
+             rep_type='bond', auxbasis='ccpvdzjkfit',
              with_symbols=False, only_z=[], merge=True):
     """ Computes and reshapes an array of SPAHM-b representation
 
@@ -120,6 +139,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     allvec  = bond(mols, dms, bpath, cutoff, omods,
                    elements=elements, only_m0=only_m0,
                    zeros=zeros, printlevel=printlevel,
+                   rep_type=rep_type, auxbasis=auxbasis,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
@@ -147,6 +167,7 @@ def main():
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
     parser.add_argument('--mol',           type=str,            dest='filename',       required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
     parser.add_argument('--name',          type=str,            dest='name_out',       required=True,                    help='name of the output file')
+    parser.add_argument('--rep',           type=str,            dest='rep',            required=True,   choices = ['atom', 'bond'],                   help='the type of representation')
     parser.add_argument('--guess',         type=str,            dest='guess',          default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         type=str,            dest='units',          default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         type=str,            dest='basis'  ,        default=defaults.basis,           help='AO basis set (default=MINAO)')
