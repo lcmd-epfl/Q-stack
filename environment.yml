@@ -19,8 +19,8 @@ dependencies:
   - mkl_fft=1.3.1=py39hd3c417c_0
   - mkl_random=1.2.2=py39h51133e4_0
   - ncurses=6.3=h7f8727e_2
-  - numpy=1.23.5=py310h5f9d8c6_1
-  - numpy-base=1.23.5=py310hb5e798b_1
+  - numpy=1.23.*
+  - numpy-base=1.23.*
   - openssl=1.1.1l=h7f8727e_0
   - pip=22.3
   - python=3.9.7=h12debd9_1
