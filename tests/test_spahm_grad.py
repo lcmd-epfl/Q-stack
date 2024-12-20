@@ -39,11 +39,11 @@ def test_spahm_ev_grad():
         e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0])
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
-    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=0, spin=0)
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
     guess = spahm.guesses.get_guess_g('lb')
-    agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)
-    ngrad = grad_num(spahm_ev, mol, guess)
-    for g1, g2 in zip(ngrad.T, agrad.reshape(-1, 9)):
+    agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)[1].reshape(-1, mol.natm*3)
+    ngrad = grad_num(spahm_ev, mol, guess).T
+    for g1, g2 in zip(ngrad, agrad):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
@@ -53,11 +53,11 @@ def test_spahm_re_grad():
         e = spahm.compute_spahm.get_spahm_representation(mymol, guess_in)
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
-    mol   = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'def2svp', charge=1, spin=1)
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=1, spin=1)
     guess = 'lb'
-    agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess)
-    ngrad = grad_num(spahm_re, mol, guess)
-    for g1, g2 in zip(ngrad.reshape(9, -1).T, agrad.reshape(-1, 9)):
+    agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess)[1].reshape(-1, mol.natm*3)
+    ngrad = grad_num(spahm_re, mol, guess).reshape(mol.natm*3, -1).T
+    for g1, g2 in zip(ngrad, agrad):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
@@ -69,9 +69,39 @@ def test_spahm_ev_grad_ecp():
     path  = os.path.dirname(os.path.realpath(__file__))
     mol   = compound.xyz_to_mol(path+'/data/H2Te.xyz', 'minao', charge=0, spin=0, ecp='def2-svp')
     guess = spahm.guesses.get_guess_g('lb')
-    agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)
-    ngrad = grad_num(spahm_ev, mol, guess)
-    for g1, g2 in zip(ngrad.T, agrad.reshape(-1, 9)):
+    agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)[1].reshape(-1, mol.natm*3)
+    ngrad = grad_num(spahm_ev, mol, guess).T
+    for g1, g2 in zip(ngrad, agrad):
+        assert(np.linalg.norm(g1-g2)<1e-6)
+
+
+def test_spahm_ev_grad_field():
+    def spahm_ev(r, mol, guess):
+        mymol = build_mol(mol, r)
+        e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0], field=field)
+        return e
+    path  = os.path.dirname(os.path.realpath(__file__))
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
+    field = np.array((0.01, 0.01, 0.01))
+    guess = spahm.guesses.get_guess_g('lb')
+    agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess, field=field)[1].reshape(-1, mol.natm*3)
+    ngrad = grad_num(spahm_ev, mol, guess).T
+    for g1, g2 in zip(ngrad, agrad):
+        assert(np.linalg.norm(g1-g2)<1e-6)
+
+
+def test_spahm_re_grad_field():
+    def spahm_re(r, mol, guess_in):
+        mymol = build_mol(mol, r)
+        e = spahm.compute_spahm.get_spahm_representation(mymol, guess_in, field=field)
+        return e
+    path  = os.path.dirname(os.path.realpath(__file__))
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=1, spin=1)
+    field = np.array((0.01, 0.01, 0.01))
+    guess = 'lb'
+    agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)[1].reshape(-1, mol.natm*3)
+    ngrad = grad_num(spahm_re, mol, guess).reshape(mol.natm*3, -1).T
+    for g1, g2 in zip(ngrad, agrad):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
@@ -79,3 +109,5 @@ if __name__ == '__main__':
     test_spahm_ev_grad()
     test_spahm_re_grad()
     test_spahm_ev_grad_ecp()
+    test_spahm_ev_grad_field()
+    test_spahm_re_grad_field()
