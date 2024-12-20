@@ -36,13 +36,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Setup Mambaforge
+      - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v2
         with:
-            miniforge-variant: Mambaforge
             miniforge-version: latest
             activate-environment: my-env
-            use-mamba: true
 
       - name: Set cache date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
@@ -54,7 +52,7 @@ jobs:
         id: cache
 
       - name: Update environment
-        run: mamba env update -n my-env -f environment.yml
+        run: conda env update -n my-env -f environment.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Run tests
