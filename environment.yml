@@ -22,4 +22,3 @@ dependencies:
       - metatensor-core==0.1.8
       - pytest==6.2.5
       - scipy==1.10.0
-
