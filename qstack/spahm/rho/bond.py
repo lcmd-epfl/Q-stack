@@ -39,12 +39,15 @@ def bond(mols, dms,
                 - Nfeatures: the number of features (for each omods)
     """
     maxlen = 0 # This needs fixing `UnboundLocalError`
-    if rep_type == 'bond':
+    if rep_type == 'bond' or rep_type == 'global-bond':
         elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                          elements=elements, cutoff=cutoff,
                                                                          pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
         qqs = qqs0 if zeros else qqs4q
-        maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
+        if rep_type == 'global-bond':
+            maxlen = dmbb.bonds_dict_init(qqs0[elements[0]], M)[1]
+        else:
+            maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
     elif rep_type == 'atom':
         if elements is None:
             elements = set(*[mol.elements for mol in mols])
@@ -64,15 +67,20 @@ def bond(mols, dms,
     else:
         natm   = max([mol.natm for mol in mols])
         zinmols = [mol.natm for mol in mols]
-    allvec = np.zeros((len(omods), len(mols), natm, maxlen))
+    if rep_type == 'global-bond':
+        allvec = np.zeros((len(omods), len(mols), maxlen))
+    else:
+        allvec = np.zeros((len(omods), len(mols), natm, maxlen))
 
     for imol, (mol, dm) in enumerate(zip(mols,dms)):
         if printlevel>0: print('mol', imol, flush=True)
         for iomod, omod in enumerate(omods):
             DM  = utils.dm_open_mod(dm, omod)
             vec = None # This too !!! (maybe a wrapper or dict)
+            if rep_type == 'global-bond':
+                vec = dmbb.repr_glob_for_mol(mol, DM, qqs0, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             if rep_type == 'bond':
-                vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
+                vec = dmbb.repr_glob_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
                 c_df = df_wrapper(mol, DM, auxbasis, only_i=only_z)
                 vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
@@ -148,7 +156,6 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
         all_atoms = list(chain.from_iterable(all_atoms))
-        #allvec = allvec.squeeze()
     elif with_symbols:
         msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
         raise RuntimeError()
@@ -167,7 +174,7 @@ def main():
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
     parser.add_argument('--mol',           type=str,            dest='filename',       required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
     parser.add_argument('--name',          type=str,            dest='name_out',       required=True,                    help='name of the output file')
-    parser.add_argument('--rep',           type=str,            dest='rep',            required=True,   choices = ['atom', 'bond'],                   help='the type of representation')
+    parser.add_argument('--rep',           type=str,            dest='rep',            required=True,   choices = ['atom', 'bond', 'global-bond'],                   help='the type of representation')
     parser.add_argument('--guess',         type=str,            dest='guess',          default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         type=str,            dest='units',          default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         type=str,            dest='basis'  ,        default=defaults.basis,           help='AO basis set (default=MINAO)')
