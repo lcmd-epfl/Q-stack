@@ -2,7 +2,6 @@ name: qstack-min
 channels:
   - conda-forge
   - defaults
-  - pyscf
 dependencies:
   - python=3.11.11
   - pip=24.3.1
@@ -15,11 +14,11 @@ dependencies:
   - py=1.11.0
   - scikit-learn=1.5.0
   - toml=0.10.2
-  - pyscf=2.2.0
   - pip:
       - git+https://github.com/lcmd-epfl/cell2mol.git
       - qstack/qstack-qml
       - metatensor-core==0.1.8
+      - pyscf==2.2.0
       - pytest==6.2.5
       - scipy==1.10.0
 

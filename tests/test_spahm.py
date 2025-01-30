@@ -47,7 +47,17 @@ def test_spahm_LB_ecp():
     assert np.allclose(R2, true_R2)
 
 
+def test_spahm_LB_field():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp')
+    R = compute_spahm.get_spahm_representation(mol, 'lb', field=(0.01,0.01,0.01))
+    true_R = np.array([-18.26790464,  -0.7890498,   -0.32432933,  -0.17412611,  -0.10335613])
+    assert np.allclose(R[0], R[1])
+    assert np.allclose(true_R, R[0])
+
+
 if __name__ == '__main__':
     test_spahm_huckel()
     test_spahm_LB()
     test_spahm_LB_ecp()
+    test_spahm_LB_field()
