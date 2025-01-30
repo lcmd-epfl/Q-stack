@@ -80,7 +80,7 @@ def bond(mols, dms,
             if rep_type == 'global-bond':
                 vec = dmbb.repr_glob_for_mol(mol, DM, qqs0, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             if rep_type == 'bond':
-                vec = dmbb.repr_glob_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
+                vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
                 c_df = df_wrapper(mol, DM, auxbasis, only_i=only_z)
                 vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
