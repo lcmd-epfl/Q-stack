@@ -12,9 +12,13 @@ def test_equio_vector():
     mol  = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'cc-pvdz jkfit', charge=0, spin=0)
     c = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
     ctensor = equio.array_to_tensormap(mol, c)
-    tmpfile = tempfile.mktemp()
-    metatensor.save(tmpfile+'.npz', ctensor)
-    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npz', tmpfile+'.npz'))
+    tmpfile = tempfile.mktemp() + '.mts'
+    metatensor.save(tmpfile, ctensor)
+    if not os.path.isfile(tmpfile):
+        # different versions of metatensor impose different file extensions while saving
+        # (.mts recently, .npz prior)
+        tmpfile += ".npz"
+    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npz', tmpfile))
     c1 = equio.tensormap_to_array(mol, ctensor)
     assert(np.linalg.norm(c-c1)==0)
 
@@ -23,9 +27,11 @@ def test_equio_matrix():
     mol  = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'cc-pvdz', charge=0, spin=0)
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
     dtensor = equio.array_to_tensormap(mol, dm)
-    tmpfile = tempfile.mktemp()
-    metatensor.save(tmpfile+'.npz', dtensor)
-    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.dm.npz', tmpfile+'.npz'))
+    tmpfile = tempfile.mktemp() + '.mts'
+    metatensor.save(tmpfile, dtensor)
+    if not os.path.isfile(tmpfile):
+        tmpfile += ".npz"  # see comment in `test_equio_vector()`
+    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.dm.npz', tmpfile))
     dm1 = equio.tensormap_to_array(mol, dtensor)
     assert(np.linalg.norm(dm-dm1)==0)
 
@@ -39,9 +45,11 @@ def test_equio_joinsplit():
     ctensor2 = equio.array_to_tensormap(mol2, c2)
     ctensor_big = equio.join([ctensor1, ctensor2])
 
-    tmpfile = tempfile.mktemp()
-    metatensor.save(tmpfile+'.npz', ctensor_big)
-    assert(filecmp.cmp(path+'/data/H2O_dist_CH3OH.ccpvdz.ccpvdzjkfit.npz', tmpfile+'.npz'))
+    tmpfile = tempfile.mktemp() + '.mts'
+    metatensor.save(tmpfile, ctensor_big)
+    if not os.path.isfile(tmpfile):
+        tmpfile += ".npz"  # see comment in `test_equio_vector()`
+    assert(filecmp.cmp(path+'/data/H2O_dist_CH3OH.ccpvdz.ccpvdzjkfit.npz', tmpfile))
 
     ctensors = equio.split(ctensor_big)
     c11, c22 = [equio.tensormap_to_array(mol, t) for mol,t in zip([mol1,mol2], ctensors)]

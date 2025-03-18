@@ -2,6 +2,7 @@
 Module containing all the operations to load, transform, and save molecular objects.
 """
 
+import json, re
 import pickle
 import warnings
 import numpy as np
@@ -10,7 +11,67 @@ from qstack import constants
 from qstack.tools import rotate_euler
 
 
-def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG', ecp=None):
+_re_spincharge = re.compile(r'(?P<charge>[-+]?[0-9]+)\s+(?P<spinmult>[1-9][0-9]*)')
+_re_singlekey = re.compile(r'(?P<key>\w+)\=(?P<val>[^\s,]+)')
+_re_keyline = re.compile(r'(\w+\=[^\s,]+\s*)+')
+_re_singlekey2 = re.compile(r'(?P<key>\w+)\s*=\s*(?P<val>[^\s,]+)\s*,?')
+_re_keyline2 = re.compile(r'{0}(,\s*{0})*'.format(r'\w+\s*\=\s*[^\s,]+\s*'))
+_re_int = re.compile(r'[+-]?(?P<basisprefix>0[obxOBX])?[1-9a-fA-F][0-9a-fA-F]*')
+_re_float = re.compile(r'[+-]?[0-9]*?([0-9]\.|\.[0-9]|[0-9])[0-9]*?([eEdD][+-]?[0-9]+)?')
+
+def xyz_comment_line_parser(line):
+    """reads the 'comment' line of a XYZ file, and tries to infer its meaning"""
+    line = line.strip()
+    if line == '':
+        return {}
+    elif _re_spincharge.fullmatch(line):
+        matcher = _re_spincharge.fullmatch(line)
+        spinmult = int(matcher.group('spinmult'))
+        charge = int(matcher.group('charge'))
+        return {'charge':charge, 'spin':spinmult-1}
+    elif _re_keyline.fullmatch(line):
+        line_parts = line.split()  # split across any whitespace
+        part_matching = _re_singlekey
+        props = {}
+    elif _re_keyline2.fullmatch(line):
+        line_parts = line.split(',')
+        part_matching = _re_singlekey2
+        props = {}
+    elif line.startswith('{'):
+        # assume it contains json
+        line_parts = []
+        try:
+            props = json.loads(line.strip())
+        except json.decoder.JSONDecodeError:
+            return {}
+    else:
+        print("warning: could not interpret the data in the XYZ title line:", line)
+        return {}
+
+    for part in line_parts:
+        part_matcher = part_matching.fullmatch(part)
+        val = part_matcher.group('val')
+        if val.lower() in ('f','no','false','off'):
+            val = False
+        elif val.lower() in ('t','yes','true','on'):
+            val = True
+        elif _re_int.fullmatch(val):
+            prefix = _re_int.fullmatch(val).group('basisprefix')
+            if prefix:
+                val = int(val, basis=0)  # 'basis=0' means 'autodetect'
+            else:
+                val = int(val)
+        elif _re_float.fullmatch(val):
+            val = float(val)
+        props[part_matcher.group('key')] = val
+
+
+    if 'spin' in props:
+        # we want a difference in electons (alpha-beta), but we expect the file to contain a spin multiplicity
+        props['spin'] = props['spin']-1
+    return props
+
+def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
@@ -27,8 +88,11 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'
     """
 
     # Open and read the file
+    molxyz = gto.fromfile(fin)
     with open(fin, "r") as f:
-        molxyz = "\n".join(f.read().split("\n")[2:])
+        _ = f.readline()
+        comment_line = f.readline()
+        props = xyz_comment_line_parser(comment_line)
 
     # Define attributes to the Mole object and build it
     mol = gto.Mole()
@@ -36,20 +100,31 @@ def xyz_to_mol(fin, basis="def2-svp", charge=0, spin=0, ignore=False, unit='ANG'
     mol.basis = basis
 
     # Check the units for the pyscf driver
+    if unit is not None:
+        pass
+    elif 'unit' in props:
+        unit = props['unit']
+    else:
+        unit = 'Angstrom'
     unit = unit.upper()[0]
     if unit not in ['B', 'A']:
         raise RuntimeError("Unknown units (use Ängstrom or Bohr)")
-    else:
-        mol.unit = unit
+    mol.unit = unit
 
-    if not ignore:  # use the user-defined values
+    if charge is not None:
         mol.charge = charge
-        mol.spin = spin
+    elif 'charge' in props:
+        mol.charge = props['charge']
+    elif ignore:
+        mol.charge = 0
     else:
-        if charge not in [0, None] or spin not in [0, None]:
-            warnings.warn("Spin and charge values are overwritten", RuntimeWarning)
-        elements = np.array(molxyz.split()).reshape(-1,4)[:,0]
-        mol.charge = -(sum(map(data.elements.charge, elements))%2)
+        mol.charge = - sum(mol.atom_charges())%2
+
+    if spin is not None:
+        mol.spin = spin
+    elif 'spin' in props:
+        mol.spin = props['spin']
+    else:
         mol.spin = 0
 
     if ecp is not None:
