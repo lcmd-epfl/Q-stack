@@ -116,7 +116,7 @@ def gmol_to_mol(fin, basis="def2-svp"):
     except ImportError:
             print("""
 
-ERROR: cannot import cell2mol. Have you installed qstack with the \gmol\" option?\n\n
+ERROR: cannot import cell2mol. Have you installed qstack with the \"gmol\" option?\n\n
 (for instance, with `pip install qstack[gmol] or `pip install qstack[all]``)
 
 """)
