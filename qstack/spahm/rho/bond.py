@@ -74,7 +74,7 @@ def bond(mols, dms,
             if rep_type == 'bond':
                 vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
-                c_df = df_wrapper(mol, DM, auxbasis, only_i=only_z)
+                c_df = df_wrapper(mol, DM, auxbasis, only_i=[i for i ,z in zip(range(mol.natm),mol.elements) if z in only_z])
                 vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
             allvec[iomod,imol,:len(vec)] = vec
 
@@ -84,7 +84,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              pairfile=None, dump_and_exit=False, same_basis=True,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
-             rep_type='bond', auxbasis='ccpvdzjkfit',
+             rep_type='bond', auxbasis='ccpvdzjkfit', model="lowdin-long-x",
              with_symbols=False, only_z=[], merge=True):
     """ Computes and reshapes an array of SPAHM-b representation
 
@@ -137,6 +137,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         omods = [None]
 
     allvec  = bond(mols, dms, bpath, cutoff, omods,
+                   model=model,
                    elements=elements, only_m0=only_m0,
                    zeros=zeros, printlevel=printlevel,
                    rep_type=rep_type, auxbasis=auxbasis,
@@ -180,6 +181,7 @@ def main():
     parser.add_argument('--cutoff',        type=float,          dest='cutoff',         default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
     parser.add_argument('--bpath',         type=str,            dest='bpath',          default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
     parser.add_argument('--omod',          type=str,            dest='omod',           default=defaults.omod, nargs='+', help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
+    parser.add_argument('--model',          type=str,            dest='model',          default=defaults.omod, help=f'model for the atomic density fitting (default={defaults.model})')
     parser.add_argument('--print',         type=int,            dest='print',          default=0,                        help='printing level')
     parser.add_argument('--zeros',         action='store_true', dest='zeros',          default=False,                    help='use a version with more padding zeros')
     parser.add_argument('--split',         action='store_true', dest='split',          default=False,                    help='split into molecules')
@@ -212,7 +214,7 @@ def main():
     mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
     
     reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=spin, readdm=args.readdm, printlevel=args.print,
-                    auxbasis=args.auxbasis, rep_type=args.rep,
+                    auxbasis=args.auxbasis, rep_type=args.rep, model=args.model,
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
                       elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z)
