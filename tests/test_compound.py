@@ -36,6 +36,15 @@ def test_mol_to_xyz():
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
     compound.mol_to_xyz(mol, path+'/data/H2O_saved.xyz')
 
+def test_commentline():
+    path = os.path.dirname(os.path.realpath(__file__))
+    names = ["HO_json.xyz", "HO_keyvalcomma.xyz", "HO_keyvalspace.xyz", "HO_spinline.xyz"]
+    for name in names:
+        print(name)
+        mol = compound.xyz_to_mol(os.path.join(path,'data',name), 'def2svp')
+        assert mol.spin == 0
+        assert mol.charge == -1
+
 if __name__ == '__main__':
     test_reader()
     test_makeauxmol()

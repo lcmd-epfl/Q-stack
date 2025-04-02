@@ -11,12 +11,18 @@ from qstack import constants
 from qstack.tools import rotate_euler
 
 
+# detects a charge-spin line, containing only two ints (one positive or negative, the other positive and nonzero)
 _re_spincharge = re.compile(r'(?P<charge>[-+]?[0-9]+)\s+(?P<spinmult>[1-9][0-9]*)')
-_re_singlekey = re.compile(r'(?P<key>\w+)\=(?P<val>[^\s,]+)')
-_re_keyline = re.compile(r'(\w+\=[^\s,]+\s*)+')
-_re_singlekey2 = re.compile(r'(?P<key>\w+)\s*=\s*(?P<val>[^\s,]+)\s*,?')
-_re_keyline2 = re.compile(r'{0}(,\s*{0})*'.format(r'\w+\s*\=\s*[^\s,]+\s*'))
+
+# fetches a single key=value or key:value pair, then matches a full line, for space-separated pairs
+_re_singlekey = re.compile(r'\s*(?P<key>\w+)[=:](?P<val>[^\s,]+)\s*')
+_re_keyline = re.compile(r'\s*(\w+[=:][^\s,]+\s+)*(\w+[=:][^\s,]+)\s*')
+# fetches a single key=value or key:value pair, then matches a full line, for comma-separated pairs
+_re_singlekey2 = re.compile(r'\s*(?P<key>\w+)\s*[=:]\s*(?P<val>[^\s,]+)\s*,?\s*')
+_re_keyline2 = re.compile(r'{0}(,{0})*,?\s*'.format(r'\s*\w+\s*[=:]\s*[^\s,]+\s*'))
+# matches an integer in any format python reads
 _re_int = re.compile(r'[+-]?(?P<basisprefix>0[obxOBX])?[1-9a-fA-F][0-9a-fA-F]*')
+# matches a floating-point number in any format python reads
 _re_float = re.compile(r'[+-]?[0-9]*?([0-9]\.|\.[0-9]|[0-9])[0-9]*?([eEdD][+-]?[0-9]+)?')
 
 def xyz_comment_line_parser(line):
@@ -25,26 +31,31 @@ def xyz_comment_line_parser(line):
     if line == '':
         return {}
     elif _re_spincharge.fullmatch(line):
+        # possibility 1: the line only has charge and spin multiplicity
         matcher = _re_spincharge.fullmatch(line)
         spinmult = int(matcher.group('spinmult'))
         charge = int(matcher.group('charge'))
+        # note: this skips the futher processing
         return {'charge':charge, 'spin':spinmult-1}
     elif _re_keyline.fullmatch(line):
+        # possibility 2: space-separated key/value pairs
         line_parts = line.split()  # split across any whitespace
         part_matching = _re_singlekey
         props = {}
     elif _re_keyline2.fullmatch(line):
+        # possibility 3: comma-separated key/value pairs
         line_parts = line.split(',')
         part_matching = _re_singlekey2
         props = {}
     elif line.startswith('{'):
-        # assume it contains json
+        # possibility 4: json
         line_parts = []
         try:
             props = json.loads(line.strip())
         except json.decoder.JSONDecodeError:
             return {}
     else:
+        # other possibilities include having the name of the compound
         print("warning: could not interpret the data in the XYZ title line:", line)
         return {}
 
@@ -77,10 +88,10 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     Args:
         fin (str): Name (including path) of the xyz file to read.
         basis (str or dict): Basis set.
-        charge (int): Charge of the molecule.
-        spin (int): Spin of the molecule (alpha electrons - beta electrons).
+        charge (int): Provide/override charge of the molecule.
+        spin (int): Provide/override spin of the molecule (alpha electrons - beta electrons).
         ignore (bool): If assume molecule closed-shell an assign charge either 0 or -1
-        unit (str): units (Ang or Bohr)
+        unit (str): Provide/override units (Ang or Bohr)
         ecp (str) : ECP to use
 
     Returns:
