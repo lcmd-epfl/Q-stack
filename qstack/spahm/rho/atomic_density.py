@@ -3,7 +3,7 @@ from qstack import compound, fields
 from . import lowdin
 
 
-def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
+def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
     L = lowdin.Lowdin_split(mol, dm)
 
     if len(only_i) > 0:

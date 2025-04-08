@@ -47,10 +47,11 @@ def bond(mols, dms,
         maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
     elif rep_type == 'atom':
         if elements is None:
-            elements = set(*[mol.elements for mol in mols])
-        elements = sorted(list(set(elements)))
-        model = dmba.get_model(model)
-        df_wrapper, sym_wrapper = model
+            elements = set()
+            for mol in mols:
+                elements.update(mol.elements)
+        elements = sorted(set(elements))
+        df_wrapper, sym_wrapper = dmba.get_model(model)
         ao, ao_len, idx, M = dmba.get_basis_info(elements, auxbasis)
         maxlen = sum([len(v) for v in idx.values()])
 
@@ -129,9 +130,10 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         dms = []
 
     if len(only_z) > 0:
-        all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z], ndmin=2)
+        all_atoms   = [ [sym for sym in mol.elements if sym in only_z] for mol in mols]
     else:
-        all_atoms   = np.array([mol.elements for mol in mols])
+        all_atoms   = [mol.elements for mol in mols]
+
     spin = np.array(spin) ## a bit dirty but couldn't find a better way to ensure Iterable type!
     if (spin == None).all():
         omods = [None]
@@ -144,24 +146,60 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
-    if split is False:
-        shape  = (len(omods), -1, maxlen)
-        atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
-        allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
-        all_atoms = list(chain.from_iterable(all_atoms))
-        #allvec = allvec.squeeze()
-    elif with_symbols:
-        msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
-        raise RuntimeError()
+    if split:
+        # note: whenever there is zip() on a molecule, this automatically removes the padding
+        if merge:
+            allvec = np.concatenate(allvec, axis=2)
+            if with_symbols:
+                allvec = np.array([
+                    np.array(list(zip(mol_atoms,molvec)), dtype=object)
+                    for molvec,mol_atoms in zip(allvec, all_atoms)
+                ], dtype=object)
+            else:
+                allvec = np.array([
+                    molvec[:len(mol_atoms)]
+                    for molvec,mol_atoms in zip(allvec, all_atoms)
+                ], dtype=object)
 
-    if printlevel>0: print(allvec.shape)
+        else:
+            if with_symbols:
+                allvec = np.array([
+                    [
+                        np.array(list(zip(mol_atoms,molvec)), dtype=object)
+                        for molvec,mol_atoms in zip(modvec,all_atoms)
+                    ]
+                    for modvec in allvec
+                ], dtype=object)
+            else:
+                allvec = np.array([
+                    [
+                        molvec[:len(mol_atoms)]
+                        for molvec,mol_atoms in zip(modvec,all_atoms)
+                    ]
+                    for modvec in allvec
+                ], dtype=object)
 
-    if merge is True:
-        allvec = np.hstack(allvec)
-        if with_symbols:
-            allvec = np.array([(z, v) for v,z in zip(allvec, all_atoms)], dtype=object)
-    elif with_symbols:
-        allvec = np.array([[(z, v) for v,z in zip(modvec, all_atoms)] for modvec in allvec], dtype=object)
+    else:
+        natm_tot = sum(len(elems) for elems in all_atoms)
+        allvec_new = np.empty_like(allvec, shape=(len(omods), natm_tot, maxlen))
+        atm_i = 0
+        for mol_i, elems in enumerate(all_atoms):
+            allvec_new[:, atm_i:atm_i+len(elems), :] = allvec[:, mol_i, :len(elems), :]
+            atm_i += len(elems)
+        allvec = allvec_new; del allvec_new
+        all_atoms = sum(all_atoms, start=[])
+
+        if merge:
+            allvec = np.hstack(allvec)
+            if with_symbols:
+                allvec = np.array(list(zip(all_atoms, allvec)), dtype=object)
+        else:
+            if with_symbols:
+                allvec = np.array([
+                    np.array(list(zip(all_atoms, modvec)), dtype=object)
+                    for modvec in allvec
+                ], dtype=object)
+
     return allvec
 
 def main():
@@ -184,7 +222,6 @@ def main():
     parser.add_argument('--model',          type=str,            dest='model',          default=defaults.omod, help=f'model for the atomic density fitting (default={defaults.model})')
     parser.add_argument('--print',         type=int,            dest='print',          default=0,                        help='printing level')
     parser.add_argument('--zeros',         action='store_true', dest='zeros',          default=False,                    help='use a version with more padding zeros')
-    parser.add_argument('--split',         action='store_true', dest='split',          default=False,                    help='split into molecules')
     parser.add_argument('--merge',         action='store_true', dest='merge',          default=True,                     help='merge different omods')
     parser.add_argument('--symbols',       action='store_true', dest='with_symbols',   default=False,                    help='if save tuples with (symbol, vec) for all atoms')
     parser.add_argument('--onlym0',        action='store_true', dest='only_m0',        default=False,                    help='use only functions with m=0')
@@ -195,6 +232,7 @@ def main():
     parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit',  default=False,                    help='write the atom pair file and exit if --pairfile is set')
     parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
     parser.add_argument('--only-z',        type=str,            dest='only_z',         default=[],  nargs='+',           help="restrict the representation to one or several atom types")
+    parser.add_argument('--split',         dest='split',         action='count',      default=0,                        help='split into molecules (use twice to also split the output in one file per molecule)')
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
@@ -209,24 +247,39 @@ def main():
     else:
         xyzlistfile = args.filename
         xyzlist = utils.get_xyzlist(xyzlistfile)
-        charge  = utils.get_chsp(args.charge, len(xyzlist))
-        spin    = utils.get_chsp(args.spin,   len(xyzlist))
-    mols    = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
+        if args.charge is not None:
+            charge = utils.get_chsp(args.charge, len(xyzlist))
+        else:
+            charge = np.full(len(xyzlist), None, dtype=object)
+        if args.spin is not None:
+            spin = utils.get_chsp(args.spin, len(xyzlist))
+        else:
+            spin = np.full(len(xyzlist), None, dtype=object)
+        
+    mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
     
     reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=spin, readdm=args.readdm, printlevel=args.print,
                     auxbasis=args.auxbasis, rep_type=args.rep, model=args.model,
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
-                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z)
+                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z)
     if args.print > 0: print(reps.shape)
     if args.merge:
         if (spin == None).all():
-            np.save(args.name_out, reps)
+            mod_iter = [(reps, '')]
         else:
-            np.save(args.name_out+'_'+'_'.join(args.omod), reps)
+            mod_iter = [(reps, '_'+'_'.join(args.omod))]
     else:
-        for vec, omod in zip(reps, args.omod):
-            np.save(args.name_out+'_'+omod, vec)
+        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod)]
+
+    for modvec, mod_suffix in mod_iter:
+        if args.split >=2:
+            for mol_i, molvec in enumerate(modvec):
+                filename = xyzlist[mol_i]
+                basename = os.path.splitext(os.path.basename(filename))[0]
+                np.save(args.name_out + '_' + basename + mod_suffix, molvec)
+        else:
+            np.save(args.name_out + mod_suffix, modvec)
 
 if __name__ == "__main__":
     main()
