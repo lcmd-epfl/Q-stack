@@ -69,13 +69,18 @@ def bond(mols, dms,
 
     for imol, (mol, dm) in enumerate(zip(mols,dms)):
         if printlevel>0: print('mol', imol, flush=True)
+        if len(only_z) >0:
+            only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
+        else:
+            only_i = range(mol.natm)
+
         for iomod, omod in enumerate(omods):
             DM  = utils.dm_open_mod(dm, omod)
             vec = None # This too !!! (maybe a wrapper or dict)
             if rep_type == 'bond':
                 vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
-                c_df = df_wrapper(mol, DM, auxbasis, only_i=[i for i ,z in zip(range(mol.natm),mol.elements) if z in only_z])
+                c_df = df_wrapper(mol, DM, auxbasis, only_i=only_i)
                 vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
             allvec[iomod,imol,:len(vec)] = vec
 
@@ -113,15 +118,16 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         - merge (bool): to concatenate alpha and beta representations to a single feature vector
 
     Returns:
-        A numpy.ndarray with all representations with shape (Nmods,Nmolecules,NatomsMax,Nfeatures)
-        with:   - Nmods: the alpha and beta components of the representation
-                - Nmolecules: the number of molecules in the set
-                - NatomMax: the maximum number of atoms in one molecule
-                - Nfeatures: the number of features (for each omods)
+        A numpy.ndarray with all representations with shape (Nmods,Nmolecules,Natoms,Nfeatures)
+        with:
+          - Nmods: the alpha and beta components of the representation
+          - Nmolecules: the number of molecules in the set
+          - Natoms: the number of atoms in one molecule
+          - Nfeatures: the number of features (for each omod)
         reshaped according to:
-            - if split==True: collapses Nmolecules and returns (Nmods,Natoms,Nfeatures) (where Natoms is the total number of atoms in the set of molecules)
-            - if merge==True: collapses Nmods and returns (Natoms,Nfeatures*2)
-            - if with_symbols==True: returns (Natoms, 2) containging the atom symbols along 1st dim and one of the above arrays
+            - if split==False: collapses Nmolecules and returns a single np.ndarray (Nmods,Natoms,Nfeatures) (where Natoms is the total number of atoms in the set of molecules)
+            - if merge==True: collapses the Nmods axis into the Nfeatures axis
+            - if with_symbols==True: returns (for each molecule (Natoms, 2) containging the atom symbols along 1st dim and one of the above arrays
     """
     if not dump_and_exit:
         dms     = utils.mols_guess(mols, xyzlist, guess,
@@ -204,35 +210,35 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
 
 def main():
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
-    parser.add_argument('--mol',           type=str,            dest='filename',       required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
-    parser.add_argument('--name',          type=str,            dest='name_out',       required=True,                    help='name of the output file')
-    parser.add_argument('--rep',           type=str,            dest='rep',            required=True,   choices = ['atom', 'bond'],                   help='the type of representation')
-    parser.add_argument('--guess',         type=str,            dest='guess',          default=defaults.guess,           help='initial guess')
-    parser.add_argument('--units',         type=str,            dest='units',          default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
-    parser.add_argument('--basis',         type=str,            dest='basis'  ,        default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--ecp',        dest='ecp',        default=None,                  type=str, help=f'effective core potential to use (default: None)')
-    parser.add_argument('--charge',        type=str,            dest='charge',         default=None,                     help='charge / path to a file with a list of thereof')
-    parser.add_argument('--spin',          type=str,            dest='spin',           default=None,                     help='number of unpaired electrons / path to a file with a list of thereof')
-    parser.add_argument('--aux-basis', dest='auxbasis',  default=defaults.auxbasis,            type=str, help=f"auxiliary basis set for density fitting (default: {defaults.auxbasis})")
-    parser.add_argument('--xc',            type=str,            dest='xc',             default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
-    parser.add_argument('--dir',           type=str,            dest='dir',            default='./',                     help=f'directory to save the output in (default=current dir)')
-    parser.add_argument('--cutoff',        type=float,          dest='cutoff',         default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
-    parser.add_argument('--bpath',         type=str,            dest='bpath',          default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
-    parser.add_argument('--omod',          type=str,            dest='omod',           default=defaults.omod, nargs='+', help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
-    parser.add_argument('--model',          type=str,            dest='model',          default=defaults.omod, help=f'model for the atomic density fitting (default={defaults.model})')
-    parser.add_argument('--print',         type=int,            dest='print',          default=0,                        help='printing level')
-    parser.add_argument('--zeros',         action='store_true', dest='zeros',          default=False,                    help='use a version with more padding zeros')
-    parser.add_argument('--merge',         action='store_true', dest='merge',          default=True,                     help='merge different omods')
-    parser.add_argument('--symbols',       action='store_true', dest='with_symbols',   default=False,                    help='if save tuples with (symbol, vec) for all atoms')
-    parser.add_argument('--onlym0',        action='store_true', dest='only_m0',        default=False,                    help='use only functions with m=0')
-    parser.add_argument('--savedm',        action='store_true', dest='savedm',         default=False,                    help='save density matrices')
-    parser.add_argument('--readdm',        type=str,            dest='readdm',         default=None,                     help='directory to read density matrices from')
-    parser.add_argument('--elements',      type=str,            dest='elements',       default=None,  nargs='+',         help='the elements to limit the representation for')
-    parser.add_argument('--pairfile',      type=str,            dest='pairfile',       default=None,                     help='path to the atom pair file')
-    parser.add_argument('--dump_and_exit', action='store_true', dest='dump_and_exit',  default=False,                    help='write the atom pair file and exit if --pairfile is set')
-    parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
-    parser.add_argument('--only-z',        type=str,            dest='only_z',         default=[],  nargs='+',           help="restrict the representation to one or several atom types")
+    parser.add_argument('--mol',           dest='filename',      type=str,            required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
+    parser.add_argument('--name',          dest='name_out',      type=str,            required=True,                    help='name of the output file')
+    parser.add_argument('--rep',           dest='rep',           type=str, choices=['atom', 'bond'], required=True,     help='the type of representation')
+    parser.add_argument('--guess',         dest='guess',         type=str,            default=defaults.guess,           help='initial guess')
+    parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
+    parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
+    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help=f'effective core potential to use (default: None)')
+    parser.add_argument('--charge',        dest='charge',        type=str,            default=None,                     help='charge / path to a file with a list of thereof')
+    parser.add_argument('--spin',          dest='spin',          type=str,            default=None,                     help='number of unpaired electrons / path to a file with a list of thereof')
+    parser.add_argument('--aux-basis',     dest='auxbasis',      type=str,            default=defaults.auxbasis,        help=f"auxiliary basis set for density fitting (default: {defaults.auxbasis})")
+    parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
+    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help=f'directory to save the output in (default=current dir)')
+    parser.add_argument('--cutoff',        dest='cutoff',        type=float,          default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
+    parser.add_argument('--bpath',         dest='bpath',         type=str,            default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
+    parser.add_argument('--omod',          dest='omod',          type=str, nargs='+', default=defaults.omod,            help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
+    parser.add_argument('--model',         dest='model',         type=str,            default=defaults.model,           help=f'model for the atomic density fitting (default={defaults.model})')
+    parser.add_argument('--print',         dest='print',         type=int,            default=0,                        help='printing level')
+    parser.add_argument('--zeros',         dest='zeros',         action='store_true', default=False,                    help='use a version with more padding zeros')
     parser.add_argument('--split',         dest='split',         action='count',      default=0,                        help='split into molecules (use twice to also split the output in one file per molecule)')
+    parser.add_argument('--merge',         dest='merge',         action='store_true', default=True,                     help='merge different omods')
+    parser.add_argument('--symbols',       dest='with_symbols',  action='store_true', default=False,                    help='if save tuples with (symbol, vec) for all atoms')
+    parser.add_argument('--onlym0',        dest='only_m0',       action='store_true', default=False,                    help='use only functions with m=0')
+    parser.add_argument('--savedm',        dest='savedm',        action='store_true', default=False,                    help='save density matrices')
+    parser.add_argument('--readdm',        dest='readdm',        type=str,            default=None,                     help='directory to read density matrices from')
+    parser.add_argument('--elements',      dest='elements',      type=str, nargs='+', default=None,                     help='the elements to limit the representation for')
+    parser.add_argument('--pairfile',      dest='pairfile',      type=str,            default=None,                     help='path to the atom pair file')
+    parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true', default=False,                    help='write the atom pair file and exit if --pairfile is set')
+    parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
+    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=[],                       help="restrict the representation to one or several atom types")
     args = parser.parse_args()
     if args.print>0: print(vars(args))
     correct_num_threads()
@@ -258,11 +264,14 @@ def main():
         
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
     
-    reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=spin, readdm=args.readdm, printlevel=args.print,
-                    auxbasis=args.auxbasis, rep_type=args.rep, model=args.model,
-                      pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
-                      bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
-                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z)
+    reps = get_repr(
+        mols, xyzlist, args.guess, xc=args.xc, spin=spin,
+        readdm=args.readdm, printlevel=args.print,
+        auxbasis=args.auxbasis, rep_type=args.rep, model=args.model,
+        pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
+        bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
+        elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z,
+    )
     if args.print > 0: print(reps.shape)
     if args.merge:
         if (spin == None).all():

@@ -93,7 +93,6 @@ def test_repr_shapes():
         assert X.shape[-1] > 100
         
 
-
 def test_from_list():
     path2list = PATH+'/data/list_water.txt'
     path2spins = PATH+'/data/list_water_spins.txt'

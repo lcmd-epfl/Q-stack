@@ -38,6 +38,10 @@ def get_chsp(fname, n):
 
 def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False, srcdir=None):
     mols = []
+    if spin is None:
+        spin = [None] * len(xyzlist)
+    if charge is None:
+        charge = [None] * len(xyzlist)
     if progress:
         import tqdm
         xyzlist = tqdm.tqdm(xyzlist)
@@ -53,9 +57,11 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
     return mols
 
 
-def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=[None], readdm=False, printlevel=0):
+def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, printlevel=0):
     dms = []
     guess = guesses.get_guess(guess)
+    if spin is None:
+        spin = [None] *len(xyzlist)
     for xyzfile, mol, sp in zip(xyzlist, mols, spin):
         if printlevel>0: print(xyzfile, flush=True)
         if not readdm:
@@ -71,12 +77,12 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=[None], readdm=False, 
 
 
 def dm_open_mod(dm, omod):
-    dmmod = {'sum':   lambda dm: dm[0]+dm[1],
-             'diff':  lambda dm: dm[0]-dm[1],
-             'alpha': lambda dm: dm[0],
-             'beta':  lambda dm: dm[1],
-             None:    lambda dm: dm}
-    return dmmod[omod](dm)
+    if   omod == 'sum':   return dm[0]+dm[1]
+    elif omod == 'diff':  return dm[0]-dm[1]
+    elif omod == 'alpha': return dm[0]
+    elif omod == 'beta':  return dm[1]
+    elif omod == None:    return dm
+    else: raise ValueError('unknown open-shell mod: must be "sum","diff","alpha","beta", or None if the system is closed-shell')
 
 
 def get_xyzlist(xyzlistfile):
