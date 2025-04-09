@@ -4,7 +4,7 @@ from pyscf import scf
 from qstack import compound
 
 def decompose(mol, dm, auxbasis):
-    """Fit molecular density onto an atom-centered basis. 
+    """Fit molecular density onto an atom-centered basis.
 
     Args:
         mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
@@ -12,7 +12,7 @@ def decompose(mol, dm, auxbasis):
         auxbasis (string / pyscf basis dictionary): Atom-centered basis to decompose on.
 
     Returns:
-        A copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object, and a 1D numpy array containing the decomposition coefficients. 
+        A copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object, and a 1D numpy array containing the decomposition coefficients.
     """
 
     auxmol = compound.make_auxmol(mol, auxbasis)
@@ -69,13 +69,14 @@ def decomposition_error(self_repulsion, c, eri2c):
     """
     return self_repulsion - c @ eri2c @ c
 
-def get_coeff(dm, eri2c, eri3c):
+def get_coeff(dm, eri2c, eri3c, slices=None):
     """Computes the density expansion coefficients.
 
     Args:
         dm (numpy ndarray): Density matrix.
         eri2c (numpy ndarray): 2-centers ERI matrix.
         eri3c (numpy ndarray): 3-centers ERI matrix.
+        slices (optional numpy ndarray): assume that eri2c is bloc-diagonal, by giving the boundaries of said blocks
 
     Returns:
         A numpy ndarray containing the expansion coefficients of the density onto the auxiliary basis.
@@ -85,7 +86,15 @@ def get_coeff(dm, eri2c, eri3c):
     projection = np.einsum('ijp,ij->p', eri3c, dm)
 
     # Solve Jc = projection to get the coefficients
-    c = scipy.linalg.solve(eri2c, projection, assume_a='pos')
+    if slices is not None:
+        assert slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2
+        assert slices[0,0] == 0 and slices[-1,1] == projection.shape[0]
+
+        c = np.empty_like(projection)
+        for s0,s1 in slices:
+            c[s0:s1] = scipy.linalg.solve(eri2c[s0:s1,s0:s1], projection[s0:s1], assume_a='pos')
+    else:
+        c = scipy.linalg.solve(eri2c, projection, assume_a='pos')
 
     return c
 

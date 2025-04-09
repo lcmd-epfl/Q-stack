@@ -13,24 +13,48 @@ def idxl0(i, l, ao):
     else:
         return i + [0, 2, 1][ao['m'][i]]
 
+def singleatom_basis_enumerator(basis):
+    """enumerates the different tensors of atomic orbitals within a 1-atom basis set
+    Each tensor is a $2l+2$-sized group of orbitals that share a radial function $l$ value.
+    """
+    ao_starts = []
+    l_per_bas = []
+    n_per_bas = []
+    cursor = 0
+    cursor_per_l = []
+    for bas in basis:
+        # shape of `bas`, l, then another optional constant, then lists [exp, coeff, coeff, coeff]
+        # that make a matrix between the number of functions (number of coeff per list)
+        # and the number of primitive gaussians (one per list)
+        l = bas[0]
+        while len(cursor_per_l) <= l:
+            cursor_per_l.append(0)
+
+        n_count = len(bas[-1])-1
+        n_start = cursor_per_l[l]
+        cursor_per_l[l] += n_count
+
+        l_per_bas += [l] * n_count
+        n_per_bas.extend(range(n_start, n_start+n_count))
+        msize = 2*l+1
+        ao_starts.extend(range(cursor, cursor+msize*n_count, msize))
+        cursor += msize*n_count
+    return l_per_bas, n_per_bas, ao_starts
 
 def get_S(q, basis):
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
 
-    i0 = 0
+    l_per_bas, n_per_bas, ao_start = singleatom_basis_enumerator(mol._basis[q])
+
     ao = {'l': [], 'm': []}
-    ao_start = []
-    for prim in mol._basis[q]:
-        l = prim[0]
+    for l, n in zip(l_per_bas, n_per_bas):
         msize = 2*l+1
         ao['l'].extend([l]*msize)
         if l != 1:
             ao['m'].extend(np.arange(msize)-l)
         else:
             ao['m'].extend([1, -1, 0])  # x, y, z
-        ao_start.append(i0)
-        i0 += msize
 
     return S, ao, ao_start
 

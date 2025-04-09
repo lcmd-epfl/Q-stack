@@ -48,7 +48,7 @@ dependencies = [
 regression = ["scikit-learn >= 0.24.2, < 1.6"]
 wigner = ["sympy >= 1.5, < 1.13"]
 gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2"]  #	branch:	dev, date: 2024-06-06
-equio = ["metatensor-core == 0.1.8"]
+equio = ["metatensor-core >= 0.1.8, == 0.1.*"]
 all = ["qstack[qml,regression,wigner,equio,gmol]"]
 
 [project.urls]
