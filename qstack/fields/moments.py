@@ -60,15 +60,15 @@ def r2_c(rho, mol):
 
     .. math::
 
-        <1> = \int \\rho d r 
-        \quad
+        <1> = \\int \\rho d r 
+        \\quad
         ;
-        \quad
-        <r> = \int \hat{r} \\rho d r 
-        \quad
+        \\quad
+        <r> = \\int \\hat{r} \\rho d r 
+        \\quad
         ;
-        \quad
-        <r^{2}> = \int \hat{r}^{2} \\rho d r
+        \\quad
+        <r^{2}> = \\int \\hat{r}^{2} \\rho d r
 
     Args:
         mol (scipy Mole): scipy Mole object.
