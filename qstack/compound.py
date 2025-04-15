@@ -122,21 +122,27 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
         raise RuntimeError("Unknown units (use Ängstrom or Bohr)")
     mol.unit = unit
 
-    if charge is not None:
-        mol.charge = charge
-    elif 'charge' in props:
-        mol.charge = props['charge']
-    elif ignore:
-        mol.charge = 0
-    else:
-        mol.charge = - sum(mol.atom_charges())%2
-
-    if spin is not None:
-        mol.spin = spin
-    elif 'spin' in props:
-        mol.spin = props['spin']
-    else:
+    if ignore:
+        if charge not in (0, None) or spin not in (0, None):
+            warnings.warn("Spin and charge values are overwritten", RuntimeWarning)
         mol.spin = 0
+        mol.charge = - sum(mol.atom_charges())%2
+    else:
+        if charge is not None:
+            mol.charge = charge
+        elif 'charge' in props:
+            mol.charge = props['charge']
+        else:
+            # no ignore, no charge/spin specified:
+            # let's hope we have a set of neutral, closed shell compounds!
+            mol.charge = 0
+
+        if spin is not None:
+            mol.spin = spin
+        elif 'spin' in props:
+            mol.spin = props['spin']
+        else:
+            mol.spin = 0
 
     if ecp is not None:
         mol.ecp = ecp
@@ -399,3 +405,34 @@ def make_atom(q, basis):
     mol.basis = basis
     mol.build()
     return mol
+
+def singleatom_basis_enumerator(basis):
+    """Enumerates the different tensors of atomic orbitals within a 1-atom basis set
+    Each tensor is a $2l+2$-sized group of orbitals that share a radial function and $l$ value.
+    For each tensor, return the values of $l$, $n$ (an arbitrary radial-function counter that starts at 0),
+    as well as AO range
+    """
+    ao_starts = []
+    l_per_bas = []
+    n_per_bas = []
+    cursor = 0
+    cursor_per_l = []
+    for bas in basis:
+        # shape of `bas`, l, then another optional constant, then lists [exp, coeff, coeff, coeff]
+        # that make a matrix between the number of functions (number of coeff per list)
+        # and the number of primitive gaussians (one per list)
+        l = bas[0]
+        while len(cursor_per_l) <= l:
+            cursor_per_l.append(0)
+
+        n_count = len(bas[-1])-1
+        n_start = cursor_per_l[l]
+        cursor_per_l[l] += n_count
+
+        l_per_bas += [l] * n_count
+        n_per_bas.extend(range(n_start, n_start+n_count))
+        msize = 2*l+1
+        ao_starts.extend(range(cursor, cursor+msize*n_count, msize))
+        cursor += msize*n_count
+    return l_per_bas, n_per_bas, ao_starts
+

@@ -48,11 +48,10 @@ def get_repr(mol, elements, charge, spin,
         rep.append(vectors)
 
     if spin is not None:
-        n_atoms = len(rep[0])
-        rep_ret = [None]*n_atoms
-        for atom_i in range(n_atoms):
-            rep_ret[atom_i] = np.concatenate([per_spin_rep[atom_i] for per_spin_rep in rep], axis=0)
-        rep = rep_ret
+        rep = [
+            np.concatenate([ per_spin_rep[atom_i] for per_spin_rep in rep ], axis=0)
+            for atom_i in range(len(rep[0]))
+        ]
 
     mrep = [np.array((q,v), dtype=object) for q,v in zip(np.array(mol.elements)[only_i], rep)]
     return np.array(mrep)
