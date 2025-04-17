@@ -210,7 +210,7 @@ def eigenvalue_grad(mol, e, c, s1, h1):
         mol (pyscf Mole): pyscf Mole object
         e (numpy 1d ndarray, mol.nao): eigenvalues
         c (numpy 2d ndarray, mol.nao*mol.nao): eigenvectors
-        s1 (numpy 3d ndarray, 3*mol.nao*mol.nao): compact gradient of the overlap matrix [-(nabla \|\)]
+        s1 (numpy 3d ndarray, 3*mol.nao*mol.nao): compact gradient of the overlap matrix [-(nabla \\|\\)]
         h1 (func(int: iat)): returns the derivative of H wrt the coordinates of atom iat, i.e. dH/dr[iat]
 
     Returns:

@@ -29,6 +29,26 @@ def test_water_alternate():
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O.npy', X)
 
+def test_water_lowdinshortx():
+    mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
+    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+                      guess='LB', model='lowdin-short-x', auxbasis='ccpvdzjkfit')
+
+    underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-short-x.npy', X)
+
+def test_water_lowdinlong():
+    mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
+    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+                      guess='LB', model='lowdin-long', auxbasis='ccpvdzjkfit')
+
+    underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-long.npy', X)
+
+def test_water_lowdinshort():
+    mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
+    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+                      guess='LB', model='lowdin-short', auxbasis='ccpvdzjkfit')
+
+    underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-short.npy', X)
 
 def test_water_SAD_guess_open_shell():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'sto3g', charge=1, spin=1) ## test breaks when effective open-shell caluclation is needed

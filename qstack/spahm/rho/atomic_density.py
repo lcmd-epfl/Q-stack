@@ -20,6 +20,7 @@ def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
         for s0,s1 in fit_slices:
             J[s0:s1, s0:s1] = eri2c[s0:s1, s0:s1]
     else:
+        fit_slices = None
         J = eri2c
 
     a_dfs = []
@@ -29,7 +30,7 @@ def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
         a_dm1[:,start:stop] += L.dmL[:,start:stop]*0.5
         a_dm0 = L.S12i @ a_dm1 @ L.S12i
 
-        c_a = fields.decomposition.get_coeff(a_dm0, J, eri3c)
+        c_a = fields.decomposition.get_coeff(a_dm0, J, eri3c, slices=fit_slices)
         a_dfs.append(c_a)
 
     if short:

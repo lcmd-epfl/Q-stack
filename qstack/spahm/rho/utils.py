@@ -30,7 +30,7 @@ def get_chsp(fname, n):
     if os.path.isfile(fname):
         chsp = np.loadtxt(fname, dtype=object, converters=chsp_converter, encoding=None)
         if(len(chsp)!=n):
-            raise RuntimeError(f'Wrong lengh of the file {fname}')
+            raise RuntimeError(f'Wrong length of the file {fname}')
     else:
         raise RuntimeError(f"{fname} can not be found")
     return chsp
@@ -198,5 +198,3 @@ def regroup_symbols(file_list, print_level=0):
         atoms_set[e].append(v)
     if print_level > 0: print([(k, len(v)) for k, v in atoms_set.items()])
     return atoms_set
-
-

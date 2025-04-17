@@ -46,9 +46,12 @@ def get_repr(mol, elements, charge, spin,
             rep = vectors
             break
         rep.append(vectors)
-    rep = np.array(rep)
+
     if spin is not None:
-        rep = np.hstack(rep)
+        rep = [
+            np.concatenate([ per_spin_rep[atom_i] for per_spin_rep in rep ], axis=0)
+            for atom_i in range(len(rep[0]))
+        ]
 
     mrep = [np.array((q,v), dtype=object) for q,v in zip(np.array(mol.elements)[only_i], rep)]
     return np.array(mrep)
