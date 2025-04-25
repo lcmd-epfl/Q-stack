@@ -217,8 +217,8 @@ def main():
     parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
     parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help=f'effective core potential to use (default: None)')
-    parser.add_argument('--charge',        dest='charge',        type=str,            default=None,                     help='charge / path to a file with a list of thereof')
-    parser.add_argument('--spin',          dest='spin',          type=str,            default=None,                     help='number of unpaired electrons / path to a file with a list of thereof')
+    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                     help='charge / path to a file with a list of thereof')
+    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                     help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--aux-basis',     dest='auxbasis',      type=str,            default=defaults.auxbasis,        help=f"auxiliary basis set for density fitting (default: {defaults.auxbasis})")
     parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
     parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help=f'directory to save the output in (default=current dir)')
@@ -248,8 +248,8 @@ def main():
 
     if args.filename.endswith('xyz'):
         xyzlist = [args.filename]
-        charge  = np.array([int(args.charge) if args.charge is not None else 0])
-        spin    = np.array([int(args.spin)   if args.spin   is not None else None])
+        charge  = np.array([int(args.charge) if (args.charge != "None") else 0])
+        spin    = np.array([int(args.spin)   if (args.spin != "None") else None])
     else:
         xyzlistfile = args.filename
         xyzlist = utils.get_xyzlist(xyzlistfile)
