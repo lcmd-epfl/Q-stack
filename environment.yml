@@ -1,7 +1,8 @@
-name: qstack
+name: qstack-min
 channels:
   - conda-forge
   - defaults
+  - pyscf
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_gnu

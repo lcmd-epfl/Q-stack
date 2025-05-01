@@ -13,24 +13,20 @@ def idxl0(i, l, ao):
     else:
         return i + [0, 2, 1][ao['m'][i]]
 
-
 def get_S(q, basis):
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
 
-    i0 = 0
+    l_per_bas, n_per_bas, ao_start = compound.singleatom_basis_enumerator(mol._basis[q])
+
     ao = {'l': [], 'm': []}
-    ao_start = []
-    for prim in mol._basis[q]:
-        l = prim[0]
+    for l, n in zip(l_per_bas, n_per_bas):
         msize = 2*l+1
         ao['l'].extend([l]*msize)
         if l != 1:
             ao['m'].extend(np.arange(msize)-l)
         else:
             ao['m'].extend([1, -1, 0])  # x, y, z
-        ao_start.append(i0)
-        i0 += msize
 
     return S, ao, ao_start
 
