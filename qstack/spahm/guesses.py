@@ -226,3 +226,4 @@ def eigenvalue_grad(mol, e, c, s1, h1):
         Scomp = 2.0 * numpy.einsum('pi,aqp,qi->ia', c, s1[:,p0:p1], c[p0:p1])
         de_dr[:,iat,:] = Hcomp - Scomp * e[:,None]
     return de_dr
+
