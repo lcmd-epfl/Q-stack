@@ -8,7 +8,7 @@ from pyscf import dft
 
 def test_tests():
     path = os.path.dirname(os.path.realpath(__file__))
-    mol = qstack.compound.xyz_to_mol(path+'/data/orca/H2O.xyz', 'sto3g', charge=1, spin=1)
+    mol = qstack.compound.xyz_to_mol(path+'/data/orca/H2O.xyz', 'sto3g', charge=0, spin=0)
 
     xc = 'HF'
     if mol.multiplicity == 1:
@@ -18,4 +18,3 @@ def test_tests():
     mf.xc = xc
     mf.verbose = 0
     mf.kernel()
-    #dm = mf.make_rdm1()
