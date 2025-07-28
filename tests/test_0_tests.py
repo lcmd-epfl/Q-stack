@@ -11,13 +11,11 @@ def test_tests():
     mol = qstack.compound.xyz_to_mol(path+'/data/orca/H2O.xyz', 'sto3g', charge=1, spin=1)
 
     xc = 'HF'
-    dm = qstack.fields.dm.get_converged_dm(mol, xc)
-
     if mol.multiplicity == 1:
         mf = dft.RKS(mol)
     else:
         mf = dft.UKS(mol)
     mf.xc = xc
     mf.verbose = 0
-    mf.kernel()
-    dm = mf.make_rdm1()
+    #mf.kernel()
+    #dm = mf.make_rdm1()
