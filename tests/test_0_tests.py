@@ -17,5 +17,5 @@ def test_tests():
         mf = dft.UKS(mol)
     mf.xc = xc
     mf.verbose = 0
-    #mf.kernel()
+    mf.kernel()
     #dm = mf.make_rdm1()
