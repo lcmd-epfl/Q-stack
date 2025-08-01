@@ -15,9 +15,9 @@ dependencies:
   - py=1.11.0
   - scikit-learn=1.5.0
   - toml=0.10.2
-  - pyscf=2.2.0
   - pip:
       - git+https://github.com/lcmd-epfl/cell2mol.git
+      - pyscf==2.5.0
       - qstack/qstack-qml
       - metatensor-core==0.1.8
       - pytest==6.2.5
