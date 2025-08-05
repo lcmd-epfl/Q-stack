@@ -169,7 +169,7 @@ dependencies:
       - git+https://github.com/lcmd-epfl/cell2mol.git
       - certifi==2021.10.8
       - metatensor-core==0.1.8
-      - pyscf==2.2.0
+      - pyscf==2.5.0
       - pytest==6.2.5
       - qstack/qstack-qml
       - scipy==1.10.0
