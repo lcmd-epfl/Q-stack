@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import tempfile
 import numpy as np
 import qstack.spahm.rho.utils as ut
 import qstack.spahm.rho.atom as atom
@@ -37,12 +38,13 @@ def test_load_reps_nosymbols(): #throws warning and returns empty list of symbol
 
 def test_load_reps_singleatom():
     path = os.path.dirname(os.path.realpath(__file__))
+    tmpfile = tempfile.mktemp()+'.npy'
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
     rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O'])
-    np.save(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), rep)
-    X, symbols = ut.load_reps(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), from_list=False, \
+    np.save(tmpfile, rep)
+    X, symbols = ut.load_reps(tmpfile, from_list=False, \
             with_labels=True, local=True, sum_local=False, printlevel=0, progress=True)
     assert(X.shape == (1,414))
     assert(len(symbols) == 1)
@@ -50,23 +52,25 @@ def test_load_reps_singleatom():
 
 def test_load_reps_singleatom_sum_local():
     path = os.path.dirname(os.path.realpath(__file__))
+    tmpfile = tempfile.mktemp()+'.npy'
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
     rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['H'])
-    np.save(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), rep)
-    X = ut.load_reps(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), from_list=False, single=True, \
+    np.save(tmpfile, rep)
+    X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
     assert(X.shape == (1,414))
 
-def test_load_reps_singleatom_sum_local():
+def test_load_reps_singleatom_sum_local2():
     path = os.path.dirname(os.path.realpath(__file__))
+    tmpfile = tempfile.mktemp()+'.npy'
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
     rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O']) #since only one O checks if the sum is not run over the representations elements
-    np.save(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), rep)
-    X = ut.load_reps(os.path.join(path, 'data/tmp_H2O-minao-ccpvdzjkfit.npy'), from_list=False, \
+    np.save(tmpfile, rep)
+    X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
     assert(X.shape == (1,414))
 
@@ -94,5 +98,10 @@ def main():
     test_load_reps()
     test_load_rep_from_list()
     test_check_data_structure()
+    test_load_reps_nosymbols()
+    test_load_reps_singleatom()
+    test_load_reps_singleatom_sum_local()
+    test_load_reps_singleatom_sum_local2()
+
 
 if __name__ == '__main__': main()

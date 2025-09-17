@@ -6,7 +6,7 @@ packaging==21.3
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.6
-pyscf==2.2.0
+pyscf==2.5.0
 pytest==6.2.5
 numpy==1.23.*
 scipy==1.10

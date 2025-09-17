@@ -22,15 +22,19 @@ def build_mol(mol, r):
 
 def grad_num(func, mol, guess, eps=1e-4):
     r = mol.atom_coords(unit='ang').flatten()
+    return derivatives_num(r, func, mol, guess, eps)*data.nist.BOHR
+
+
+def derivatives_num(r, func, mol, guess, eps=1e-4):
     g = []
     for i, ri in enumerate(r):
-        u   = np.eye(1, len(r), i)  # unit vector || ith dimension
+        u   = np.eye(1, len(r), i).flatten()  # unit vector || ith dimension
         e1  = func(r+eps*u, mol, guess)
         e2  = func(r-eps*u, mol, guess)
         e11 = func(r+2*eps*u, mol, guess)
         e22 = func(r-2*eps*u, mol, guess)
         g.append((8.0*e1-8.0*e2 + e22-e11) / (12.0*eps))
-    return np.array(g)*data.nist.BOHR
+    return np.array(g)
 
 
 def test_spahm_ev_grad():
@@ -91,6 +95,7 @@ def test_spahm_ev_grad_field():
 
 
 def test_spahm_re_grad_field():
+    # test spahm derivatives wrt atom positions in external field
     def spahm_re(r, mol, guess_in):
         mymol = build_mol(mol, r)
         e = spahm.compute_spahm.get_spahm_representation(mymol, guess_in, field=field)
@@ -105,9 +110,24 @@ def test_spahm_re_grad_field():
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
+def test_spahm_re_field_grad():
+    # test spahm derivatives wrt external field
+    def spahm_re(field, mol, guess_in):
+        return spahm.compute_spahm.get_spahm_representation(mol, guess_in, field=field)
+    path  = os.path.dirname(os.path.realpath(__file__))
+    mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
+    field = np.array((0.02, 0.02, 0.02))
+    guess = 'lb'
+    agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)[2].reshape(-1, 3)
+    ngrad = derivatives_num(field, spahm_re, mol, guess).reshape(3, -1).T
+    for g1, g2 in zip(ngrad, agrad):
+        assert(np.linalg.norm(g1-g2)<1e-6)
+
+
 if __name__ == '__main__':
     test_spahm_ev_grad()
     test_spahm_re_grad()
     test_spahm_ev_grad_ecp()
     test_spahm_ev_grad_field()
     test_spahm_re_grad_field()
+    test_spahm_re_field_grad()
