@@ -66,7 +66,7 @@ def main():
     parser.add_argument('--aux-basis', dest='auxbasis',  default=defaults.auxbasis,            type=str, help=f"auxiliary basis set for density fitting (default: {defaults.auxbasis})")
     parser.add_argument('--model',     dest='model',     default=defaults.model,               type=str, help=f"the model to use when creating the representation (default: {defaults.model})")
     parser.add_argument('--dm',        dest='dm',        default=None,                         type=str, help="a density matrix to load instead of computing the guess")
-    parser.add_argument('--species',   dest='elements',  default=defaults.elements, nargs='+', type=str, help="the elements contained in the database")
+    parser.add_argument('--species',   dest='elements',  default=None, nargs='+', type=str, help="the elements contained in the database")
     parser.add_argument('--only',   dest='only_z', default=None, nargs='+', type=str, help="The restricted list of elements for which you want to generate the representation")
     parser.add_argument('--charge',    dest='charge',    default=0,                            type=int, help='total charge of the system (default: 0)')
     parser.add_argument('--spin',      dest='spin',      default=None,                         type=int, help='number of unpaired electrons (default: None) (use 0 to treat a closed-shell system in a UHF manner)')
@@ -80,7 +80,12 @@ def main():
     mol = compound.xyz_to_mol(check_file(args.mol), args.basis, charge=args.charge, spin=args.spin, unit=args.units, ecp=args.ecp)
     dm = None if args.dm is None else np.load(args.dm)
 
-    representations = get_repr(mol, args.elements, args.charge, args.spin,
+    if args.elements is None:
+        elements = sorted(mol.elements)
+    else:
+        elements = args.elements
+
+    representations = get_repr(mol, elements, args.charge, args.spin,
                                open_mod=args.omod,
                                dm=dm, guess=args.guess, model=args.model,
                                xc=args.xc, auxbasis=args.auxbasis, only_z=args.only_z)

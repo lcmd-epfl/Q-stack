@@ -3,13 +3,14 @@
 import os
 import argparse
 import numpy as np
+from itertools import chain
 from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
 from .utils import defaults
 
 def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
-         spin=None, elements=None, only_m0=False, zeros=False, printlevel=0,
+         elements=None, only_m0=False, zeros=False, printlevel=0,
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
     """ Computes SPAHM-b representations for a set of molecules.
 
@@ -19,7 +20,6 @@ def bond(mols, dms,
         - bpath (str): path to the directory containing bond-optimized basis-functions (.bas)
         - cutoff (float): the cutoff distance (angstrom) between atoms to be considered as bond
         - omods (list of str): the selected mode for open-shell computations
-        - spin (list of int): list of spins for each molecule
         - elements (list of str): list of all elements present in the set of molecules
         - only_m0 (bool): use only basis functions with `m=0`
         - zeros (bool): add zeros features for non-existing bond pairs
@@ -39,8 +39,6 @@ def bond(mols, dms,
     elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                      elements=elements, cutoff=cutoff,
                                                                      pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
-    if spin is None:
-        omods = [None]
     qqs = qqs0 if zeros else qqs4q
     maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
     if len(only_z) > 0:
@@ -58,7 +56,7 @@ def bond(mols, dms,
     for imol, (mol, dm) in enumerate(zip(mols,dms)):
         if printlevel>0: print('mol', imol, flush=True)
         for iomod, omod in enumerate(omods):
-            DM  = utils.dm_open_mod(dm, omod) if spin else dm
+            DM  = utils.dm_open_mod(dm, omod)
             vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             allvec[iomod,imol,:len(vec)] = vec
 
@@ -112,23 +110,25 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         dms = []
 
     if len(only_z) > 0:
-        all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z])
+        all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z], ndmin=2)
     else:
         all_atoms   = np.array([mol.elements for mol in mols])
+    spin = np.array(spin) ## a bit dirty but couldn't find a better way to ensure Iterable type!
+    if (spin == None).all():
+        omods = [None]
 
     allvec  = bond(mols, dms, bpath, cutoff, omods,
-                   spin=spin, elements=elements,
-                   only_m0=only_m0, zeros=zeros, printlevel=printlevel,
+                   elements=elements, only_m0=only_m0,
+                   zeros=zeros, printlevel=printlevel,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
-
     if split is False:
         shape  = (len(omods), -1, maxlen)
         atidx  = np.where(np.array([[1]*len(zin) + [0]*(natm-len(zin)) for zin in all_atoms]).flatten())
         allvec = allvec.reshape(shape)[:,atidx,:].reshape(shape)
-        all_atoms = all_atoms.flatten()
-        allvec = allvec.squeeze()
+        all_atoms = list(chain.from_iterable(all_atoms))
+        #allvec = allvec.squeeze()
     elif with_symbols:
         msg = f"You can not use 'split=True' and 'with_symbols=True' at the same time!"
         raise RuntimeError()
@@ -180,8 +180,8 @@ def main():
 
     if args.filename.endswith('xyz'):
         xyzlist = [args.filename]
-        charge  = [int(args.charge) if args.charge is not None else 0]
-        spin    = [int(args.spin)   if args.spin   is not None else None]
+        charge  = np.array([int(args.charge) if args.charge is not None else 0])
+        spin    = np.array([int(args.spin)   if args.spin   is not None else None])
     else:
         xyzlistfile = args.filename
         xyzlist = utils.get_xyzlist(xyzlistfile)
@@ -192,10 +192,13 @@ def main():
     reps = get_repr(mols, xyzlist, args.guess, xc=args.xc, spin=spin, readdm=args.readdm, printlevel=args.print,
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
-                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split)
+                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z)
     if args.print > 0: print(reps.shape)
     if args.merge:
-        np.save(args.name_out+'_'+'_'.join(args.omod), reps)
+        if (spin == None).all():
+            np.save(args.name_out, reps)
+        else:
+            np.save(args.name_out+'_'+'_'.join(args.omod), reps)
     else:
         for vec, omod in zip(reps, args.omod):
             np.save(args.name_out+'_'+omod, vec)

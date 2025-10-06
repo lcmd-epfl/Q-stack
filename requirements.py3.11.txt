@@ -8,7 +8,7 @@ py==1.11.0
 pyparsing==3.0.6
 pyscf==2.5.0
 pytest==6.2.5
-numpy===1.22.3
+numpy==1.23.*
 scipy==1.10
 toml==0.10.2
 scikit-learn==1.5.0

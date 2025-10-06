@@ -10,14 +10,13 @@ from qstack.fields.dori import dori, dori_on_grid, compute_rho
 
 def grad_num(func, grid, eps=1e-4, **kwargs):
     g = np.zeros_like(grid)
-    for i, r in enumerate(grid):
-        for j in range(3):
-            u   = np.eye(1, len(r), j)  # unit vector || jth dimension
-            e1  = func(r+eps*u, **kwargs)
-            e2  = func(r-eps*u, **kwargs)
-            e11 = func(r+2*eps*u, **kwargs)
-            e22 = func(r-2*eps*u, **kwargs)
-            g[i,j] = (8.0*e1-8.0*e2 + e22-e11) / (12.0*eps)
+    for j in range(grid.shape[1]):
+        u   = np.eye(1, grid.shape[1], j)  # unit vector || jth dimension
+        e1  = func(grid+eps*u, **kwargs)
+        e2  = func(grid-eps*u, **kwargs)
+        e11 = func(grid+2*eps*u, **kwargs)
+        e22 = func(grid-2*eps*u, **kwargs)
+        g[:,j] = (8.0*e1-8.0*e2 + e22-e11) / (12.0*eps)
     return g
 
 
