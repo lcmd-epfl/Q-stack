@@ -3,8 +3,7 @@
 import os
 import numpy as np
 from qstack import compound
-from qstack.spahm.rho import atom
-
+from qstack.spahm.rho import atom, bond
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -19,6 +18,14 @@ def test_water():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
     X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
                       guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
+
+    underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O.npy', X)
+
+def test_water_alternate():
+    mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
+    #X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    #                  guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
+    X = bond.get_repr([mol], [PATH], 'LB', spin=[None], auxbasis='ccpvdzjkfit', rep_type='atom', with_symbols=True)
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O.npy', X)
 
@@ -76,6 +83,7 @@ def test_water_single_element():
 
 if __name__ == '__main__':
     test_water()
+    test_water_alternate()
     test_water_lowdinshort()
     test_water_lowdinshortx()
     test_water_lowdinlong()
