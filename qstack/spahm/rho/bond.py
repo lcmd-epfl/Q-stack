@@ -3,7 +3,6 @@
 import os
 import argparse
 import numpy as np
-from itertools import chain
 from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
@@ -261,9 +260,9 @@ def main(args=None):
             spin = utils.get_chsp(args.spin, len(xyzlist))
         else:
             spin = np.full(len(xyzlist), None, dtype=object)
-        
+
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
-    
+
     reps = get_repr(
         mols, xyzlist, args.guess, xc=args.xc, spin=spin,
         readdm=args.readdm, printlevel=args.print,

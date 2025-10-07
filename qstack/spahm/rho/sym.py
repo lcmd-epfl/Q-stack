@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from pyscf import gto, data
 from qstack import compound
 from qstack.mathutils.matrix import sqrtm
 

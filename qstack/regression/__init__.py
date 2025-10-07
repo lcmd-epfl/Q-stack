@@ -9,3 +9,5 @@ ERROR: cannot import scikit-learn. Have you installed qstack with the \"regressi
 
 """)
     raise
+
+from . import kernel_utils

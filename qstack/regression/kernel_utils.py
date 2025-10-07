@@ -1,7 +1,9 @@
 import argparse
 import numpy as np
 from types import SimpleNamespace
-from qstack.regression import __path__ as REGMODULE_PATH
+
+import os
+REGMODULE_PATH = os.path.dirname(__file__)
 
 
 class ParseKwargs(argparse.Action):

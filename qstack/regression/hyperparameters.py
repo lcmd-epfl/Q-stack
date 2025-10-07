@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import scipy
 from sklearn.model_selection import KFold
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
+from .kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
 
 

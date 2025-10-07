@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
+from .kernel_utils import get_kernel, defaults, ParseKwargs
 
 
 def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
