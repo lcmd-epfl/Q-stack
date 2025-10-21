@@ -36,6 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Build C 
+        run: make -C qstack/regression/lib/
+
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v2
         with:
