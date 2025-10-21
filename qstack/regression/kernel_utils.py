@@ -1,7 +1,10 @@
+import os
 import argparse
-import numpy as np
+import warnings
 from types import SimpleNamespace
+import numpy as np
 from qstack.regression import __path__ as REGMODULE_PATH
+import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
 
 
 class ParseKwargs(argparse.Action):
@@ -144,60 +147,6 @@ def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
     return K_covar
 
 
-# #################################################
-# local kernels
-
-def my_laplacian_kernel(X, Y, gamma):
-  """ Compute Laplacian kernel between X and Y
-
-  .. todo::
-      Write the docstring
-  """
-
-  assert X.shape[1:] == Y.shape[1:]
-  innerdims = X.ndim-1
-  transposer = tuple(range(1,X.ndim)) + (0,)
-  K = np.tensordot(X, Y.transpose(*transposer), innerdims)
-  K *= -gamma
-  np.exp(K, out=K)
-  return K
-
-
-def my_kernel_c(akernel):
-    """
-
-    .. todo::
-        Write the docstring
-    """
-    import ctypes
-    import sysconfig
-    array_2d_double = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags='CONTIGUOUS')
-    try:
-        manh = ctypes.cdll.LoadLibrary(REGMODULE_PATH[0]+"/lib/manh.so")
-    except:
-        manh = ctypes.cdll.LoadLibrary(REGMODULE_PATH[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX'))
-    if akernel == 'myLfast':
-        kfunc = manh.manh
-    elif akernel == 'myG':
-        kfunc = manh.eucl
-    kfunc.restype = ctypes.c_int
-    kfunc.argtypes = [
-      ctypes.c_int,
-      ctypes.c_int,
-      ctypes.c_int,
-      array_2d_double,
-      array_2d_double,
-      array_2d_double]
-
-    def kernel_func_c(X, Y, gamma):
-        K = np.zeros((len(X),len(Y)))
-        kfunc(len(X), len(Y), len(X[0]), X, Y, K)
-        K *= -gamma
-        np.exp(K, out=K)
-        return K
-    return kernel_func_c
-
-
 # ###############################################@
 # kernel selection utils
 
@@ -254,42 +203,106 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
     return K_global
 
 
-_SKLEARN_PAIRWISE = None
-def local_laplacian_kernel_wrapper(X,Y,gamma):
+# #################################################
+# local kernels
+
+def custom_laplacian_kernel(X, Y, gamma):
+  """ Compute Laplacian kernel between X and Y
+
+  .. todo::
+      Write the docstring
+  """
+  assert X.shape[1:] == Y.shape[1:]
+  def cdist(X, Y):
+      K = np.zeros((len(X),len(Y)))
+      for i,x in enumerate(X):
+          x = np.array([x] * len(Y))
+          d = np.abs(x-Y)
+          d = np.sum(d, axis=tuple(range(1, len(d.shape))))
+          K[i,:] = d
+      return K
+  K = -gamma * cdist(X, Y)
+  np.exp(K, out=K)
+  return K
+
+
+def custom_C_kernel(kernel_function, return_distance_function=False):
+    """
+
+    .. todo::
+        Write the docstring
+    """
+    import ctypes
+    import sysconfig
+    array_2d_double = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags='CONTIGUOUS')
+
+    lib_path = REGMODULE_PATH[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX')
+    if not os.path.isfile(lib_path):
+        lib_path = REGMODULE_PATH[0]+"/lib/manh.so"
+
+    try:
+        manh = ctypes.cdll.LoadLibrary(lib_path)
+    except:
+        return None
+
+    if kernel_function == 'L':
+        dist_func = manh.manh
+    elif kernel_function == 'G':
+        dist_func = manh.eucl
+    dist_func.restype = ctypes.c_int
+    dist_func.argtypes = [
+      ctypes.c_int,
+      ctypes.c_int,
+      ctypes.c_int,
+      array_2d_double,
+      array_2d_double,
+      array_2d_double]
+
+    if return_distance_function:
+        def dist_func_c(X, Y):
+            assert len(X[0])==len(Y[0])
+            K = np.zeros((len(X),len(Y)))
+            dist_func(len(X), len(Y), len(X[0]), X, Y, K)
+            return K
+        return dist_func_c
+
+    else:
+        def kernel_func_c(X, Y, gamma):
+            assert len(X[0])==len(Y[0])
+            K = np.zeros((len(X),len(Y)))
+            dist_func(len(X), len(Y), len(X[0]), X, Y, K)
+            K *= -gamma
+            np.exp(K, out=K)
+            return K
+        return kernel_func_c
+
+
+def dot_kernel_wrapper(x, y, *kargs, **kwargs):
+    return _SKLEARN_PAIRWISE.linear_kernel(x, y)
+
+
+def cosine_similarity_wrapper(x, y, *kargs, **kwargs):
+    return _SKLEARN_PAIRWISE.cosine_similarity(x, y)
+
+
+def local_laplacian_kernel_wrapper(X, Y, gamma):
     """ Wrapper that acts as a generic laplacian kernel function
     It simply decides which kernel implementation to call.
     """
-    X,Y = np.asarray(X), np.asarray(Y)
+    X, Y = np.asarray(X), np.asarray(Y)
     assert X.shape[1:] == Y.shape[1:]
-    if X.ndim==2:
-        return _SKLEARN_PAIRWISE.laplacian_kernel(X,Y,gamma)
-    elif X.ndim==3:
-        try:
-            kern = my_kernel_c('myLfast')
-        except Exception as err:
-            print("WARNING: C module for kernel computation is missing/not working (exception on next line). falling back to python implementation")
-            print(err)
-            kern = my_laplacian_kernel  # fallback in case somebody is using this module without a compiled c module
-        return kern(X,Y,gamma)
-    else:
-        return my_laplacian_kernel(X,Y,gamma)
+    assert X.ndim > 1   # do not extend so the behavior is the same for 'L' and 'L_custom_py'
 
-def local_gaussian_kernel_wrapper(X,Y,gamma):
-    """ Wrapper that acts as a generic gaussian kernel function
-    It simply decides which kernel implementation to call.
-    """
-    X,Y = np.asarray(X), np.asarray(Y)
-    assert X.shape[1:] == Y.shape[1:]
-    if X.ndim==2:
-        return _SKLEARN_PAIRWISE.rbf_kernel(X,Y,gamma)
+    if X.ndim>2:
+        kern = local_kernels_dict['L_custom_py']
     else:
-        try:
-            kern = my_kernel_c('myG')
-        except Exception as err:
-            print("WARNING: C module for kernel computation is missing/not working (exception on next line). falling back to python implementation.")
-            print(err)
-            kern = _SKLEARN_PAIRWISE.rbf_kernel  # fallback in case somebody is using this module without a compiled c module
-        return kern(X,Y,gamma)
+        kern = local_kernels_dict['L_custom_c']
+        if kern is None:
+            warnings.warn("C module for kernel computation is missing/not working. Falling back to python implementation", RuntimeWarning)
+            kern = local_kernels_dict['L_sklearn']
+
+    return kern(X, Y, gamma)
+
 
 
 def get_local_kernel(arg):
@@ -304,39 +317,20 @@ def get_local_kernel(arg):
     .. todo::
         Write the docstring
     """
+    if arg not in local_kernels_dict:
+        raise NotImplementedError(f'{arg} kernel is not implemented')
 
-    global _SKLEARN_PAIRWISE
-    import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
+    if local_kernels_dict[arg] is None:
+        raise RuntimeError(f'cannot use {arg} kernel. check your installation')
 
-    if arg.startswith('my'):
-        arg = {'myL':'L_custompy','myLfast':'L_customc','myG':'G_customc'}
+    return local_kernels_dict[arg]
 
-    if arg.startswith('G'):
-        if arg=='G':
-            return local_gaussian_kernel_wrapper
-        elif arg=='G_sklearn':
-            return _SKLEARN_PAIRWISE.rbf_kernel
-        elif arg=='G_customc':
-            return my_kernel_c('myG')
-        else:
-            raise Exception(f'{arg[1:]} implementation of gaussian kernel is not implemented') # TODO
-    elif arg.startswith('L'):
-        if arg=='L':
-            return local_laplacian_kernel_wrapper
-        elif arg=='L_sklearn':
-            return _SKLEARN_PAIRWISE.laplacian_kernel
-        elif arg=='L_customc':
-            return my_kernel_c('myLfast')
-        elif arg=='L_custompy':
-            return my_laplacian_kernel
-        else:
-            raise Exception(f'{arg[1:]} implementation of laplacian kernel is not implemented') # TODO
-    elif arg=='dot':
-        return lambda x,y,s: _SKLEARN_PAIRWISE.linear_kernel(x, y)
-    elif arg=='cosine':
-        return lambda x,y,s: _SKLEARN_PAIRWISE.cosine_similarity(x, y)
-    else:
-        raise Exception(f'{arg} kernel is not implemented') # TODO
+
+
+
+
+
+
 
 
 def get_global_kernel(arg, local_kernel):
@@ -448,3 +442,23 @@ def sparse_regression_kernel(K_train, y_train, sparse_idx, eta):
     K_solve[np.diag_indices_from(K_solve)] += eta
     y_solve = K_NM.T @ y_train
     return K_solve, y_solve
+
+
+
+local_kernels_dict = {
+        'G'          : _SKLEARN_PAIRWISE.rbf_kernel,
+        'G_sklearn'  : _SKLEARN_PAIRWISE.rbf_kernel,
+        'G_custom_c' : custom_C_kernel('G'),
+
+        'L'          : local_laplacian_kernel_wrapper,
+        'L_sklearn'  : _SKLEARN_PAIRWISE.laplacian_kernel,
+        'L_custom_c' : custom_C_kernel('L'),
+        'L_custom_py': custom_laplacian_kernel,
+
+        'dot'        : dot_kernel_wrapper,
+        'cosine'     : cosine_similarity_wrapper,
+        }
+# legacy kernel names
+local_kernels_dict['myG']     = local_kernels_dict['G_custom_c']
+local_kernels_dict['myL']     = local_kernels_dict['L_custom_py']
+local_kernels_dict['myLfast'] = local_kernels_dict['L_custom_c']
