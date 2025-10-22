@@ -13,7 +13,7 @@ def spherical_atoms(elements, atm_bas):
     Returns:
         A dict of numpy 2d ndarrays which contains the atomic density matrices for each element with its name as a key.
     """
-    
+
     dm_atoms = {}
     for q in elements:
         mol_atm = pyscf.gto.M(atom=[[q, [0,0,0]]], spin=pyscf.data.elements.ELEMENTS_PROTON[q]%2, basis=atm_bas)
