@@ -72,12 +72,12 @@ def test_repr_shapes():
             assert X.ndim == 2 - int(merge)  # shape of (Nmods[optional], Nmols). each element is another array
         else:
             assert X.ndim == 3 - int(merge)  # shape of (Nmods[optional], NatomsTot, 2 OR Nfeatures)
-        
+
         # Nmods
         if not merge:
             assert X.shape[0] == 1
             X = X.reshape(X.shape[1:])
-        
+
         # Nmols,N_atoms or NatomsTot
         if split:
             assert X.shape[0] == 2
@@ -91,7 +91,7 @@ def test_repr_shapes():
             assert X.shape[1] == 2
             X = np.asarray(list(X[:,1]), dtype=float)
         assert X.shape[-1] > 100
-        
+
 
 def test_from_list():
     path2list = PATH+'/data/list_water.txt'
@@ -100,7 +100,7 @@ def test_from_list():
     xyzlist = utils.get_xyzlist(path2list)
     spins = utils.get_chsp(path2spins, len(xyzlist))
     charges = utils.get_chsp(path2charges, len(xyzlist))
-    mols = utils.load_mols(xyzlist, charges, spins, 'minao', srcdir=PATH+"/")
+    mols = utils.load_mols(xyzlist, charges, spins, 'minao', srcdir=PATH+"/data/")
     spahm_b = bond.get_repr(mols, xyzlist, 'LB', spin=spins, same_basis=True)
     Xtrue = np.load(PATH+'/data/list_H2O_spahm-b_minao_LB_alpha-beta.npy')
     assert(np.allclose(Xtrue, spahm_b))
