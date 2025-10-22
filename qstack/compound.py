@@ -56,7 +56,7 @@ def xyz_comment_line_parser(line):
             return {}
     else:
         # other possibilities include having the name of the compound
-        print("warning: could not interpret the data in the XYZ title line:", line)
+        warnings.warn(f"could not interpret the data in the XYZ title line: {line}", RuntimeWarning)
         return {}
 
     for part in line_parts:
