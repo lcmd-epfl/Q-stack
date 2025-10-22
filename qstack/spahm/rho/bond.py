@@ -208,7 +208,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
 
     return allvec
 
-def main():
+def main(args=None):
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
     parser.add_argument('--mol',           dest='filename',      type=str,            required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
     parser.add_argument('--name',          dest='name_out',      type=str,            required=True,                    help='name of the output file')
@@ -239,7 +239,7 @@ def main():
     parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true', default=False,                    help='write the atom pair file and exit if --pairfile is set')
     parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
     parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=[],                       help="restrict the representation to one or several atom types")
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
     if args.print>0: print(vars(args))
     correct_num_threads()
 

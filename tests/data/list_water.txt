@@ -1,3 +1,3 @@
-H2O_dist.xyz
-H2O.xyz
-rotated_H2O.xyz
+data/H2O_dist.xyz
+data/H2O.xyz
+data/rotated_H2O.xyz
