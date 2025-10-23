@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import warnings
 import numpy as np
 import scipy
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel

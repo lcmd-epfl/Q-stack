@@ -15,7 +15,7 @@ class ParseKwargs(argparse.Action):
                 try:
                     value = t(value)
                     break
-                except:
+                except ValueError:
                     continue
             getattr(namespace, self.dest)[key] = value
 

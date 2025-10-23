@@ -35,7 +35,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
             if self:
                 K_global[n,m] = K_global[m,n]
 
-    if options['normalize'] == True:
+    if options['normalize']:
         if self:
             K_global = normalize_kernel(K_global, verbose=verbose)
         else:
@@ -83,7 +83,7 @@ def normalize_kernel(kernel, self_x=None, self_y=None, verbose=0):
     """
     if verbose:
         print("Normalizing kernel.")
-    if self_x == None and self_y == None:
+    if self_x is None and self_y is None:
         self_cov = np.diag(kernel).copy()
         self_x = self_cov
         self_y = self_cov

@@ -77,7 +77,7 @@ def hyperparameters(X, y,
                     print(s, e, mean, std, flush=True)
                 errors.append((mean, std, e, s))
         return errors
-    if gkernel == None:
+    if gkernel is None:
         gwrap = None
     else:
         gwrap = [gkernel, gdict]

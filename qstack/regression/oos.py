@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
+from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
 from qstack.mathutils.fps import do_fps
 
 

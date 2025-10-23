@@ -38,10 +38,9 @@ def custom_C_kernels(kernel_function, return_distance_function=False):
     lib_path = REGMODULE_PATH[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX')
     if not os.path.isfile(lib_path):
         lib_path = REGMODULE_PATH[0]+"/lib/manh.so"
-
     try:
         manh = ctypes.cdll.LoadLibrary(lib_path)
-    except:
+    except OSError:
         return None
 
     if kernel_function == 'L':

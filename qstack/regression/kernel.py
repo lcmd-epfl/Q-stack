@@ -4,7 +4,7 @@ import numpy as np
 from qstack.regression.kernel_utils import get_kernel, defaults, ParseKwargs
 
 
-def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
+def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
     """ Computes a kernel between sets A and B (or A and A) using their representations.
 
     Args:
@@ -18,7 +18,7 @@ def kernel(X, Y=[], sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defau
     Returns:
         A numpy ndarray containing the kernel.
     """
-    if len(Y) == 0 :
+    if Y is None:
         Y = X
     kernel = get_kernel(akernel, [gkernel, gdict])
     K = kernel(X, Y, 1.0/sigma)
