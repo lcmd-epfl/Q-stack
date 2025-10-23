@@ -1,21 +1,18 @@
 from collections import Counter
 import numpy as np
-from tqdm import trange
+from tqdm import tqdm
 
 
-def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
+def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=1):
     """
 
     .. todo::
         Write the docstring
     """
-    n_x = len(X)
-    n_y = len(Y)
     self = (Y is X)
 
     XY = np.concatenate((X, Y), axis=0)
     species = np.unique(XY[:,:,0].flatten())   # sorted by default
-
     mol_counts = [Counter(m[:,0]) for m in XY]
     max_atoms = {q: max(mol_counts, key=lambda x: x[q])[q] for q in species}
     max_size = sum(max_atoms.values())
@@ -24,11 +21,14 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
         print(f'{max_atoms=} {max_size=}')
         print("Computing global kernel elements:", flush=True)
 
-    K_global = np.zeros((n_x, n_y))
+    X_dict = [mol_to_dict(x, species) for x in X]
+    Y_dict = [mol_to_dict(y, species) for y in Y]
+    K_global = np.zeros((len(X), len(Y)))
 
-    for m in trange(0, n_x, disable=not verbose):
-        for n in range((m if self else 0), n_y):
-            K_pair = get_covariance(X[m], Y[n], max_atoms, local_kernel, sigma=sigma)
+    for m, x in enumerate(tqdm(X_dict, disable=not verbose)):
+        y_start = m if self else 0
+        for n, y in enumerate(Y_dict[y_start:], start=y_start):
+            K_pair = get_covariance(x, y, species, max_atoms, max_size, local_kernel, sigma=sigma)
             K_global[m,n] = global_kernel(K_pair, options)
             if self:
                 K_global[n,m] = K_global[m,n]
@@ -38,11 +38,11 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
             K_global = normalize_kernel(K_global, self_x=None, self_y=None)
         else:
             self_X, self_Y = [], []
-            for m in trange(0, n_x, disable=not verbose):
-                K_self = get_covariance(X[m], X[m], max_atoms, max_size, local_kernel, sigma=sigma)
+            for x in tqdm(X_dict, disable=not verbose):
+                K_self = get_covariance(x, x, species, max_atoms, max_size, local_kernel, sigma=sigma)
                 self_X.append(global_kernel(K_self, options))
-            for n in trange(0, n_x, disable=not verbose):
-                K_self = get_covariance(Y[n], Y[n], max_atoms, max_size, local_kernel, sigma=sigma)
+            for y in tqdm(Y_dict, disable=not verbose):
+                K_self = get_covariance(y, y, species, max_atoms, max_size, local_kernel, sigma=sigma)
                 self_Y.append(global_kernel(K_self, options))
             K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y)
 
@@ -51,29 +51,25 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
     return K_global
 
 
-def get_covariance(mol1, mol2, max_sizes, kernel , sigma=None):
+def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None):
     """
 
     .. todo::
         Write the docstring
     """
-    species = sorted(max_sizes.keys())
-    mol1_dict = mol_to_dict(mol1, species)
-    mol2_dict = mol_to_dict(mol2, species)
-    max_size = sum(max_sizes.values())
     K_covar = np.zeros((max_size, max_size))
     idx = 0
-    for s in species:
-        n1 = len(mol1_dict[s])
-        n2 = len(mol2_dict[s])
-        s_size = max_sizes[s]
-        if n1 == 0 or n2 == 0:
-            idx += s_size
+    for q in species:
+        n1 = len(mol1[q])
+        n2 = len(mol2[q])
+        q_size = max_atoms[q]
+        if n1==0 or n2==0:
+            idx += q_size
             continue
-        x1 = np.pad(mol1_dict[s], ((0, s_size - n1),(0,0)), 'constant')
-        x2 = np.pad(mol2_dict[s], ((0, s_size - n2),(0,0)), 'constant')
-        K_covar[idx:idx+s_size, idx:idx+s_size] = kernel(x1, x2,  sigma)
-        idx += s_size
+        x1 = np.pad(mol1[q], ((0, q_size - n1),(0,0)), 'constant')
+        x2 = np.pad(mol2[q], ((0, q_size - n2),(0,0)), 'constant')
+        K_covar[idx:idx+q_size, idx:idx+q_size] = kernel(x1, x2,  sigma)
+        idx += q_size
     return K_covar
 
 
@@ -101,11 +97,11 @@ def mol_to_dict(mol, species):
         Write the docstring
     """
 
-    mol_dict = {s:[]  for s in species}
-    for a in mol:
-        mol_dict[a[0]].append(a[1])
-    for k in mol_dict.keys():
-        mol_dict[k] = np.array(mol_dict[k])
+    mol_dict = {q:[] for q in species}
+    for atom in mol:
+        mol_dict[atom[0]].append(atom[1])
+    for q in mol_dict.keys():
+        mol_dict[q] = np.array(mol_dict[q])
     return mol_dict
 
 
