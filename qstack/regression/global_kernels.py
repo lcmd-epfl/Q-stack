@@ -1,15 +1,17 @@
+import math
 from collections import Counter
 import numpy as np
 from tqdm import tqdm
 
 
-def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=1):
+def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
     """
 
     .. todo::
         Write the docstring
     """
     self = (Y is X)
+    verbose = options['verbose'] if 'verbose' in options else 0
 
     XY = np.concatenate((X, Y), axis=0)
     species = np.unique(XY[:,:,0].flatten())   # sorted by default
@@ -35,7 +37,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=1):
 
     if options['normalize'] == True:
         if self:
-            K_global = normalize_kernel(K_global, self_x=None, self_y=None)
+            K_global = normalize_kernel(K_global, verbose=verbose)
         else:
             self_X, self_Y = [], []
             for x in tqdm(X_dict, disable=not verbose):
@@ -44,7 +46,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=1):
             for y in tqdm(Y_dict, disable=not verbose):
                 K_self = get_covariance(y, y, species, max_atoms, max_size, local_kernel, sigma=sigma)
                 self_Y.append(global_kernel(K_self, options))
-            K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y)
+            K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y, verbose=verbose)
 
     if verbose:
         print(f"Final global kernel has size : {K_global.shape}", flush=True)
@@ -73,21 +75,19 @@ def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None)
     return K_covar
 
 
-def normalize_kernel(kernel, self_x=None, self_y=None):
+def normalize_kernel(kernel, self_x=None, self_y=None, verbose=0):
     """
 
     .. todo::
         Write the docstring
     """
-    print("Normalizing kernel.")
+    if verbose:
+        print("Normalizing kernel.")
     if self_x == None and self_y == None:
         self_cov = np.diag(kernel).copy()
         self_x = self_cov
         self_y = self_cov
-    for n in range(kernel.shape[0]):
-        for m in range(kernel.shape[1]):
-            kernel[n][m] /= np.sqrt(self_x[n]*self_y[m])
-    return kernel
+    return kernel / np.sqrt(np.outer(self_x, self_y))
 
 
 def mol_to_dict(mol, species):
@@ -105,14 +105,17 @@ def mol_to_dict(mol, species):
     return mol_dict
 
 
+def sumsq(x):
+    return x@x
+
+
 def avg_kernel(kernel, options):
     """
 
     .. todo::
         Write the docstring
     """
-    avg = np.sum(kernel) / (kernel.shape[0] * kernel.shape[1])
-    return avg
+    return np.sum(kernel) / math.prod(kernel.shape)
 
 
 def rematch_kernel(kernel, options):
@@ -144,7 +147,7 @@ def rematch_kernel(kernel, options):
         v = np.divide(em, np.dot(K.T, u))
 
         if niter % 5:
-            error = np.sum((u - u_prev) ** 2) / np.sum(u ** 2) + np.sum((v - v_prev) ** 2) / np.sum(v **2)
+            error = sumsq(u-u_prev) / sumsq(u) + sumsq(v-v_prev) / sumsq(v)
 
         niter += 1
     p_alpha = np.multiply(np.multiply(K, u.reshape((-1, 1))) , v)
