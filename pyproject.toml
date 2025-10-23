@@ -37,17 +37,17 @@ classifiers = [
 # note: maximal versions are just the latest versions to exist when compatibility checks were made, later versions may also work
 requires-python = ">=3.9"
 dependencies = [
-    'numpy >= 1.22.3, < 1.27',
-    'scipy >= 1.1.0, < 1.14',
-    'pyscf >= 2.0.1, < 2.6',
+    'numpy >= 1.22.3, < 2.4',
+    'scipy >= 1.1.0, < 1.17',
+    'pyscf >= 2.0.1, < 2.12',
     'tqdm >= 4.66',
 ]
 
 [project.optional-dependencies]
 #qml = ["qstack-qml @ file://qstack/qstack-qml"]  # this is managed in setup.py because of course.
-regression = ["scikit-learn >= 0.24.2, < 1.6"]
-wigner = ["sympy >= 1.5, < 1.13"]
-gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2"]  #	branch:	dev, date: 2024-06-06
+regression = ["scikit-learn >= 0.24.2, < 1.8"]
+wigner = ["sympy >= 1.5, < 1.15"]
+gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@feat/pydantic"]
 equio = ["metatensor-core >= 0.1.8, == 0.1.*"]
 all = ["qstack[qml,regression,wigner,equio,gmol]"]
 
