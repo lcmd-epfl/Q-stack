@@ -107,7 +107,8 @@ def main():
     parser.add_argument('--name',          type=str,   dest='nameout',     required=False, default=None, help='the name of the output file containting the LC data (.txt).')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll): correct_num_threads()
+    if(args.ll):
+        correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
 

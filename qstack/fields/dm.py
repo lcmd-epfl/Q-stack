@@ -1,4 +1,4 @@
-from pyscf import dft, scf
+from pyscf import dft
 from qstack import constants
 import numpy as np
 

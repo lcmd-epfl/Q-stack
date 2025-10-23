@@ -37,8 +37,8 @@ def Dmatrix(xyz, lmax, order='xyz'):
   # (m1 is rotated so D is transposed)
 
   xx = xyz[0,0]; xy = xyz[0,1]; xz = xyz[0,2]
-  yx = xyz[1,0]; yy = xyz[1,1]; yz = xyz[1,2];
-  zx = xyz[2,0]; zy = xyz[2,1]; zz = xyz[2,2];
+  yx = xyz[1,0]; yy = xyz[1,1]; yz = xyz[1,2]
+  zx = xyz[2,0]; zy = xyz[2,1]; zz = xyz[2,2]
 
   SQRT3 = sqrt(3.0)
 
@@ -46,60 +46,63 @@ def Dmatrix(xyz, lmax, order='xyz'):
 
   D[0][0,0] = 1.0
 
-  if lmax < 1: return D
+  if lmax < 1:
+      return D
 
   l=1
   if order=='yzx':  # -1 0 1
-    D[1][l+ -1,l+ -1] = yy ;
-    D[1][l+ -1,l+  0] = yz ;
-    D[1][l+ -1,l+  1] = yx ;
-    D[1][l+  0,l+ -1] = zy ;
-    D[1][l+  0,l+  0] = zz ;
-    D[1][l+  0,l+  1] = zx ;
-    D[1][l+  1,l+ -1] = xy ;
-    D[1][l+  1,l+  0] = xz ;
-    D[1][l+  1,l+  1] = xx ;
+    D[1][l+ -1,l+ -1] = yy
+    D[1][l+ -1,l+  0] = yz
+    D[1][l+ -1,l+  1] = yx
+    D[1][l+  0,l+ -1] = zy
+    D[1][l+  0,l+  0] = zz
+    D[1][l+  0,l+  1] = zx
+    D[1][l+  1,l+ -1] = xy
+    D[1][l+  1,l+  0] = xz
+    D[1][l+  1,l+  1] = xx
   elif order=='xyz': # 1 -1 0
-    D[1][ 0, 0] = xx ;
-    D[1][ 0, 1] = xy ;
-    D[1][ 0, 2] = xz ;
-    D[1][ 1, 0] = yx ;
-    D[1][ 1, 1] = yy ;
-    D[1][ 1, 2] = yz ;
-    D[1][ 2, 0] = zx ;
-    D[1][ 2, 1] = zy ;
-    D[1][ 2, 2] = zz ;
+    D[1][ 0, 0] = xx
+    D[1][ 0, 1] = xy
+    D[1][ 0, 2] = xz
+    D[1][ 1, 0] = yx
+    D[1][ 1, 1] = yy
+    D[1][ 1, 2] = yz
+    D[1][ 2, 0] = zx
+    D[1][ 2, 1] = zy
+    D[1][ 2, 2] = zz
 
-  if lmax < 2: return D
+  if lmax < 2:
+      return D
 
   l=2
-  D[2][l+ -2,l+ -2] = xx*yy+xy*yx  ;
-  D[2][l+ -2,l+ -1] = xy*yz+xz*yy  ;
-  D[2][l+ -2,l+  0] = xz*yz * SQRT3    ;
-  D[2][l+ -2,l+  1] = xx*yz+xz*yx  ;
-  D[2][l+ -2,l+  2] = xx*yx-xy*yy  ;
-  D[2][l+ -1,l+ -2] = yx*zy+yy*zx  ;
-  D[2][l+ -1,l+ -1] = yy*zz+yz*zy  ;
-  D[2][l+ -1,l+  0] = yz*zz * SQRT3    ;
-  D[2][l+ -1,l+  1] = yx*zz+yz*zx  ;
-  D[2][l+ -1,l+  2] = yx*zx-yy*zy  ;
-  D[2][l+  0,l+ -2] = zx*zy * SQRT3                    ;
-  D[2][l+  0,l+ -1] = zy*zz * SQRT3                    ;
-  D[2][l+  0,l+  0] = 1.5*zz*zz - 0.5                  ;
-  D[2][l+  0,l+  1] = zx*zz * SQRT3                    ;
-  D[2][l+  0,l+  2] = (zx*zx-zy*zy) * 0.5 * SQRT3  ;
-  D[2][l+  1,l+ -2] = xx*zy+xy*zx  ;
-  D[2][l+  1,l+ -1] = xy*zz+xz*zy  ;
-  D[2][l+  1,l+  0] = xz*zz * SQRT3    ;
-  D[2][l+  1,l+  1] = xx*zz+xz*zx  ;
-  D[2][l+  1,l+  2] = xx*zx-xy*zy  ;
-  D[2][l+  2,l+ -2] = xx*xy-yx*yy                              ;
-  D[2][l+  2,l+ -1] = xy*xz-yy*yz                              ;
-  D[2][l+  2,l+  0] = (xz*xz-yz*yz) * 0.5 * SQRT3              ;
-  D[2][l+  2,l+  1] = xx*xz-yx*yz                              ;
-  D[2][l+  2,l+  2] = (xx*xx-xy*xy+yy*yy-yx*yx) * 0.5  ;
+  D[2][l+ -2,l+ -2] = xx*yy+xy*yx
+  D[2][l+ -2,l+ -1] = xy*yz+xz*yy
+  D[2][l+ -2,l+  0] = xz*yz * SQRT3
+  D[2][l+ -2,l+  1] = xx*yz+xz*yx
+  D[2][l+ -2,l+  2] = xx*yx-xy*yy
+  D[2][l+ -1,l+ -2] = yx*zy+yy*zx
+  D[2][l+ -1,l+ -1] = yy*zz+yz*zy
+  D[2][l+ -1,l+  0] = yz*zz * SQRT3
+  D[2][l+ -1,l+  1] = yx*zz+yz*zx
+  D[2][l+ -1,l+  2] = yx*zx-yy*zy
+  D[2][l+  0,l+ -2] = zx*zy * SQRT3
+  D[2][l+  0,l+ -1] = zy*zz * SQRT3
+  D[2][l+  0,l+  0] = 1.5*zz*zz - 0.5
+  D[2][l+  0,l+  1] = zx*zz * SQRT3
+  D[2][l+  0,l+  2] = (zx*zx-zy*zy) * 0.5 * SQRT3
+  D[2][l+  1,l+ -2] = xx*zy+xy*zx
+  D[2][l+  1,l+ -1] = xy*zz+xz*zy
+  D[2][l+  1,l+  0] = xz*zz * SQRT3
+  D[2][l+  1,l+  1] = xx*zz+xz*zx
+  D[2][l+  1,l+  2] = xx*zx-xy*zy
+  D[2][l+  2,l+ -2] = xx*xy-yx*yy
+  D[2][l+  2,l+ -1] = xy*xz-yy*yz
+  D[2][l+  2,l+  0] = (xz*xz-yz*yz) * 0.5 * SQRT3
+  D[2][l+  2,l+  1] = xx*xz-yx*yz
+  D[2][l+  2,l+  2] = (xx*xx-xy*xy+yy*yy-yx*yx) * 0.5
 
-  if lmax < 3: return D
+  if lmax < 3:
+      return D
 
   l=3
   D[3][l+ -3,l+ -3] =  3*xx**2*yy/4 + 3*xx*xy*yx/2 - 3*xy**2*yy/4 - 3*yx**2*yy/4 + yy**3/4
@@ -152,7 +155,8 @@ def Dmatrix(xyz, lmax, order='xyz'):
   D[3][l+  3,l+  2] =  sqrt(6)*(xx**2*xz - 2*xx*yx*yz - xy**2*xz + 2*xy*yy*yz - xz*yx**2 + xz*yy**2)/4
   D[3][l+  3,l+  3] =  xx**3/4 - 3*xx*xy**2/4 - 3*xx*yx**2/4 + 3*xx*yy**2/4 + 3*xy*yx*yy/2
 
-  if lmax < 4: return D
+  if lmax < 4:
+      return D
 
   l=4
   D[4][l+ -4,l+-4] =  xx**3*yy/2 + 3*xx**2*xy*yx/2 - 3*xx*xy**2*yy/2 - 3*xx*yx**2*yy/2 + xx*yy**3/2 - xy**3*yx/2 - xy*yx**3/2 + 3*xy*yx*yy**2/2
@@ -237,11 +241,12 @@ def Dmatrix(xyz, lmax, order='xyz'):
   D[4][l+  4,l+ 3] =  sqrt(2)*(xx**3*xz - 3*xx**2*yx*yz - 3*xx*xy**2*xz + 6*xx*xy*yy*yz - 3*xx*xz*yx**2 + 3*xx*xz*yy**2 + 3*xy**2*yx*yz + 6*xy*xz*yx*yy + yx**3*yz - 3*yx*yy**2*yz)/4
   D[4][l+  4,l+ 4] =  xx**4/8 - 3*xx**2*xy**2/4 - 3*xx**2*yx**2/4 + 3*xx**2*yy**2/4 + 3*xx*xy*yx*yy + xy**4/8 + 3*xy**2*yx**2/4 - 3*xy**2*yy**2/4 + yx**4/8 - 3*yx**2*yy**2/4 + yy**4/8
 
-  if lmax > 4: print('Too a big L!'); exit(0)
+  if lmax > 4:
+      raise NotImplementedError(f'Too a big {lmax=}')
 
   return D
 
 
 def Dmatrix_for_z(z, lmax, order='xyz'):
-  return Dmatrix(new_xy_axis(z), lmax, order)
+    return Dmatrix(new_xy_axis(z), lmax, order)
 

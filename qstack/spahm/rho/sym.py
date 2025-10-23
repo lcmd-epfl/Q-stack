@@ -34,7 +34,8 @@ def store_pair_indices(ao):
     idx = []
     for i, [li, mi] in enumerate(zip(ao['l'], ao['m'])):
         for j, [lj, mj] in enumerate(zip(ao['l'], ao['m'])):
-            if (li!=lj) or (mi!=mj): continue
+            if (li!=lj) or (mi!=mj):
+                continue
             idx.append([i, j])
     return idx
 
@@ -45,7 +46,8 @@ def store_pair_indices_short(ao, ao_start):
         for j in ao_start:
             li = ao['l'][i]
             lj = ao['l'][j]
-            if li!=lj: continue
+            if li!=lj:
+                continue
             idx.append([i, j])
     return idx
 
@@ -59,7 +61,8 @@ def metric_matrix(q, idx, ao, S):
             i1, j1 = idx[p1]
             l  = ao['l'][i]
             l1 = ao['l'][i1]
-            if(l!=l1): continue
+            if(l!=l1):
+                continue
             A[p1,p] = A[p,p1] = 1.0/(2*l+1) \
                                 * S[idxl0(i, l, ao[q]), idxl0(i1, l, ao[q])] \
                                 * S[idxl0(j, l, ao[q]), idxl0(j1, l, ao[q])]
@@ -75,7 +78,8 @@ def metric_matrix_short(q, idx, ao, S):
             i1,j1 = idx[p1]
             l  = ao['l'][i]
             l1 = ao['l'][i1]
-            if(l!=l1): continue
+            if(l!=l1):
+                continue
             A[p1,p] = A[p,p1] = S[i,i1] * S[j,j1] / (2*l+1)
     return sqrtm(A)
 
@@ -110,7 +114,8 @@ def store_pair_indices_z(ao):
     idx = []
     for i, [li,mi] in enumerate(zip(ao['l'], ao['m'])):
         for j, [lj,mj] in enumerate(zip(ao['l'], ao['m'])):
-            if abs(mi)!=abs(mj): continue
+            if abs(mi)!=abs(mj):
+                continue
             idx.append([i,j])
     return idx
 
@@ -118,9 +123,11 @@ def store_pair_indices_z(ao):
 def store_pair_indices_z_only0(ao):
     idx = []
     for i, [li,mi] in enumerate(zip(ao['l'], ao['m'])):
-        if mi!=0: continue
+        if mi!=0:
+            continue
         for j, [lj,mj] in enumerate(zip(ao['l'], ao['m'])):
-            if mj!=0: continue
+            if mj!=0:
+                continue
             idx.append([i,j])
     return idx
 
@@ -136,8 +143,8 @@ def metric_matrix_z(q, idx, ao, S):
             li1 = ao['l'][i1]
             lj  = ao['l'][j ]
             lj1 = ao['l'][j1]
-            if li  != lj : continue
-            if li1 != lj1: continue
+            if (li != lj) or (li1 != lj1):
+                continue
 
             mi  = ao['m'][i ]
             mi1 = ao['m'][i1]

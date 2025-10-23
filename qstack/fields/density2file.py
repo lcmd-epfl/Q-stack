@@ -21,7 +21,6 @@ def coeffs_to_cube(mol, coeffs, cubename, nx = 80, ny = 80, nz = 80, resolution 
 
     # Compute density on the .cube grid
     coords = grid.get_coords()
-    ngrids = grid.get_ngrids()
 
     ao = eval_ao(mol, coords)
     orb_on_grid = numpy.dot(ao, coeffs)

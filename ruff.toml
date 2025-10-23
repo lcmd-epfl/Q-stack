@@ -1,0 +1,69 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    "qstack.egg-info",
+    "__init__.py",
+    "qstack/spahm/rho/rep_completion.py",
+]
+
+line-length = 88
+indent-width = 4
+
+target-version = "py313"
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
+
+
+[lint]
+# 1. Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+#select = ["E4", "E7", "E9", "F", "B"]
+#select = ["B"]
+
+# 2. Avoid enforcing line-length violations (`E501`)
+#ignore = ["E501"]
+#ignore = ["E701", "E741", "E731", "F403",
+#"F841", "E711", "F401", "E722",
+#]
+ignore = ["E741", "E722", "E731"]
+
+[lint.per-file-ignores]
+"qstack/spahm/rho/Dmatrix.py" = ["E702"]
+"qstack/orcaio.py"            = ["F841"]
+"qstack/qml.py"               = ["F403"]
+"qstack/spahm/rho/bond.py"    = ["E711"]
+"qstack/compound.py" = ["F401"] #  TEMP TODO
+
+# 3. Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+# 4. Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
+#[lint.per-file-ignores]
+#"__init__.py" = ["E402"]
+#"**/{tests,docs,tools}/*" = ["E402"]

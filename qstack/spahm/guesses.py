@@ -1,9 +1,7 @@
-import sys
 import warnings
 import numpy
 import scipy
-import pyscf
-import pyscf.dft, pyscf.scf
+from pyscf import dft, scf
 from .LB2020guess import LB2020guess as LB20
 
 def hcore(mol, *_):
@@ -15,7 +13,7 @@ def hcore(mol, *_):
   Returns:
     A numpy ndarray containing the computed approximate Hamiltonian.
   """
-  return pyscf.scf.hf.get_hcore(mol)
+  return scf.hf.get_hcore(mol)
 
 def GWH(mol, *_):
   """Uses the generalized Wolfsberg-Helmholtz to compute the guess Hamiltonian.
@@ -49,8 +47,8 @@ def SAD(mol, func):
     A numpy ndarray containing the computed approximate Hamiltonian.
   """
   hc = hcore(mol)
-  dm = pyscf.scf.hf.init_guess_by_atom(mol)
-  mf = pyscf.dft.RKS(mol)
+  dm = scf.hf.init_guess_by_atom(mol)
+  mf = dft.RKS(mol)
   mf.xc = func
   vhf = mf.get_veff(dm=dm)
   if vhf.ndim == 2:
@@ -71,7 +69,7 @@ def SAP(mol, *_):
   Returns:
     A numpy ndarray containing the computed approximate Hamiltonian.
   """
-  mf = pyscf.dft.RKS(mol)
+  mf = dft.RKS(mol)
   vsap = mf.get_vsap()
   t = mol.intor_symmetric('int1e_kin')
   fock = t + vsap
@@ -121,8 +119,7 @@ def get_guess(arg):
   arg = arg.lower()
   guesses = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}
   if arg not in guesses.keys():
-    print('Unknown guess. Available guesses:', list(guesses.keys()), file=sys.stderr);
-    exit(1)
+      raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses.keys())}')
   return guesses[arg]
 
 
@@ -148,7 +145,7 @@ def get_occ(e, nelec, spin):
       A numpy ndarray containing the occupied eigenvalues.
     """
     check_nelec(nelec, e.shape[0])
-    if spin==None:
+    if spin is None:
         nocc = nelec[0]
         return e[:nocc,...]
     else:
@@ -172,7 +169,7 @@ def get_dm(v, nelec, spin):
   """
 
   check_nelec(nelec, len(v))
-  if spin==None:
+  if spin is None:
     nocc = nelec[0]
     dm = v[:,:nocc] @ v[:,:nocc].T
     return 2.0*dm
@@ -198,8 +195,7 @@ def get_guess_g(arg):
     arg = arg.lower()
     guesses = {'core':(hcore, hcore_grad), 'lb':(LB, LB_grad)}
     if arg not in guesses.keys():
-        print('Unknown guess. Available guesses:', list(guesses.keys()), file=sys.stderr);
-        exit(1)
+        raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses.keys())}')
     return guesses[arg]
 
 def eigenvalue_grad(mol, e, c, s1, h1):

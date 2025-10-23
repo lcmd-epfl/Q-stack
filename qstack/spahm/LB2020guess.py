@@ -1,6 +1,6 @@
 import copy
 import numpy
-import pyscf.data, pyscf.df, pyscf.scf
+from pyscf import data, df, scf
 
 """ Taken from https://github.com/briling/aepm and modified """
 
@@ -19,7 +19,7 @@ class LB2020guess:
     return x*x*x
 
   def read_ac(self, fname):
-    if fname==None:
+    if fname is None:
       fname = self.acfile_default
     with open(fname) as f:
       lines = f.readlines()
@@ -33,7 +33,7 @@ class LB2020guess:
         a,c = map(float,lines[il].split())
         qbasis.append([0,[a, c*self.renormalize(a)]])
         il+=1
-      basis[pyscf.data.elements.ELEMENTS[q]] = qbasis
+      basis[data.elements.ELEMENTS[q]] = qbasis
     return basis
 
   def add_caps(self, basis):
@@ -54,7 +54,7 @@ class LB2020guess:
     caps_array  [ 87 : 102 +1] = 1.0 / 32.0
     for q in range(1,103):
       a = caps_array[q]
-      qname = pyscf.data.elements.ELEMENTS[q]
+      qname = data.elements.ELEMENTS[q]
       if qname in basis.keys():
         basis[qname].append( [0, [a, self.renormalize(a) ]] )
     return basis
@@ -297,7 +297,7 @@ class LB2020guess:
               continue
           else:
               q_cleaned.add(q)
-          zcore = pyscf.data.elements.charge(q) - z
+          zcore = data.elements.charge(q) - z
           if zcore > 0:
               zrest = zcore
               bad_idx = []
@@ -347,14 +347,14 @@ class LB2020guess:
           acbasis = self.use_ecp(mol, acbasis)
       self.check_coefficients(mol, acbasis)
 
-      auxmol  = pyscf.df.make_auxmol(mol, acbasis)
+      auxmol  = df.make_auxmol(mol, acbasis)
       eri3c   = self.get_eri3c(mol, auxmol)
       auxw    = self.get_auxweights(auxmol)
       return self.merge_caps(auxw, eri3c)
 
   def Heff(self, mol):
       self.mol   = mol
-      self.Hcore = pyscf.scf.hf.get_hcore(mol)
+      self.Hcore = scf.hf.get_hcore(mol)
       self.H     = self.Hcore + self.HLB20(mol)
       return self.H
 
@@ -381,7 +381,7 @@ class LB2020guess:
       if mol.has_ecp():
           acbasis = self.use_ecp(mol, acbasis)
       self.check_coefficients(mol, acbasis)
-      auxmol  = pyscf.df.make_auxmol(mol, acbasis)
+      auxmol  = df.make_auxmol(mol, acbasis)
       eri3c   = self.HLB20_ints_generator(mol, auxmol)
       auxw    = self.get_auxweights(auxmol)
       def HLB20_deriv(iat):

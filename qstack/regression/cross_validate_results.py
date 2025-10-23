@@ -44,7 +44,8 @@ def cv_results(X, y,
     hyper_runs = []
     lc_runs = []
     seeds = seed0+np.arange(n_rep)
-    if save_pred: predictions_n = []
+    if save_pred:
+        predictions_n = []
     for seed in tqdm(seeds, disable=(not progress)):
         error = hyperparameters(X, y, read_kernel=False, sigma=sigmaarr, eta=etaarr,
                                 akernel=akernel, test_size=test_size, splits=splits,
@@ -107,8 +108,10 @@ def main():
     parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--name',      type=str,   dest='nameout',       required=True, help='the name of the output file')
     args = parser.parse_args()
-    if(args.readk): args.sigma = [np.nan]
-    if(args.ll): correct_num_threads()
+    if(args.readk):
+        args.sigma = [np.nan]
+    if(args.ll):
+        correct_num_threads()
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)

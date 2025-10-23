@@ -170,7 +170,7 @@ def _parse_gbw(fname):
         coefficients_ab, energies_ab, occupations_ab = read_mos()
         try:
             ls = read_basis()
-        except:  # Orca version 4.0
+        except struct.error:
             ls = {}
         return coefficients_ab, energies_ab, occupations_ab, ls
 

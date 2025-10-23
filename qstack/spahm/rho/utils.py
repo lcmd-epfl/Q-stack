@@ -48,12 +48,14 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
     for xyzfile, ch, sp in zip(xyzlist, charge, spin):
         if srcdir is not None:
             xyzfile = srcdir+xyzfile
-        if printlevel>0: print(xyzfile, flush=True)
+        if printlevel>0:
+            print(xyzfile, flush=True)
         mols.append(compound.xyz_to_mol(xyzfile, basis,
                                         charge=0 if ch is None else ch,
                                         spin=0 if sp is None else sp,
                                         unit=units, ecp=ecp))
-    if printlevel>0: print()
+    if printlevel>0:
+        print()
     return mols
 
 
@@ -63,7 +65,8 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, pr
     if spin is None:
         spin = [None] *len(xyzlist)
     for xyzfile, mol, sp in zip(xyzlist, mols, spin):
-        if printlevel>0: print(xyzfile, flush=True)
+        if printlevel>0:
+            print(xyzfile, flush=True)
         if not readdm:
             e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
             dm   = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None)
@@ -72,17 +75,23 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, pr
             if spin and dm.ndim==2:
                 dm = np.array((dm/2,dm/2))
         dms.append(dm)
-        if printlevel>0: print()
+        if printlevel>0:
+            print()
     return dms
 
 
 def dm_open_mod(dm, omod):
-    if   omod == 'sum':   return dm[0]+dm[1]
-    elif omod == 'diff':  return dm[0]-dm[1]
-    elif omod == 'alpha': return dm[0]
-    elif omod == 'beta':  return dm[1]
-    elif omod == None:    return dm
-    else: raise ValueError('unknown open-shell mod: must be "sum","diff","alpha","beta", or None if the system is closed-shell')
+    omod_fns = {
+            'sum':   lambda dm: dm[0]+dm[1],
+            'diff':  lambda dm: dm[0]-dm[1],
+            'alpha': lambda dm: dm[0],
+            'beta':  lambda dm: dm[1],
+            None:    lambda dm: dm,
+            }
+    if omod in omod_fns:
+        return omod_fns[omod](dm)
+    else:
+        raise ValueError(f'unknown open-shell mod: must be in {list(omod_fns.keys())}, None if the system is closed-shell')
 
 
 def get_xyzlist(xyzlistfile):
@@ -90,7 +99,7 @@ def get_xyzlist(xyzlistfile):
 
 def check_data_struct(fin, local=False):
     x = np.load(fin, allow_pickle=True)
-    if type(x.flatten()[0]) == str or type(x.flatten()[0]) == np.str_:
+    if type(x.flatten()[0]) is str or type(x.flatten()[0]) is np.str_:
         is_labeled = True
         if not local and x.shape[0] == 1:
             is_single = True
@@ -129,7 +138,7 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
             np.array with shape (N,M) where N number of representations M dimmensionality of the representation
             OR tuple ([N],np.array(N,M)) containing list of labels and np.array of representations
     '''
-    if srcdir == None:
+    if srcdir is None:
         path2list = os.getcwd()
     else:
         path2list = srcdir
@@ -141,7 +150,8 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
                 is_single, is_labeled = check_data_struct(os.path.join(path2list,f_X), local=local)
             else:
                 is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
-            if printlevel > 0 : print(is_single, is_labeled)
+            if printlevel > 0 :
+                print(is_single, is_labeled)
             Xs.append(np.load(os.path.join(path2list,f_X), allow_pickle=True))
     else:
         if None in file_format.values():
@@ -150,14 +160,15 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
             is_single, is_labeled = file_format['is_single'], file_format['is_labeled']
         # if the given file contains a single representation create a one-element list
         Xs = [np.load(os.path.join(path2list,f_in), allow_pickle=True)] if is_single else np.load(os.path.join(path2list,f_in), allow_pickle=True)
-    if printlevel > 1: print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
+    if printlevel > 1:
+        print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
     if progress:
         import tqdm
         Xs = tqdm.tqdm(Xs)
     reps = []
     labels = []
     for x in Xs:
-        if local == True:
+        if local:
             if is_labeled:
                 if sum_local:
                     reps.append(x[:,1].sum(axis=0))
@@ -192,9 +203,11 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
 
 def regroup_symbols(file_list, print_level=0):
     reps, atoms = load_reps(file_list, from_list=True, with_labels=True, local=True, printlevel=print_level)
-    if print_level > 0: print(f"Extracting {len(atoms)} atoms from {file_list}:")
+    if print_level > 0:
+        print(f"Extracting {len(atoms)} atoms from {file_list}:")
     atoms_set = {e:[] for e in set(atoms)}
     for e, v in zip(atoms, reps):
         atoms_set[e].append(v)
-    if print_level > 0: print([(k, len(v)) for k, v in atoms_set.items()])
+    if print_level > 0:
+        print([(k, len(v)) for k, v in atoms_set.items()])
     return atoms_set

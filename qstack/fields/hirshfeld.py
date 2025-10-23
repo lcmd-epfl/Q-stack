@@ -1,6 +1,6 @@
 import numpy
 import pyscf
-from . import dm as field_dm
+from .dm import make_grid_for_rho
 
 
 def spherical_atoms(elements, atm_bas):
@@ -87,19 +87,19 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
         return numpy.einsum('x,ax->a', tmp, tot_weights)
 
     # check input
-    if type(cd)==list:
+    if type(cd) is list:
         cd_list = cd
     else:
         cd_list = [cd]
 
     # spherical atoms
-    if atm_bas==None:
+    if atm_bas is None:
         atm_bas = mol.basis
-    if dm_atoms==None:
+    if dm_atoms is None:
         dm_atoms = spherical_atoms(set(mol.elements), atm_bas)
 
     # construct integration grid
-    g = field_dm.make_grid_for_rho(mol, grid_level=grid_level)
+    g = make_grid_for_rho(mol, grid_level=grid_level)
 
     # compute weights
     h_weights   = _hirshfeld_weights(mol, g.coords, dm_atoms, atm_bas, dominant)
@@ -111,7 +111,7 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
     if not occupations:
         charges_list = [mol.atom_charges()-charges for charges in charges_list]
 
-    if type(cd)==list:
+    if type(cd) is list:
         return charges_list
     else:
         return charges_list[0]

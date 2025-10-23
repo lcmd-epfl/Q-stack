@@ -41,7 +41,8 @@ def main():
     parser.add_argument('--ll',     action='store_true', dest='ll', default=False,  help='if correct for the numper of threads')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll): correct_num_threads()
+    if(args.ll):
+        correct_num_threads()
     if os.path.isfile(args.repr):
         X = np.load(args.repr)
     else:

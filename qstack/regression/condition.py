@@ -68,7 +68,8 @@ def main():
     parser.add_argument('--random_state',     type=int,            dest='random_state', default=defaults.random_state, help='seed for the numpy.random.RandomState for test / train split generator')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll): correct_num_threads()
+    if(args.ll):
+        correct_num_threads()
     X = np.load(args.repr)
     c = condition(X, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
                   akernel=args.kernel, gkernel=args.gkernel, gdict=args.gdict,

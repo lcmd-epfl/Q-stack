@@ -2,7 +2,8 @@
 Module containing all the operations to load, transform, and save molecular objects.
 """
 
-import json, re
+import json
+import re
 import pickle
 import warnings
 import numpy as np
@@ -376,7 +377,7 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
         A list of arrays or an array containing the contribution of each fragment.
     """
 
-    if type(prop_atom_inp)==list:
+    if type(prop_atom_inp) is list:
         props_atom = prop_atom_inp
     else:
         props_atom = [prop_atom_inp]
@@ -394,7 +395,7 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
             tot = prop_frag.sum()
             props_frag[i] *= 100.0 / tot
 
-    if type(prop_atom_inp)==list:
+    if type(prop_atom_inp) is list:
         return props_frag
     else:
         return props_frag[0]

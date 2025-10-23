@@ -14,7 +14,8 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
     idx = {}
     M   = {}
     for qq in qqs:
-        if printlevel>1: print(qq)
+        if printlevel>1:
+            print(qq)
         S, ao, _ = sym.get_S('No', mybasis[qq])
         if not only_m0:
             idx[qq] = sym.store_pair_indices_z(ao)
@@ -27,7 +28,8 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
 def read_df_basis(bnames, bpath, same_basis=False):
     mybasis = {}
     for bname in bnames:
-        if bname in mybasis: continue
+        if bname in mybasis:
+            continue
         fname = bpath+'/'+bname+'.bas' if not same_basis else bpath+'/CC.bas'
         with open(fname, 'r') as f:
             mybasis[bname] = eval(f.read())
@@ -63,9 +65,11 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
             q = [mol.atom_symbol(i) for i in range(mol.natm)]
             r = mol.atom_coords(unit='ANG')
             for i0, q0 in enumerate(q):
-                if q0 not in elements: continue
+                if q0 not in elements:
+                    continue
                 for i1, q1 in enumerate(q[:i0]):
-                    if q1 not in elements: continue
+                    if q1 not in elements:
+                        continue
                     if np.linalg.norm(r[i1]-r[i0]) <= cutoff:
                         qq = make_bname(q1,q0)
                         qqs4q[q0].append(qq)
@@ -79,7 +83,8 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
 def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_basis=False):
     qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols)]
     qqs0 = sorted(set(qqs0))
-    if printlevel>1: print(qqs0)
+    if printlevel>1:
+        print(qqs0)
     mybasis = read_df_basis(qqs0, bpath, same_basis=same_basis)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return mybasis, idx, M
@@ -102,7 +107,8 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
         exit(0)
 
     qqs = {q: qqs0 for q in elements}
-    if printlevel>1: print(qqs0)
+    if printlevel>1:
+        print(qqs0)
     mybasis = read_df_basis(qqs0, bpath, same_basis=same_basis)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return elements, mybasis, qqs, qqs4q, idx, M
@@ -163,7 +169,8 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
     for i0 in all_atoms:
         rest = mol.natm if len(only_z) > 0 else i0
         for i1 in range(rest):
-            if i0 == i1 : continue
+            if i0 == i1 :
+                continue
             v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff)
             if v is None:
                 continue

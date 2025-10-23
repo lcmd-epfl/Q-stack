@@ -68,10 +68,10 @@ def _get_tsize(tensor):
 
 def _labels_to_array(labels):
     """Represents a set of metatensor labels as an array of the labels, using custom dtypes
-    
+
     Args:
         labels (metatensor Labels): Labels
-    
+
     Returns:
         labels (numpy ndarray[ndim=1, structured dtype]): the same labels
     """
@@ -391,7 +391,7 @@ def tensormap_to_array(mol, tensor):
     elif tensor.keys.names==matrix_label_names.tm:
         return tensormap_to_matrix(mol, tensor)
     else:
-        raise Exception(f'Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
+        raise RuntimeError('Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
 
 
 def join(tensors):
@@ -405,7 +405,7 @@ def join(tensors):
     """
 
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
-        raise Exception(f'Cannot merge tensors with different label names')
+        raise RuntimeError('Cannot merge tensors with different label names')
     tm_label_vals = set().union(*[set(_labels_to_array(tensor.keys)) for tensor in tensors])
     tm_label_vals = sorted((tuple(value) for value in tm_label_vals))
     tm_labels = metatensor.Labels(tensors[0].keys.names, np.array(tm_label_vals))
@@ -421,13 +421,13 @@ def join(tensors):
         blocks[key] = []
         block_samp_label_vals[key] = []
         for imol,tensor in enumerate(tensors):
-            if not label in tensor.keys:
+            if label not in tensor.keys:
                 continue
             block = tensor.block(label)
             blocks[key].append(block.values)
             block_samp_label_vals[key].extend([(imol, *s) for s in block.samples])
 
-            if not key in block_comp_labels:
+            if key not in block_comp_labels:
                 block_comp_labels[key] = block.components
                 block_prop_labels[key] = block.properties
 
@@ -453,7 +453,7 @@ def split(tensor):
     """
 
     if tensor.sample_names[0]!=_molid_name:
-        raise Exception(f'Tensor does not seem to contain several molecules')
+        raise RuntimeError('Tensor does not seem to contain several molecules')
 
     # Check if the molecule indices are continuous
     mollist = sorted(reduce(

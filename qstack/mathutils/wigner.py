@@ -3,7 +3,7 @@
 import sys
 import sympy as sp
 from .xyz_integrals_sym import xyz as xyzint
-from sympy import symbols, Symbol, simplify, expand, cancel, expand_trig, Ynm, Ynm_c, Matrix, poly, zeros
+from sympy import symbols, Symbol, expand, cancel, expand_trig, Ynm, Ynm_c, Matrix, poly, zeros
 
 
 # variables
@@ -49,7 +49,7 @@ def xyzint_wrapper(knm, integrals_xyz_dict):
     return 0
   else:
     knm = tuple(sorted([k//2, n//2, m//2], reverse=True))
-    if not knm in integrals_xyz_dict.keys():
+    if knm not in integrals_xyz_dict.keys():
       integrals_xyz_dict[knm] = xyzint(*knm)
     return integrals_xyz_dict[knm]
 

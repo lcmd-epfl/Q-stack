@@ -67,7 +67,8 @@ def bond(mols, dms,
     allvec = np.zeros((len(omods), len(mols), natm, maxlen))
 
     for imol, (mol, dm) in enumerate(zip(mols,dms)):
-        if printlevel>0: print('mol', imol, flush=True)
+        if printlevel>0:
+            print('mol', imol, flush=True)
         if len(only_z) >0:
             only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
         else:
@@ -150,7 +151,6 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                    rep_type=rep_type, auxbasis=auxbasis,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
-    natm = allvec.shape[-2]
     if split:
         # note: whenever there is zip() on a molecule, this automatically removes the padding
         if merge:
@@ -191,7 +191,8 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         for mol_i, elems in enumerate(all_atoms):
             allvec_new[:, atm_i:atm_i+len(elems), :] = allvec[:, mol_i, :len(elems), :]
             atm_i += len(elems)
-        allvec = allvec_new; del allvec_new
+        allvec = allvec_new
+        del allvec_new
         all_atoms = sum(all_atoms, start=[])
 
         if merge:
@@ -215,12 +216,12 @@ def main(args=None):
     parser.add_argument('--guess',         dest='guess',         type=str,            default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help=f'effective core potential to use (default: None)')
-    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                     help='charge / path to a file with a list of thereof')
-    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                     help='number of unpaired electrons / path to a file with a list of thereof')
+    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help='effective core potential to use (default: None)')
+    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                   help='charge / path to a file with a list of thereof')
+    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                   help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--aux-basis',     dest='auxbasis',      type=str,            default=defaults.auxbasis,        help=f"auxiliary basis set for density fitting (default: {defaults.auxbasis})")
     parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
-    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help=f'directory to save the output in (default=current dir)')
+    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help='directory to save the output in (default=current dir)')
     parser.add_argument('--cutoff',        dest='cutoff',        type=float,          default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
     parser.add_argument('--bpath',         dest='bpath',         type=str,            default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
     parser.add_argument('--omod',          dest='omod',          type=str, nargs='+', default=defaults.omod,            help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
@@ -239,7 +240,8 @@ def main(args=None):
     parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
     parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=[],                       help="restrict the representation to one or several atom types")
     args = parser.parse_args(args=args)
-    if args.print>0: print(vars(args))
+    if args.print>0:
+        print(vars(args))
     correct_num_threads()
 
     if args.name_out is None:
@@ -271,7 +273,8 @@ def main(args=None):
         bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
         elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z,
     )
-    if args.print > 0: print(reps.shape)
+    if args.print > 0:
+        print(reps.shape)
     if args.merge:
         if (spin == None).all():
             mod_iter = [(reps, '')]

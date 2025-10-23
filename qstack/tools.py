@@ -19,7 +19,6 @@ def _orca2gpr_idx(mol):
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
         for gto in mol._basis[q]:
             l = gto[0]
             nf = max([len(prim)-1 for prim in gto[1:]])
@@ -44,7 +43,6 @@ def _orca2gpr_sign(mol):
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
         for gto in mol._basis[q]:
             l = gto[0]
             msize = 2*l+1
@@ -72,7 +70,6 @@ def _pyscf2gpr_idx(mol):
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
         for gto in mol._basis[q]:
             l = gto[0]
             msize = 2*l+1

@@ -1,6 +1,4 @@
 import numpy as np
-import pyscf
-from qstack import compound
 
 def first(mol, rho):
     """ Computes the transition dipole moments.
@@ -60,11 +58,11 @@ def r2_c(rho, mol):
 
     .. math::
 
-        <1> = \\int \\rho d r 
+        <1> = \\int \\rho d r
         \\quad
         ;
         \\quad
-        <r> = \\int \\hat{r} \\rho d r 
+        <r> = \\int \\hat{r} \\rho d r
         \\quad
         ;
         \\quad
@@ -82,7 +80,7 @@ def r2_c(rho, mol):
 
     N  = 0.0           # <1> zeroth
     r  = np.zeros(3)   # <r> first
-    r2 = 0.0           # <r^2> second moments electron density distribution 
+    r2 = 0.0           # <r^2> second moments electron density distribution
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]

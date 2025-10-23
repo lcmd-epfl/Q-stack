@@ -1,7 +1,4 @@
 import numpy as np
-import pyscf
-from pyscf import scf, tdscf
-from qstack import compound
 from . import moments
 
 def get_cis(mf, nstates):
