@@ -57,7 +57,7 @@ def get_repr(mol, elements, charge, spin,
     return np.array(mrep)
 
 
-def main():
+def main(args=None):
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(a) representation for a given molecular system')
     parser.add_argument('--mol',       dest='mol',       required=True,                        type=str, help="the path to the xyz file with the molecular structure")
     parser.add_argument('--guess',     dest='guess',     default=defaults.guess,               type=str, help=f"the initial guess Hamiltonian to be used (default: {defaults.guess})")
@@ -74,7 +74,7 @@ def main():
     parser.add_argument('--ecp',        dest='ecp',        default=None,                  type=str, help=f'effective core potential to use (default: None)')
     parser.add_argument('--nameout',   dest='NameOut',   default=None,                         type=str, help='name of the output representations file.')
     parser.add_argument('--omod',      dest='omod',      default=defaults.omod,     nargs='+', type=str, help=f'model(s) for open-shell systems (alpha, beta, sum, diff, default: {defaults.omod})')
-    args = parser.parse_args()
+    args = parser.parse_args(args=args)
     print(vars(args))
 
     mol = compound.xyz_to_mol(check_file(args.mol), args.basis, charge=args.charge, spin=args.spin, unit=args.units, ecp=args.ecp)
