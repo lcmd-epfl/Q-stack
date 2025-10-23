@@ -1,0 +1,3 @@
+tests/data/H2O_dist.xyz
+tests/data/H2O.xyz
+tests/data/rotated_H2O.xyz
