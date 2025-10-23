@@ -11,6 +11,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
     """
     n_x = len(X)
     n_y = len(Y)
+    self = (Y is X)
 
     XY = np.concatenate((X, Y), axis=0)
     species = np.unique(XY[:,:,0].flatten())   # sorted by default
@@ -25,28 +26,26 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
 
     K_global = np.zeros((n_x, n_y))
 
-    if Y is X:
-        self = True
-    else:
-        self = False
-        self_X = []
-        self_Y = []
-
     for m in trange(0, n_x, disable=not verbose):
-        if not self:
-            K_self = get_covariance(X[m], X[m], max_atoms, local_kernel, sigma=sigma)
-            self_X.append(global_kernel(K_self, options))
-        for n in range(0, n_y):
-            if not self:
-                K_self = get_covariance(Y[m], Y[m], max_atoms, local_kernel, sigma=sigma)
-                self_Y.append(global_kernel(K_self, options))
+        for n in range((m if self else 0), n_y):
             K_pair = get_covariance(X[m], Y[n], max_atoms, local_kernel, sigma=sigma)
-            K_global[m][n] = global_kernel(K_pair, options)
+            K_global[m,n] = global_kernel(K_pair, options)
+            if self:
+                K_global[n,m] = K_global[m,n]
+
     if options['normalize'] == True:
-        if self :
+        if self:
             K_global = normalize_kernel(K_global, self_x=None, self_y=None)
         else:
+            self_X, self_Y = [], []
+            for m in trange(0, n_x, disable=not verbose):
+                K_self = get_covariance(X[m], X[m], max_atoms, max_size, local_kernel, sigma=sigma)
+                self_X.append(global_kernel(K_self, options))
+            for n in trange(0, n_x, disable=not verbose):
+                K_self = get_covariance(Y[n], Y[n], max_atoms, max_size, local_kernel, sigma=sigma)
+                self_Y.append(global_kernel(K_self, options))
             K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y)
+
     if verbose:
         print(f"Final global kernel has size : {K_global.shape}", flush=True)
     return K_global
