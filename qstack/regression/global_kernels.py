@@ -1,7 +1,9 @@
+from collections import Counter
 import numpy as np
+from tqdm import trange
 
 
-def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
+def get_global_K(X, Y, sigma, local_kernel, global_kernel, options, verbose=0):
     """
 
     .. todo::
@@ -9,30 +11,28 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
     """
     n_x = len(X)
     n_y = len(Y)
-    species = sorted(list(set([s[0] for m in np.concatenate((X, Y), axis=0) for s in m])))
 
-    mol_counts = []
-    for m in np.concatenate((X, Y), axis=0):
-        count_species = {s:0 for s in species}
-        for a in m:
-            count_species[a[0]] += 1
-        mol_counts.append(count_species)
+    XY = np.concatenate((X, Y), axis=0)
+    species = np.unique(XY[:,:,0].flatten())   # sorted by default
 
-    max_atoms = {s:0 for s in species}
-    for m in mol_counts:
-        for k, v in m.items():
-            max_atoms[k] = max([v, max_atoms[k]])
+    mol_counts = [Counter(m[:,0]) for m in XY]
+    max_atoms = {q: max(mol_counts, key=lambda x: x[q])[q] for q in species}
     max_size = sum(max_atoms.values())
-    print(max_atoms, max_size, flush=True)
+
+    if verbose:
+        print(f'{max_atoms=} {max_size=}')
+        print("Computing global kernel elements:", flush=True)
+
     K_global = np.zeros((n_x, n_y))
-    print("Computing global kernel elements:\n[", sep='', end='', flush=True)
+
     if Y is X:
         self = True
     else:
         self = False
         self_X = []
         self_Y = []
-    for m in range(0, n_x):
+
+    for m in trange(0, n_x, disable=not verbose):
         if not self:
             K_self = get_covariance(X[m], X[m], max_atoms, local_kernel, sigma=sigma)
             self_X.append(global_kernel(K_self, options))
@@ -42,15 +42,13 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
                 self_Y.append(global_kernel(K_self, options))
             K_pair = get_covariance(X[m], Y[n], max_atoms, local_kernel, sigma=sigma)
             K_global[m][n] = global_kernel(K_pair, options)
-        if ((m+1) / len(X) * 100)%10 == 0:
-            print(f"##### {(m+1) / len(X) * 100}% #####", sep='', end='', flush=True)
-    print("]", flush=True)
     if options['normalize'] == True:
         if self :
             K_global = normalize_kernel(K_global, self_x=None, self_y=None)
         else:
             K_global = normalize_kernel(K_global, self_x=self_X, self_y=self_Y)
-    print(f"Final global kernel has size : {K_global.shape}", flush=True)
+    if verbose:
+        print(f"Final global kernel has size : {K_global.shape}", flush=True)
     return K_global
 
 
