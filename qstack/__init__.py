@@ -1,7 +1,7 @@
 """Q-stack."""
 
 from qstack import tools
-from qstack import compound
+#from qstack import compound  # needs pyscf
 from qstack import constants
 from qstack import mathutils
 #from qstack import fields  # needs scipy, pyscf
