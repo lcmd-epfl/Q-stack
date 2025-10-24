@@ -2,9 +2,9 @@
 
 import numpy as np
 from tqdm import tqdm
-from qstack.regression.kernel_utils import defaults, ParseKwargs
-from qstack.regression.hyperparameters import hyperparameters
-from qstack.regression.regression import regression
+from .kernel_utils import defaults, ParseKwargs
+from .hyperparameters import hyperparameters
+from .regression import regression
 
 
 def cv_results(X, y,

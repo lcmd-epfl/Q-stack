@@ -45,6 +45,7 @@ dependencies = [
 
 [project.optional-dependencies]
 #qml = ["qstack-qml @ file://qstack/qstack-qml"]  # this is managed in setup.py because of course.
+qml = ['ase >= 3.22, < 3.27']
 regression = ["scikit-learn >= 0.24.2, < 1.8"]
 wigner = ["sympy >= 1.5, < 1.15"]
 gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@feat/pydantic"]

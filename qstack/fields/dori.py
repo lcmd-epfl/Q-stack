@@ -1,7 +1,7 @@
 import numpy as np
 from pyscf.dft.numint import eval_ao, _dot_ao_dm, _contract_rho
 from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
-from qstack.fields.dm import make_grid_for_rho
+from .dm import make_grid_for_rho
 from tqdm import tqdm
 
 

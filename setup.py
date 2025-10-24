@@ -41,9 +41,6 @@ if __name__ == '__main__':
 
     setup(
         version=get_git_version_hash(),
-        extras_require = {
-             "qml":[f"qstack-qml @ file://{QSTACK_QML:s}"],
-        },
         ext_modules=[Extension('qstack.regression.lib.manh',
                                ['qstack/regression/lib/manh.c'],
                                extra_compile_args=['-fopenmp', '-std=gnu11'] if openmp_enabled else ['-std=gnu11'],
