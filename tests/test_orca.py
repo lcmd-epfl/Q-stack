@@ -3,7 +3,7 @@
 import os
 import numpy as np
 from pyscf.data import elements
-import qstack
+import qstack.orcaio
 from qstack.tools import reorder_ao
 
 

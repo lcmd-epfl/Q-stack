@@ -1,9 +1,12 @@
+import os
 import argparse
 import warnings
 from types import SimpleNamespace
 import numpy as np
-from qstack.regression.local_kernels import local_kernels_dict
-from qstack.regression.global_kernels import global_kernels_dict, get_global_K
+from .local_kernels import local_kernels_dict
+from .global_kernels import global_kernels_dict, get_global_K
+
+REGMODULE_PATH = os.path.dirname(__file__)
 
 
 class ParseKwargs(argparse.Action):

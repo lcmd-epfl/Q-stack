@@ -4,7 +4,7 @@ import numpy
 import scipy
 import pyscf
 import pyscf.dft, pyscf.scf
-from qstack.spahm.LB2020guess import LB2020guess as LB20
+from .LB2020guess import LB2020guess as LB20
 
 def hcore(mol, *_):
   """Uses the core potential (kin + nuc + ecp) to compute the guess Hamiltonian.
@@ -226,4 +226,3 @@ def eigenvalue_grad(mol, e, c, s1, h1):
         Scomp = 2.0 * numpy.einsum('pi,aqp,qi->ia', c, s1[:,p0:p1], c[p0:p1])
         de_dr[:,iat,:] = Hcomp - Scomp * e[:,None]
     return de_dr
-

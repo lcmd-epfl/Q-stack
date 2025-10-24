@@ -2,7 +2,7 @@ import numpy as np
 import pyscf
 from pyscf import scf, tdscf
 from qstack import compound
-from qstack.fields import moments
+from . import moments
 
 def get_cis(mf, nstates):
     """
@@ -118,7 +118,7 @@ def exciton_properties(mol, hole, part):
         part (numpy ndarray): Particle density matrix.
 
     Returns:
-        The hole-particle distance, the hole size, and the particle size as floats. 
+        The hole-particle distance, the hole size, and the particle size as floats.
     """
 
     if hole.ndim==1 and part.ndim==1:
