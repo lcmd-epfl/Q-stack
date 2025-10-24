@@ -82,7 +82,7 @@ def xyz_comment_line_parser(line):
         props['spin'] = props['spin']-1
     return props
 
-def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False, read_string=False):
+def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False, read_string=False):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
