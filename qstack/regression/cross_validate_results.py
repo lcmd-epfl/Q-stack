@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from tqdm import tqdm
 from qstack.regression.kernel_utils import defaults, ParseKwargs
 from qstack.regression.hyperparameters import hyperparameters
 from qstack.regression.regression import regression
@@ -44,10 +45,7 @@ def cv_results(X, y,
     lc_runs = []
     seeds = seed0+np.arange(n_rep)
     if save_pred: predictions_n = []
-    if progress:
-        import tqdm
-        seeds = tqdm.tqdm(seeds)
-    for seed,n in zip(seeds, range(n_rep)):
+    for seed in tqdm(seeds, disable=(not progress)):
         error = hyperparameters(X, y, read_kernel=False, sigma=sigmaarr, eta=etaarr,
                                 akernel=akernel, test_size=test_size, splits=splits,
                                 printlevel=printlevel, adaptive=adaptive, random_state=seed,
@@ -71,10 +69,10 @@ def cv_results(X, y,
     hyper_runs = np.array(hyper_runs, dtype=object)
     lc = list(zip(lc_runs[:,:,0].mean(axis=0), lc_runs[:,:,1].mean(axis=0), lc_runs[:,:,1].std(axis=0)))
     lc = np.array(lc)
-    if save == True:
+    if save:
         np.save(f"{preffix}_{n_rep}-hyper-runs.npy", hyper_runs)
         np.save(f"{preffix}_{n_rep}-lc-runs.npy", lc_runs)
-    if save_pred == True:
+    if save_pred:
         np_pred = np.array(predictions_n)
         ##### Can not take means !!! Test-set varies with run !
         ##### pred_mean = np.concatenate([np_pred.mean(axis=0),np_pred.std(axis=0)[1].reshape((1,-1))], axis=0)
@@ -91,7 +89,9 @@ def main():
     parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
     parser.add_argument('--test',   type=float, dest='test_size',  default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
     parser.add_argument('--train',      type=float, dest='train_size', default=defaults.train_size, nargs='+', help='training set fractions')
-    parser.add_argument('--akernel',     type=str,   dest='akernel',     default=defaults.kernel,    help='local kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
+    parser.add_argument('--akernel',     type=str,   dest='akernel',     default=defaults.kernel,
+        help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity, "G_sklearn","L_sklearn","G_customc","L_customc","L_custompy" for specific implementations. '
+             '("L_custompy" is suited to open-shell systems) (default '+defaults.kernel+')')
     parser.add_argument('--gkernel',     type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default )')
     parser.add_argument('--gdict',     nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
     parser.add_argument('--splits', type=int,   dest='splits',     default=defaults.splits,    help='k in k-fold cross validation (default='+str(defaults.n_rep)+')')

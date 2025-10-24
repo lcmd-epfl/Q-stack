@@ -24,7 +24,22 @@ def test_rem_kernel():
     X_dir = os.path.join(path, 'data/SPAHM_a_H2O/')
     mollist = [os.path.join(X_dir, s) for s in ['X_H2O.npy', 'X_rotated_H2O.npy', 'X_H2O_dist.npy']]
     mols = [np.load(f, allow_pickle=True) for f in mollist]
-    K = kernel.kernel(mols, akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1})
+    K = kernel.kernel(mols, akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1, 'verbose':0})
+
+    true_K = np.array(  [[1.      , 0.6528238, 1.      ], \
+                        [0.6528238,1.        ,0.6528238], \
+                        [1.       ,0.6528238 ,1.       ]])
+
+    assert(K.shape == (3,3))
+    assert(np.abs(np.sum(K-true_K)) < 1e-05)
+
+
+def test_rem_kernel_not_self():
+    path = os.path.dirname(os.path.realpath(__file__))
+    X_dir = os.path.join(path, 'data/SPAHM_a_H2O/')
+    mollist = [os.path.join(X_dir, s) for s in ['X_H2O.npy', 'X_rotated_H2O.npy', 'X_H2O_dist.npy']]
+    mols = [np.load(f, allow_pickle=True) for f in mollist]
+    K = kernel.kernel(mols, Y=np.copy(mols), akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1, 'verbose':0})
 
     true_K = np.array(  [[1.      , 0.6528238, 1.      ], \
                         [0.6528238,1.        ,0.6528238], \
@@ -37,3 +52,4 @@ def test_rem_kernel():
 if __name__ == '__main__':
     test_avg_kernel()
     test_rem_kernel()
+    test_rem_kernel_not_self()
