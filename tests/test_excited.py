@@ -2,7 +2,9 @@
 
 import os
 import numpy as np
+import pyscf
 from qstack import compound, fields
+
 
 def test_excited():
 
@@ -35,9 +37,7 @@ def test_excited():
     assert(np.linalg.norm(np.array([dist, hole_extent, part_extent])-np.array([2.59940378, 7.8477511,  5.67541635]))<1e-7)
 
 
-
 def test_excited_frag():
-
     path = os.path.dirname(os.path.realpath(__file__))
     xyzfile = path+'/data/excited/C1-13-2-3.xyz'
     auxmol  = compound.xyz_to_mol(xyzfile, 'ccpvqz jkfit')
@@ -46,10 +46,15 @@ def test_excited_frag():
     fragments = compound.fragments_read(xyzfile+'.frag')
     omega_hole_atom, omega_part_atom = fields.hirshfeld.hirshfeld_charges(auxmol, [hole_c, part_c], atm_bas='def2svp', dominant=True, occupations=True, grid_level=1)
     omega_hole_frag, omega_part_frag = compound.fragment_partitioning(fragments, [omega_hole_atom, omega_part_atom], normalize=True)
-    omega_hole_frag0 = np.array([ 4.24465477, 25.17476403,  7.80532138, 32.88857084, 29.88668899])
-    omega_part_frag0 = np.array([ 1.86936435, 20.01021326, 37.31393462, 36.74049231,  4.06599547])
+    if int(pyscf.__version__.split('.')[1]) < 7:
+        omega_hole_frag0 = np.array([ 4.24465477, 25.17476403,  7.80532138, 32.88857084, 29.88668899])
+        omega_part_frag0 = np.array([ 1.86936435, 20.01021326, 37.31393462, 36.74049231,  4.06599547])
+    else:
+        omega_hole_frag0 = np.array([ 4.24698889, 25.1717958 ,  7.80455406, 32.89098877, 29.88567248])
+        omega_part_frag0 = np.array([ 1.87258999, 19.98184387, 37.30712212, 36.77858748,  4.05985653])
     assert(np.linalg.norm(omega_hole_frag-omega_hole_frag0)<1e-8)
     assert(np.linalg.norm(omega_part_frag-omega_part_frag0)<1e-8)
+
 
 if __name__ == '__main__':
     test_excited()

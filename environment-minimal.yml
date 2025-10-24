@@ -1,24 +1,17 @@
-name: qstack-min
+name: qstack
 channels:
-  - conda-forge
   - defaults
 dependencies:
-  - python=3.11.11
-  - pip=24.3.1
-  - h5py=3.11.0
-  - iniconfig=1.1.1
-  - libcblas=3.9.0
-  - liblapack=3.9.0
-  - matplotlib=3.10.0
-  - pooch=1.8.2
-  - py=1.11.0
-  - scikit-learn=1.5.0
-  - toml=0.10.2
+  - pip=25.2
+  - python=3.13.9
+  - pytest=8.4.2
+  - scikit-learn=1.7.2
+  - scipy=1.16.2
+  - setuptools=80.9.0
+  - tqdm=4.67.1
+  - sympy=1.14.0
   - pip:
-      - git+https://github.com/lcmd-epfl/cell2mol.git
+      - pyscf==2.11.0
+      - metatensor-core==0.1.17
       - qstack/qstack-qml
-      - metatensor-core==0.1.8
-      - pyscf==2.5.0
-      - pytest==6.2.5
-      - scipy==1.10.0
-
+      - git+https://github.com/lcmd-epfl/cell2mol.git@3329c6a7b62f38289c1204cd6a4e239ec194d703
