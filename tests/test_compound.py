@@ -41,7 +41,7 @@ def test_commentline():
     names = ["HO_json.xyz", "HO_keyvalcomma.xyz", "HO_keyvalspace.xyz", "HO_spinline.xyz"]
     for name in names:
         print(name)
-        mol = compound.xyz_to_mol(os.path.join(path,'data',name), 'def2svp')
+        mol = compound.xyz_to_mol(os.path.join(path,'data',name), 'def2svp', parse_comment=True)
         assert mol.spin == 0
         assert mol.charge == -1
 

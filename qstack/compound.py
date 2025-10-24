@@ -56,7 +56,7 @@ def xyz_comment_line_parser(line):
             return {}
     else:
         # other possibilities include having the name of the compound
-        print("warning: could not interpret the data in the XYZ title line:", line)
+        warnings.warn(f"could not interpret the data in the XYZ title line: {line}", RuntimeWarning)
         return {}
 
     for part in line_parts:
@@ -82,7 +82,7 @@ def xyz_comment_line_parser(line):
         props['spin'] = props['spin']-1
     return props
 
-def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None):
+def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
@@ -100,10 +100,13 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
 
     # Open and read the file
     molxyz = gto.fromfile(fin)
-    with open(fin, "r") as f:
-        _ = f.readline()
-        comment_line = f.readline()
-        props = xyz_comment_line_parser(comment_line)
+    if parse_comment:
+        with open(fin, "r") as f:
+            _ = f.readline()
+            comment_line = f.readline()
+            props = xyz_comment_line_parser(comment_line)
+    else:
+        props = [None]
 
     # Define attributes to the Mole object and build it
     mol = gto.Mole()
