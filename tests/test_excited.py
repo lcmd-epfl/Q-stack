@@ -46,7 +46,7 @@ def test_excited_frag():
     fragments = compound.fragments_read(xyzfile+'.frag')
     omega_hole_atom, omega_part_atom = fields.hirshfeld.hirshfeld_charges(auxmol, [hole_c, part_c], atm_bas='def2svp', dominant=True, occupations=True, grid_level=1)
     omega_hole_frag, omega_part_frag = compound.fragment_partitioning(fragments, [omega_hole_atom, omega_part_atom], normalize=True)
-    if pyscf.__version__.startswith('2.5'):
+    if int(pyscf.__version__.split('.')[1]) < 7:
         omega_hole_frag0 = np.array([ 4.24465477, 25.17476403,  7.80532138, 32.88857084, 29.88668899])
         omega_part_frag0 = np.array([ 1.86936435, 20.01021326, 37.31393462, 36.74049231,  4.06599547])
     else:
