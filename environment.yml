@@ -87,4 +87,3 @@ dependencies:
       - tzdata==2025.2
       - qstack/qstack-qml
       - git+https://github.com/lcmd-epfl/cell2mol.git@3329c6a7b62f38289c1204cd6a4e239ec194d703
-prefix: /home/xe/soft/miniconda3/envs/qstack
