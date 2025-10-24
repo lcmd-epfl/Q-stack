@@ -51,6 +51,7 @@ _cell2mol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@feat/pyda
 cell2mol = ["qstack[pyscf,_cell2mol]"]
 _equio = ["metatensor-core >= 0.1.8, == 0.1.*"]
 equio = ["qstack[pyscf,_equio]"]
+spahm = ["qstack[pyscf]"]
 all = ["qstack[pyscf,qml,regression,wigner,equio,gmol]"]
 
 [project.urls]
