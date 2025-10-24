@@ -14,4 +14,4 @@ dependencies:
       - pyscf==2.11.0
       - metatensor-core==0.1.17
       - qstack/qstack-qml
-      - git+https://github.com/lcmd-epfl/cell2mol.git@3329c6a7b62f38289c1204cd6a4e239ec194d703
+      - git+https://github.com/lcmd-epfl/cell2mol.git@40b3237

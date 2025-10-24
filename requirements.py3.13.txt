@@ -11,5 +11,5 @@ scikit-learn==1.7.2
 ase==3.26
 tqdm==4.67
 metatensor-core==0.1.17
-cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@3329c6a7b62f38289c1204cd6a4e239ec194d703
+cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@40b3237
 qstack/qstack-qml
