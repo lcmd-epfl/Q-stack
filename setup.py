@@ -4,9 +4,6 @@ import os, tempfile, shutil
 
 VERSION="0.0.1"
 
-ROOT = os.path.realpath(os.path.dirname(__file__))
-QSTACK_QML = os.path.join(ROOT, "qstack", "qstack-qml")
-
 def get_git_version_hash():
     """Get tag/hash of the latest commit.
     Thanks to https://gist.github.com/nloadholtes/07a1716a89b53119021592a1d2b56db8"""

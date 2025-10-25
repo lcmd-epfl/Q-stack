@@ -1,0 +1,85 @@
+YOXKUS
+Reference Molecule 0: H24-C23-O-P-I2-Re (TM Complex) 
+totcharge_cif=0 
+	Re (metal) atom_site_label=Re1
+	|--Coordination information coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	C-O (ligand) smiles=None denticity=1 totcharge=None
+	|--(group) ['C'] denticity=1 connected_metals=['Re1'] 
+	H24-C22-P (ligand) smiles=None denticity=6 totcharge=None
+	|--(group) ['C', 'C', 'C', 'C', 'C'] denticity=5 is_haptic=True haptic_type=['h5-Cp'] connected_metals=['Re1'] 
+	|--(group) ['P'] denticity=1 connected_metals=['Re1'] 
+	I (ligand) smiles=None denticity=1 totcharge=None
+	|--(group) ['I'] denticity=1 connected_metals=['Re1'] 
+	I (ligand) smiles=None denticity=1 totcharge=None
+	|--(group) ['I'] denticity=1 connected_metals=['Re1'] 
+
+Unique Species in reference:
+	specie.unique_index=0 C-O (ligand) specie.denticity=1 groups=['C']
+	specie.unique_index=1 H24-C22-P (ligand) specie.denticity=6 specie.haptic_type=['h5-Cp'] groups=['C5', 'P']
+	specie.unique_index=2 I (ligand) specie.denticity=1 groups=['I']
+	specie.unique_index=3 Re (metal) specie.coord_sphere_formula='C6-P-I2'
+
+Possible charges of species in reference:
+	specie.unique_index=0 C-O (ligand)
+	specie.possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [C-]#[O+]
+ Charge Tried                    = 0
+ Uncorrected Total Charge        = 0
+ Corrected Total Charge          = 0
+ Corrected Absolute Total Charge = 2
+ Corrected Is Zwitterion?        = True
+---------------------------------------------------
+]
+	specie.unique_index=1 H24-C22-P (ligand)
+	specie.possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])C2([H])C(C([H])([H])[H])=C(C([H])([H])[H])C(C([H])([H])[H])=C2C([H])([H])[H])c([H])c1[H]
+ Charge Tried                    = 0
+ Uncorrected Total Charge        = 0
+ Corrected Total Charge          = -1
+ Corrected Absolute Total Charge = 1
+ Corrected Is Zwitterion?        = False
+---------------------------------------------------
+]
+	specie.unique_index=2 I (ligand)
+	specie.possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [I-]
+ Charge Tried                    = -1
+ Uncorrected Total Charge        = -1
+ Corrected Total Charge          = -1
+ Corrected Absolute Total Charge = 1
+ Corrected Is Zwitterion?        = False
+---------------------------------------------------
+]
+	specie.unique_index=2 I (ligand)
+	specie.possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [I-]
+ Charge Tried                    = -1
+ Uncorrected Total Charge        = -1
+ Corrected Total Charge          = -1
+ Corrected Absolute Total Charge = 1
+ Corrected Is Zwitterion?        = False
+---------------------------------------------------
+]
+	specie.unique_index=3 Re (metal) specie.coord_sphere_formula='C6-P-I2' specie.possible_cs=[1, 2, 3, 4, 5, 7]
+
+
+************ After charge assignment of unit cell ************
+Reference Molecule 0: H24-C23-O-P-I2-Re (TM Complex) 
+totcharge=0 totcharge_cif=0 smiles=C[c]12->[Re+3]3456(<-[I-])(<-[I-])(<-[C-]#[O+])<-[c]1(C)[c]->3(C)[c-]->4(C[P]->5(c1ccccc1)c1ccccc1)[c]->62C
+	Re (metal) atom_site_label=Re1 metal_OS=3
+	|--Coordination information coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	C-O (ligand) smiles=[C-]#[O+] denticity=1 totcharge=0
+	|--(group) ['C'] denticity=1 connected_metals=['Re1'] 
+	H24-C22-P (ligand) smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] denticity=6 totcharge=-1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] denticity=5 is_haptic=True haptic_type=['h5-Cp'] connected_metals=['Re1'] 
+	|--(group) ['P'] denticity=1 connected_metals=['Re1'] 
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] denticity=1 connected_metals=['Re1'] 
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] denticity=1 connected_metals=['Re1'] 
