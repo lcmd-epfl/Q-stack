@@ -32,6 +32,8 @@ dependencies:
   - mpfr=4.2.1=h5eee18b_0
   - mpmath=1.3.0=py313h06a4308_0
   - ncurses=6.5=h7934f7d_0
+  - numpy=2.3.3=py313h720eef7_1
+  - numpy-base=2.3.3=py313h95072fd_1
   - openssl=3.0.18=hd6dcaed_0
   - packaging=25.0=py313h06a4308_1
   - pip=25.2=pyhc872135_1
@@ -62,28 +64,32 @@ dependencies:
   - pip:
       - annotated-types==0.7.0
       - ase==3.26.0
+      - compress-pickle==2.1.0
       - contourpy==1.3.3
       - cycler==0.12.1
       - fonttools==4.60.1
       - h5py==3.15.1
       - kiwisolver==1.4.9
+      - lz4==4.4.4
       - matplotlib==3.10.7
       - metatensor-core==0.1.17
       - networkx==3.5
-      - numpy==2.3.4
       - pandas==2.3.3
       - pillow==12.0.0
       - pydantic==2.12.3
       - pydantic-core==2.41.4
+      - pydantic-numpy==8.0.1
       - pyparsing==3.2.5
       - pyscf==2.11.0
       - python-dateutil==2.9.0.post0
       - pytz==2025.2
       - pyyaml==6.0.3
       - rdkit==2025.9.1
+      - ruamel-yaml==0.18.16
+      - ruamel-yaml-clib==0.2.14
+      - semver==3.0.4
       - six==1.17.0
       - typing-extensions==4.15.0
       - typing-inspection==0.4.2
       - tzdata==2025.2
-      - qstack/qstack-qml
       - git+https://github.com/lcmd-epfl/cell2mol.git@40b3237

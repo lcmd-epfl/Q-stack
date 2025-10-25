@@ -12,4 +12,3 @@ ase==3.26
 tqdm==4.67
 metatensor-core==0.1.17
 cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@40b3237
-qstack/qstack-qml
