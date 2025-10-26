@@ -67,7 +67,7 @@ def metric_matrix(q, idx, ao, S):
     return sqrtm(A)
 
 
-def metric_matrix_short(q, idx, ao, S):
+def metric_matrix_short(idx, ao, S):
     N = len(idx)
     A = np.zeros((N,N))
     for p in range(N):
@@ -82,14 +82,14 @@ def metric_matrix_short(q, idx, ao, S):
     return sqrtm(A)
 
 
-def vectorize_c(q, idx, c):
+def vectorize_c(idx, c):
     v = np.zeros(len(idx))
     for p, (i,j) in enumerate(idx):
         v[p] = c[i]*c[j]
     return v
 
 
-def vectorize_c_MR2021(q, idx_pair, ao, c):
+def vectorize_c_MR2021(idx_pair, ao, c):
     idx = sorted(set(np.array(idx_pair)[:,0]))
     v = np.zeros(len(idx))
     for p,i in enumerate(idx):
@@ -99,7 +99,7 @@ def vectorize_c_MR2021(q, idx_pair, ao, c):
     return v
 
 
-def vectorize_c_short(q, idx, ao, c):
+def vectorize_c_short(idx, ao, c):
     v = np.zeros(len(idx))
     for p, [i,j] in enumerate(idx):
         l = ao['l'][i]
@@ -130,7 +130,7 @@ def store_pair_indices_z_only0(ao):
     return idx
 
 
-def metric_matrix_z(q, idx, ao, S):
+def metric_matrix_z(idx, ao, S):
     N = len(idx)
     A = np.zeros((N,N))
     for p in range(N):

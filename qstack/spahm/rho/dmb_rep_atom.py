@@ -16,7 +16,7 @@ def get_basis_info(atom_types, auxbasis):
     for q in atom_types:
         S, ao[q], ao_start = sym.get_S(q, auxbasis)
         idx[q] = sym.store_pair_indices_short(ao[q], ao_start)
-        M[q]   = sym.metric_matrix_short(q, idx[q], ao[q], S)
+        M[q]   = sym.metric_matrix_short(idx[q], ao[q], S)
         ao_len[q] = len(S)
     return ao, ao_len, idx, M
 
@@ -68,13 +68,13 @@ def get_model(arg):
     return models[arg]
 
 
-def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, M, _):
+def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, _M, _):
     # J. T. Margraf and K. Reuter, Nat. Commun. 12, 344 (2021).
     v = []
     i0 = 0
     for q in mol.elements:
         n = ao_len[q]
-        v.append(sym.vectorize_c_MR2021(q, idx[q], ao[q], c[i0:i0+n]))
+        v.append(sym.vectorize_c_MR2021(idx[q], ao[q], c[i0:i0+n]))
         i0 += n
     return v
 
@@ -85,7 +85,7 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
     i0 = 0
     for q in mol.elements:
         n = ao_len[q]
-        v.append(M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c[i0:i0+n]))
+        v.append(M[q] @ sym.vectorize_c_short(idx[q], ao[q], c[i0:i0+n]))
         i0 += n
     return v
 
@@ -98,7 +98,7 @@ def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
         i0 = 0
         for q in mol.elements:
             n = ao_len[q]
-            v_atom[q] += M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n])
+            v_atom[q] += M[q] @ sym.vectorize_c_short(idx[q], ao[q], c_a[i0:i0+n])
             i0 += n
         v_a = np.hstack([v_atom[q] for q in atom_types])
         vectors.append(v_a)

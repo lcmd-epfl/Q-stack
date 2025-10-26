@@ -21,7 +21,7 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
             idx[qq] = sym.store_pair_indices_z(ao)
         else:
             idx[qq] = sym.store_pair_indices_z_only0(ao)
-        M[qq] = sym.metric_matrix_z('No', idx[qq], ao, S)
+        M[qq] = sym.metric_matrix_z(idx[qq], ao, S)
     return idx, M
 
 
@@ -136,7 +136,7 @@ def fit_dm(dm, mol, mybasis, ri0, ri1):
 def vec_from_cs(z, cs, lmax, idx):
     D = Dmatrix_for_z(z, lmax)
     c_new = rotate_c(D, cs)
-    v = sym.vectorize_c('No', idx, c_new)
+    v = sym.vectorize_c(idx, c_new)
     return v
 
 

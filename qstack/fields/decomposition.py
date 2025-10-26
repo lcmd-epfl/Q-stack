@@ -109,11 +109,11 @@ def _get_inv_metric(mol, metric, v):
   """
   if isinstance(metric, str):
       metric = metric.lower()
-      if metric == 'u' or metric == 'unit' or metric == '1' :
+      if metric in ['u', 'unit', '1']:
           return v
-      elif metric == 's' or metric == 'overlap' or metric == 'ovlp' :
+      elif metric in ['s', 'overlap', 'ovlp']:
           O = mol.intor('int1e_ovlp_sph')
-      elif metric=='j' or metric == 'coulomb':
+      elif metric in ['j', 'coulomb']:
           O = mol.intor('int2c2e_sph')
   else:
       O = metric

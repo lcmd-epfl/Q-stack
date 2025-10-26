@@ -4,7 +4,7 @@ import numpy as np
 from types import SimpleNamespace
 from tqdm import tqdm
 import qstack.spahm.compute_spahm as spahm
-import qstack.spahm.guesses as guesses
+from qstack.spahm import guesses
 from qstack import compound
 
 defaults = SimpleNamespace(

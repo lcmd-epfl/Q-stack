@@ -99,7 +99,7 @@ def get_three_body(j, mbtype, q, r, dist,
             continue
 
         for k in np.where(q==q3)[0]:
-            if k==j or k==i or dist[i,k]>rcut or dist[j,k]>rcut:
+            if k in [i,j] or dist[i,k]>rcut or dist[j,k]>rcut:
                 continue
 
             cos_ikj = get_cos(i, k, j)
