@@ -16,7 +16,7 @@ def decompose(mol, dm, auxbasis):
     """
 
     auxmol = compound.make_auxmol(mol, auxbasis)
-    S, eri2c, eri3c = get_integrals(mol, auxmol)
+    _S, eri2c, eri3c = get_integrals(mol, auxmol)
     c = get_coeff(dm, eri2c, eri3c)
     return auxmol, c
 
@@ -56,9 +56,9 @@ def get_self_repulsion(mol, dm):
     """
 
     try:
-        j, k = mol.get_jk()
+        j, _k = mol.get_jk()
     except:
-        j, k = scf.hf.get_jk(mol, dm)
+        j, _k = scf.hf.get_jk(mol, dm)
     return np.einsum('ij,ij', j, dm)
 
 def decomposition_error(self_repulsion, c, eri2c):

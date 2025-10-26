@@ -102,7 +102,7 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     # Open and read the file
     molxyz = gto.fromfile(fin)
     if parse_comment:
-        with open(fin, "r") as f:
+        with open(fin) as f:
             _ = f.readline()
             comment_line = f.readline()
             props = xyz_comment_line_parser(comment_line)
@@ -175,13 +175,13 @@ def mol_to_xyz(mol, fout, fmt="xyz"):
         coords = mol.atom_coords() * constants.BOHR2ANGS
         output = []
         if fmt == "xyz":
-            output.append("%d" % mol.natm)
-            output.append("%d %d" % (mol.charge, mol.multiplicity))
+            output.append(str(mol.natm))
+            output.append(f"{mol.charge} {mol.multiplicity}")
 
         for i in range(mol.natm):
             symb = mol.atom_pure_symbol(i)
             x, y, z = coords[i]
-            output.append("%-4s %14.5f %14.5f %14.5f" % (symb, x, y, z))
+            output.append(f"{symb:-4s} {x:14.5f} {y:14.5f} {z:14.5f}")
         string = "\n".join(output)
 
     else:
@@ -361,8 +361,8 @@ def fragments_read(frag_file):
     Returns:
         A list of arrays containing the fragments.
     """
-    with open(frag_file, 'r') as f:
-        fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f.readlines()]
+    with open(frag_file) as f:
+        fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f]
     return fragments
 
 def fragment_partitioning(fragments, prop_atom_inp, normalize=True):

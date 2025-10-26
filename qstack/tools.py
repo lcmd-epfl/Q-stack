@@ -131,8 +131,8 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         idx_dest = np.ix_(idx_dest,idx_dest)
         idx_src  = np.ix_(idx_src,idx_src)
     elif vector.ndim!=1:
-        errstr = 'Dim = '+ str(vector.ndim)+' (should be 1 or 2)'
-        raise Exception(errstr)
+        errstr = f'Dim = {vector.ndim} (should be 1 or 2)'
+        raise ValueError(errstr)
 
     newvector = np.zeros_like(vector)
     newvector[idx_dest] = (sign_src*vector)[idx_src]
@@ -240,10 +240,10 @@ def unix_time_decorator(func):
     start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
     ret = func(*args, **kwargs)
     end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
-    print(func.__name__, ':  real: %.4f  user: %.4f  sys: %.4f'%
-          (end_time - start_time,
-           end_resources.ru_utime - start_resources.ru_utime,
-           end_resources.ru_stime - start_resources.ru_stime))
+    real = end_time - start_time
+    user = end_resources.ru_utime - start_resources.ru_utime
+    syst = end_resources.ru_stime - start_resources.ru_stime
+    print(f'{func.__name__} :  real: {real:.4f}  user: {user:.4f}  sys: {syst:.4f}')
     return ret
   return wrapper
 

@@ -95,10 +95,10 @@ def main():
         correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    aes, pred, alpha = final_error(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
-                                   akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict,
-                                   test_size=args.test_size, sparse=args.sparse, random_state=args.random_state,
-                                   return_pred=True, return_alpha=True)
+    aes, _pred, alpha = final_error(X, y, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
+                                    akernel=args.akernel, gkernel=args.gkernel, gdict=args.gdict,
+                                    test_size=args.test_size, sparse=args.sparse, random_state=args.random_state,
+                                    return_pred=True, return_alpha=True)
     if args.save_alpha:
         np.save(args.save_alpha, alpha)
     np.savetxt(sys.stdout, aes, fmt='%e')

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import itertools
 import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -196,7 +197,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
             atm_i += len(elems)
         allvec = allvec_new
         del allvec_new
-        all_atoms = sum(all_atoms, start=[])
+        all_atoms = [*itertools.chain(*all_atoms)]
 
         if merge:
             allvec = np.hstack(allvec)

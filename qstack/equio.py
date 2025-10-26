@@ -170,7 +170,7 @@ def tensormap_to_vector(mol, tensor):
 
     nao = _get_tsize(tensor)
     if mol.nao != nao:
-        raise Exception(f'Tensor size mismatch ({nao} instead of {mol.nao})')
+        raise RuntimeError(f'Tensor size mismatch ({nao} instead of {mol.nao})')
 
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
@@ -325,7 +325,7 @@ def tensormap_to_matrix(mol, tensor):
 
     nao2 = _get_tsize(tensor)
     if mol.nao*mol.nao != nao2:
-        raise Exception(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
+        raise RuntimeError(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
 
     dm = np.zeros((mol.nao, mol.nao))
     atom_charges = mol.atom_charges()
@@ -372,7 +372,7 @@ def array_to_tensormap(mol, v):
     elif v.ndim==2:
         return matrix_to_tensormap(mol, v)
     else:
-        raise Exception(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
+        raise ValueError(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
 
 
 def tensormap_to_array(mol, tensor):
@@ -407,7 +407,7 @@ def join(tensors):
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
         raise RuntimeError('Cannot merge tensors with different label names')
     tm_label_vals = set().union(*[set(_labels_to_array(tensor.keys)) for tensor in tensors])
-    tm_label_vals = sorted((tuple(value) for value in tm_label_vals))
+    tm_label_vals = sorted(tuple(value) for value in tm_label_vals)
     tm_labels = metatensor.Labels(tensors[0].keys.names, np.array(tm_label_vals))
 
     blocks = {}

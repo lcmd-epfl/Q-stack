@@ -52,7 +52,7 @@ def cv_results(X, y,
                                 akernel=akernel, test_size=test_size, splits=splits,
                                 printlevel=printlevel, adaptive=adaptive, random_state=seed,
                                 sparse=sparse)
-        mae, stdev, eta, sigma = zip(*error, strict=True)
+        _mae, _stdev, eta, sigma = zip(*error, strict=True)
         maes_all = regression(X, y, read_kernel=read_kernel, sigma=sigma[-1], eta=eta[-1],
                               gkernel=gkernel, gdict=gdict,
                               akernel=akernel, test_size=test_size, train_size=train_size,

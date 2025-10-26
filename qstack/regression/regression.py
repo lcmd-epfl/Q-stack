@@ -117,7 +117,7 @@ def main():
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
                           debug=args.debug, random_state=args.random_state)
     for size_train, meanerr, stderr in maes_all:
-        print("%d\t%e\t%e" % (size_train, meanerr, stderr))
+        print(f"{size_train}\t{meanerr:e}\t{stderr:e}")
     maes_all = np.array(maes_all)
     if args.nameout is not None:
         np.savetxt(args.nameout, maes_all, header="size_train, meanerr, stderr")

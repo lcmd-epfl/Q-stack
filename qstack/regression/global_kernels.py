@@ -11,7 +11,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
         Write the docstring
     """
     self = (Y is X)
-    verbose = options['verbose'] if 'verbose' in options else 0
+    verbose = options.get('verbose', 0)
 
     XY = np.concatenate((X, Y), axis=0)
     species = np.unique(XY[:,:,0].flatten())   # sorted by default
@@ -100,7 +100,7 @@ def mol_to_dict(mol, species):
     mol_dict = {q:[] for q in species}
     for atom in mol:
         mol_dict[atom[0]].append(atom[1])
-    for q in mol_dict.keys():
+    for q in mol_dict:
         mol_dict[q] = np.array(mol_dict[q])
     return mol_dict
 

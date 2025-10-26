@@ -22,8 +22,8 @@ def read_input(fname, basis, ecp=None):
         pyscf Mole object.
     """
 
-    with open(fname, "r") as f:
-        lines = [x.strip() for x in f.readlines()]
+    with open(fname) as f:
+        lines = [x.strip() for x in f]
 
     command_line = '\n'.join(y[1:] for y in filter(lambda x: x.startswith('!'), lines)).lower().split()
     if 'bohrs' in command_line:
@@ -161,7 +161,7 @@ def _parse_gbw(fname):
             ls[at] = []
             _, nao_at = struct.unpack("<2i", f.read(2 * np.int32().itemsize))
             for _iao in range(nao_at):
-                l, _, ngto, _ = struct.unpack("<4i", f.read(4 * np.int32().itemsize))
+                l, _, _ngto, _ = struct.unpack("<4i", f.read(4 * np.int32().itemsize))
                 a = read_array(f, MAX_PRIMITIVES, np.float64)   # exponents
                 c = read_array(f, MAX_PRIMITIVES, np.float64)   # coefficients
                 ls[at].append(l)

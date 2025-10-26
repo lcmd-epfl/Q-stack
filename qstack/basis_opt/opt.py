@@ -61,23 +61,21 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         basis = {}
         for i in basis_files:
             if isinstance(i, str):
-                with open(i, "r") as f:
+                with open(i) as f:
                     addbasis = eval(f.read())
                 q = list(addbasis.keys())[0]
-                if q in basis.keys():
+                if q in basis:
                     raise RuntimeError('several sets for element ' + q)
                 basis.update(addbasis)
             else:
                 q = list(i.keys())[0]
-                if q in basis.keys():
+                if q in basis:
                     raise RuntimeError('several sets for element ' + q)
                 basis.update(i)
         return basis
 
     def make_bf_start():
-        nbf = []
-        for q in elements:
-            nbf.append(len(basis[q]))
+        nbf = [len(basis[q]) for q in elements]
         bf_bounds = {}
         for i, q in enumerate(elements):
             start = sum(nbf[0:i])
@@ -140,9 +138,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
     nexp = len(basis_list)
     bf_bounds = make_bf_start()
 
-    moldata = []
-    for fname in molecules_in:
-        moldata.append(make_moldata(fname))
+    moldata = [make_moldata(fname) for fname in molecules_in]
 
     if printlvl>=2:
         print("Initial exponents")

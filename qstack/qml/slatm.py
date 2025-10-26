@@ -225,13 +225,13 @@ def get_slatm_for_dataset(molecules,
         import tqdm
         molecules = tqdm.tqdm(molecules)
 
-    slatm = []
-    for mol in molecules:
-        slatm.append(get_slatm(mol.numbers, mol.positions, mbtypes,
-                               global_repr=global_repr,
-                               qml_compatible=qml_compatible, stack_all=stack_all,
-                               r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
-                               theta0=theta0, sigma3=sigma3, dgrid3=dgrid3))
+    slatm = [get_slatm(mol.numbers, mol.positions, mbtypes,
+                       global_repr=global_repr,
+                       qml_compatible=qml_compatible, stack_all=stack_all,
+                       r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
+                       theta0=theta0, sigma3=sigma3, dgrid3=dgrid3)
+             for mol in molecules]
+
     if stack_all:
         if not qml_compatible:
             slatm = pad_zeros(slatm)

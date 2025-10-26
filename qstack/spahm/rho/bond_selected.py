@@ -43,7 +43,7 @@ def main():
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
     dms  = utils.mols_guess(mols, xyzlist, args.guess,
                             xc=args.xc, spin=args.spin, printlevel=args.print)
-    mybasis, idx, M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print, same_basis=args.same_basis)
+    mybasis, idx, _M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print, same_basis=args.same_basis)
 
     for j, (bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist, strict=True)):
         if args.print>0:

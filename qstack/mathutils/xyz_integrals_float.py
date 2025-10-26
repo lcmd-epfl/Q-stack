@@ -33,5 +33,5 @@ def trinomial(k1,k2,k3):
 
 if __name__ == "__main__":
   k,n,m = map(int, sys.argv[1:4])
-  print("%.15f π"%xyz(k,n,m))
+  print(f"{xyz(k,n,m):.15f} π")
 

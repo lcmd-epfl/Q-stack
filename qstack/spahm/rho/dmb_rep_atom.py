@@ -63,7 +63,7 @@ def get_model(arg):
               'lowdin-short-x': [df_lowdin_short_x,  coefficients_symmetrize_short ],
               'lowdin-long-x' : [df_lowdin_long_x,   coefficients_symmetrize_long  ],
               'mr2021'        : [df_pure,            coefficients_symmetrize_MR2021]}
-    if arg not in models.keys():
+    if arg not in models:
         raise RuntimeError(f'Unknown model. Available models: {list(models.keys())}')
     return models[arg]
 

@@ -14,7 +14,7 @@ def get_S(q, basis):
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
 
-    l_per_bas, n_per_bas, ao_start = compound.singleatom_basis_enumerator(mol._basis[q])
+    l_per_bas, _n_per_bas, ao_start = compound.singleatom_basis_enumerator(mol._basis[q])
 
     ao = {'l': [], 'm': []}
     for l in l_per_bas:

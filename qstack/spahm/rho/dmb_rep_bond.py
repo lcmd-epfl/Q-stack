@@ -30,8 +30,8 @@ def read_df_basis(bnames, bpath, same_basis=False):
     for bname in bnames:
         if bname in mybasis:
             continue
-        fname = bpath+'/'+bname+'.bas' if not same_basis else bpath+'/CC.bas'
-        with open(fname, 'r') as f:
+        fname = f'{bpath}/{bname}.bas' if not same_basis else f'{bpath}/CC.bas'
+        with open(fname) as f:
             mybasis[bname] = eval(f.read())
     return mybasis
 
@@ -125,7 +125,7 @@ def bonds_dict_init(qqs, M):
 
 def fit_dm(dm, mol, mybasis, ri0, ri1):
     rm = (ri0+ri1)*0.5
-    atom = "No  % f % f % f" % (rm[0], rm[1], rm[2])
+    atom = f"No {rm[0]} {rm[1]} {rm[2]}"
     auxmol = gto.M(atom=atom, basis=mybasis)
     e2c, e3c = fields.decomposition.get_integrals(mol, auxmol)[1:]
     c = fields.decomposition.get_coeff(dm, e2c, e3c)

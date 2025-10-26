@@ -172,7 +172,7 @@ def main():
     print()
     print('error        stdev          eta          sigma')
     for error in errors:
-        print("%e %e | %e %e" % tuple(error))
+        print("{:e} {:e} | {:e} {:e}".format(*tuple(error)))
 
 
 if __name__ == "__main__":

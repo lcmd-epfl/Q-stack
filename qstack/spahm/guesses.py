@@ -118,7 +118,7 @@ def get_guess(arg):
   """
   arg = arg.lower()
   guesses = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}
-  if arg not in guesses.keys():
+  if arg not in guesses:
       raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses.keys())}')
   return guesses[arg]
 
@@ -194,7 +194,7 @@ def LB_grad(mf):
 def get_guess_g(arg):
     arg = arg.lower()
     guesses = {'core':(hcore, hcore_grad), 'lb':(LB, LB_grad)}
-    if arg not in guesses.keys():
+    if arg not in guesses:
         raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses.keys())}')
     return guesses[arg]
 

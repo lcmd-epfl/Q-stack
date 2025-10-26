@@ -55,7 +55,7 @@ class LB2020guess:
     for q in range(1,103):
       a = caps_array[q]
       qname = data.elements.ELEMENTS[q]
-      if qname in basis.keys():
+      if qname in basis:
         basis[qname].append( [0, [a, self.renormalize(a) ]] )
     return basis
 
@@ -282,7 +282,7 @@ class LB2020guess:
       if self.parameters == 'HF':
           acbasis = copy.deepcopy(self.acbasis)
           factor = 1.0-mol.charge/mol.natm
-          for q in acbasis.keys():
+          for q in acbasis:
               acbasis[q][-1][1][1] *= factor
       else:
           acbasis = self.acbasis

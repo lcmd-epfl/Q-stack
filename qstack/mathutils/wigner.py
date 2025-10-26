@@ -49,7 +49,7 @@ def xyzint_wrapper(knm, integrals_xyz_dict):
     return 0
   else:
     knm = tuple(sorted([k//2, n//2, m//2], reverse=True))
-    if knm not in integrals_xyz_dict.keys():
+    if knm not in integrals_xyz_dict:
       integrals_xyz_dict[knm] = xyzint(*knm)
     return integrals_xyz_dict[knm]
 
@@ -66,7 +66,7 @@ def print_wigner(D):
   for l,d in enumerate(D):
     for m1 in range(-l,l+1):
       for m2 in range(-l,l+1):
-        print('D[%d][% d,% d] = '%(l,m1,m2), d[m1,m2])
+          print(f'D[{l}][{m1: d},{m2: d}] = {d[m1,m2]}')
     print()
 
 def compute_wigner(lmax):

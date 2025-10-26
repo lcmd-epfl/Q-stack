@@ -105,7 +105,7 @@ def get_guess_dm(mol, guess, xc="pbe", openshell=None, field=None):
     Returns:
         A numpy ndarray containing the density matrix computed using the guess Hamiltonian.
     """
-    e,v = get_guess_orbitals(mol, guess, xc, field=field)
+    _e, v = get_guess_orbitals(mol, guess, xc, field=field)
     return get_dm(v, mol.nelec, mol.spin if mol.spin>0 or openshell is not None else None)
 
 
@@ -122,7 +122,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
         A numpy ndarray containing the SPAHM representation.
     """
     guess = get_guess(guess_in)
-    e, v  = get_guess_orbitals(mol, guess, xc, field=field)
+    e, _v = get_guess_orbitals(mol, guess, xc, field=field)
     e1    = get_occ(e, mol.nelec, mol.spin)
     return e1
 

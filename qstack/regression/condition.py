@@ -74,7 +74,7 @@ def main():
     c = condition(X, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,
                   akernel=args.kernel, gkernel=args.gkernel, gdict=args.gdict,
                   test_size=args.test_size, sparse=args.sparse, random_state=args.random_state)
-    print("%.1e"%c)
+    print(f"{c:.1e}")
 
 
 if __name__ == "__main__":

@@ -44,5 +44,5 @@ def trinomial(k1,k2,k3):
 if __name__ == "__main__":
   k,n,m = map(int, sys.argv[1:4])
   x = xyz(k,n,m)
-  print("%.15f ="%x, x)
+  print(f"{x:.15f} = {x}")
 
