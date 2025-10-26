@@ -96,7 +96,7 @@ def local_laplacian_kernel_wrapper(X, Y, gamma):
     else:
         kern = local_kernels_dict['L_custom_c']
         if kern is None:
-            warnings.warn("C module for kernel computation is missing/not working. Falling back to python implementation", RuntimeWarning)
+            warnings.warn("C module for kernel computation is missing/not working. Falling back to python implementation", RuntimeWarning, stacklevel=2)
             kern = local_kernels_dict['L_sklearn']
 
     return kern(X, Y, gamma)

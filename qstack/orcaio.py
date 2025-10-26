@@ -91,7 +91,7 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
     if is_def2 and has_3d:
         msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
-        warnings.warn(msg)
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
         if reorder_dest is not None:
             msg = f'\nDensity matrix reordering for ORCA to {reorder_dest} is compromised.'
             raise RuntimeError(msg)
@@ -135,7 +135,7 @@ def _parse_gbw(fname):
         energies_ab = []
         occupations_ab = []
 
-        for i in range(sets):
+        for _i in range(sets):
             coefficients = read_array(f, nao*nao, np.float64).reshape(-1, nao)
             occupations  = read_array(f, nao,     np.float64)
             energies     = read_array(f, nao,     np.float64)
@@ -159,7 +159,7 @@ def _parse_gbw(fname):
         for at in range(nat):
             ls[at] = []
             _, nao_at = struct.unpack("<2i", f.read(2 * np.int32().itemsize))
-            for iao in range(nao_at):
+            for _iao in range(nao_at):
                 l, _, ngto, _ = struct.unpack("<4i", f.read(4 * np.int32().itemsize))
                 a = read_array(f, MAX_PRIMITIVES, np.float64)   # exponents
                 c = read_array(f, MAX_PRIMITIVES, np.float64)   # coefficients
@@ -261,7 +261,7 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
     ls = {iat: lsiat for iat, lsiat in ls.items() if np.any(lsiat!=sorted(lsiat))}
     if ls and not sort_l:
         msg = f'\n{fname}: basis set is not sorted wrt angular momenta for atoms # {list(ls.keys())} and is kept as is'
-        warnings.warn(msg)
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
     if reorder_dest is not None:
         reorder_coeff_inplace(c, mol, reorder_dest, ls if (ls and sort_l) else None)

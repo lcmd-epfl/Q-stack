@@ -57,7 +57,7 @@ def SAD(mol, func):
       fock = hc + vhf[0]
       if not numpy.array_equal(vhf[0], vhf[1]):
         msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
-        warnings.warn(msg)
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
   return fock
 
 def SAP(mol, *_):
@@ -130,7 +130,7 @@ def check_nelec(nelec, nao):
         raise RuntimeError(f'Too many electrons ({nelec}) for {nao} orbitals')
     elif numpy.any(numpy.array(nelec) == nao):
         msg = f'{nelec} electrons for {nao} orbitals. Is the input intended to have a complete shell?'
-        warnings.warn(msg)
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
 
 def get_occ(e, nelec, spin):

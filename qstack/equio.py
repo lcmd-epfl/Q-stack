@@ -127,7 +127,7 @@ def vector_to_tensormap(mol, c):
 
     iq = {q:0 for q in elements}
     i = 0
-    for iat, q in enumerate(atom_charges):
+    for q in atom_charges:
         if llists[q]==sorted(llists[q]):
             for l in set(llists[q]):
                 msize = 2*l+1
@@ -243,7 +243,7 @@ def matrix_to_tensormap(mol, dm):
 
     block_prop_labels = {key: metatensor.Labels(matrix_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
     block_samp_labels = {key: metatensor.Labels(matrix_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
-    block_comp_labels = {key: [metatensor.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key])] for key in blocks}
+    block_comp_labels = {key: [metatensor.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key], strict=True)] for key in blocks}
 
     # Build tensor blocks
     tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]

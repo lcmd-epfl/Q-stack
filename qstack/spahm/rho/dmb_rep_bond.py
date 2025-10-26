@@ -54,12 +54,12 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
     qqs4q = {q: [] for q in elements}
     qqs = []
     if align:
-        for i0, q0 in enumerate(elements):
-            for i1, q1 in enumerate(elements):
-                    qq = make_bname(q1,q0)
-                    qqs4q[q0].append(qq)
-                    qqs4q[q1].append(qq)
-                    qqs.append(qq)
+        for q0 in elements:
+            for q1 in elements:
+                qq = make_bname(q1,q0)
+                qqs4q[q0].append(qq)
+                qqs4q[q1].append(qq)
+                qqs.append(qq)
     else:
         for mol in mols:
             q = [mol.atom_symbol(i) for i in range(mol.natm)]
@@ -81,7 +81,7 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
 
 
 def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_basis=False):
-    qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols)]
+    qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols, strict=True)]
     qqs0 = sorted(set(qqs0))
     if printlevel>1:
         print(qqs0)
@@ -155,7 +155,10 @@ def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
     return [v0, v1], bname
 
 
-def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
+def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=None):
+
+    if only_z is None:
+        only_z = []
 
     L = lowdin.Lowdin_split(mol, dm)
     q = [mol.atom_symbol(i) for i in range(mol.natm)]

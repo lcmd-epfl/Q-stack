@@ -64,7 +64,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     for size in train_size:
         size_train = int(np.floor(len(y_train)*size)) if size <= 1.0 else size
         maes = []
-        for rep in range(n_rep):
+        for _rep in range(n_rep):
             train_idx = np.random.choice(all_indices_train, size = size_train, replace=False)
             y_kf_train = y_train[train_idx]
 

@@ -2,10 +2,10 @@ import os
 import warnings
 import numpy as np
 from types import SimpleNamespace
+from tqdm import tqdm
 import qstack.spahm.compute_spahm as spahm
 import qstack.spahm.guesses as guesses
 from qstack import compound
-
 
 defaults = SimpleNamespace(
     guess='LB',
@@ -42,10 +42,7 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
         spin = [None] * len(xyzlist)
     if charge is None:
         charge = [None] * len(xyzlist)
-    if progress:
-        import tqdm
-        xyzlist = tqdm.tqdm(xyzlist)
-    for xyzfile, ch, sp in zip(xyzlist, charge, spin):
+    for xyzfile, ch, sp in zip(tqdm(xyzlist, disable=not progress), charge, spin, strict=True):
         if srcdir is not None:
             xyzfile = srcdir+xyzfile
         if printlevel>0:
@@ -64,7 +61,7 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, pr
     guess = guesses.get_guess(guess)
     if spin is None:
         spin = [None] *len(xyzlist)
-    for xyzfile, mol, sp in zip(xyzlist, mols, spin):
+    for xyzfile, mol, sp in zip(xyzlist, mols, spin, strict=True):
         if printlevel>0:
             print(xyzfile, flush=True)
         if not readdm:
@@ -121,7 +118,7 @@ def check_data_struct(fin, local=False):
 
 def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
               local=True, sum_local=False, printlevel=0, progress=False,
-              file_format={'is_labeled':None, 'is_single':None}):
+              file_format=None):
     '''
     A function to load representations from txt-list/npy files.
         Args:
@@ -138,6 +135,8 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
             np.array with shape (N,M) where N number of representations M dimmensionality of the representation
             OR tuple ([N],np.array(N,M)) containing list of labels and np.array of representations
     '''
+    if file_format is None:  # Do not use mutable data structures for argument defaults
+        file_format = {'is_labeled':None, 'is_single':None}
     if srcdir is None:
         path2list = os.getcwd()
     else:
@@ -162,12 +161,9 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
         Xs = [np.load(os.path.join(path2list,f_in), allow_pickle=True)] if is_single else np.load(os.path.join(path2list,f_in), allow_pickle=True)
     if printlevel > 1:
         print(f"Loading {len(Xs)} representations (local = {local}, labeled = {is_labeled})")
-    if progress:
-        import tqdm
-        Xs = tqdm.tqdm(Xs)
     reps = []
     labels = []
-    for x in Xs:
+    for x in tqdm(Xs, disable=not progress):
         if local:
             if is_labeled:
                 if sum_local:
@@ -188,14 +184,12 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
                 reps.append(x)
     try:
         reps = np.array(reps, dtype=float)
-    except:
-        print(len(reps))
-        shapes = [r.shape[0]  for r in reps]
-        shapes = set(shapes)
-        print(shapes)
-        raise RuntimeError(f"Error while loading representations in {f_in}, check the parameters")
+    except ValueError as err:
+        shapes = set([r.shape[0]  for r in reps])
+        print(f'{len(reps)=} {shapes=}')
+        raise RuntimeError(f"Error while loading representations in {f_in}, check the parameters") from err
     if with_labels and (len(labels) < len(reps)):
-        warnings.warn("All labels could not be recovered (verify your representation files).", RuntimeWarning)
+        warnings.warn("All labels could not be recovered (verify your representation files).", RuntimeWarning, stacklevel=2)
     if with_labels:
         return reps, labels
     else:
@@ -206,7 +200,7 @@ def regroup_symbols(file_list, print_level=0):
     if print_level > 0:
         print(f"Extracting {len(atoms)} atoms from {file_list}:")
     atoms_set = {e:[] for e in set(atoms)}
-    for e, v in zip(atoms, reps):
+    for e, v in zip(atoms, reps, strict=True):
         atoms_set[e].append(v)
     if print_level > 0:
         print([(k, len(v)) for k, v in atoms_set.items()])

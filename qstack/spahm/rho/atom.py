@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import sys
 import os
 import numpy as np
 from qstack import compound, spahm
@@ -52,7 +51,7 @@ def get_repr(mol, elements, charge, spin,
             for atom_i in range(len(rep[0]))
         ]
 
-    mrep = [np.array((q,v), dtype=object) for q,v in zip(np.array(mol.elements)[only_i], rep)]
+    mrep = [np.array((q,v), dtype=object) for q,v in zip(np.array(mol.elements)[only_i], rep, strict=True)]
     return np.array(mrep)
 
 

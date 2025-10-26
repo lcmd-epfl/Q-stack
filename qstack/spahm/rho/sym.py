@@ -19,7 +19,7 @@ def get_S(q, basis):
     l_per_bas, n_per_bas, ao_start = compound.singleatom_basis_enumerator(mol._basis[q])
 
     ao = {'l': [], 'm': []}
-    for l, n in zip(l_per_bas, n_per_bas):
+    for l in l_per_bas:
         msize = 2*l+1
         ao['l'].extend([l]*msize)
         if l != 1:
@@ -32,8 +32,8 @@ def get_S(q, basis):
 
 def store_pair_indices(ao):
     idx = []
-    for i, [li, mi] in enumerate(zip(ao['l'], ao['m'])):
-        for j, [lj, mj] in enumerate(zip(ao['l'], ao['m'])):
+    for i, [li, mi] in enumerate(zip(ao['l'], ao['m'], strict=True)):
+        for j, [lj, mj] in enumerate(zip(ao['l'], ao['m'], strict=True)):
             if (li!=lj) or (mi!=mj):
                 continue
             idx.append([i, j])
@@ -112,8 +112,8 @@ def vectorize_c_short(q, idx, ao, c):
 
 def store_pair_indices_z(ao):
     idx = []
-    for i, [li,mi] in enumerate(zip(ao['l'], ao['m'])):
-        for j, [lj,mj] in enumerate(zip(ao['l'], ao['m'])):
+    for i, mi in enumerate(ao['m']):
+        for j, mj in enumerate(ao['m']):
             if abs(mi)!=abs(mj):
                 continue
             idx.append([i,j])
@@ -122,10 +122,10 @@ def store_pair_indices_z(ao):
 
 def store_pair_indices_z_only0(ao):
     idx = []
-    for i, [li,mi] in enumerate(zip(ao['l'], ao['m'])):
+    for i, mi in enumerate(ao['m']):
         if mi!=0:
             continue
-        for j, [lj,mj] in enumerate(zip(ao['l'], ao['m'])):
+        for j, mj in enumerate(ao['m']):
             if mj!=0:
                 continue
             idx.append([i,j])

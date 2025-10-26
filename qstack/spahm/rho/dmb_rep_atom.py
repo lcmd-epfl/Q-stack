@@ -1,8 +1,11 @@
-import sys
 import numpy as np
 import pyscf
 from qstack import compound, fields
 from . import sym, atomic_density, lowdin
+
+
+def set_default(arg, value):
+    return value if arg is None else arg
 
 
 def get_basis_info(atom_types, auxbasis):
@@ -29,16 +32,16 @@ def get_model(arg):
         dm = dm - dm_sad
         return fields.decomposition.decompose(mol, dm, auxbasis)[1]
 
-    def df_lowdin_long(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_long(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, only_i=only_i)
 
-    def df_lowdin_short(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_short(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, short=True, only_i=only_i)
 
-    def df_lowdin_long_x(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_long_x(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, w_slicing=False, only_i=only_i)
 
-    def df_lowdin_short_x(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_short_x(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, short=True, w_slicing=False, only_i=only_i)
 
     def df_occup(mol, dm, auxbasis):
@@ -90,10 +93,8 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
 def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
     # long lowdin
     vectors = []
-    for c_a, e in zip(c_df, mol.elements):
-        v_atom = {}
-        for q in atom_types:
-            v_atom[q] = np.zeros(len(idx[q]))
+    for c_a in c_df:
+        v_atom = {q: np.zeros(len(idx[q])) for q in atom_types}
         i0 = 0
         for q in mol.elements:
             n = ao_len[q]

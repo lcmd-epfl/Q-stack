@@ -29,7 +29,7 @@ class LB2020guess:
       q,ng = map(int,lines[il].split())
       il+=1
       qbasis = []
-      for ig in range(ng):
+      for _ig in range(ng):
         a,c = map(float,lines[il].split())
         qbasis.append([0,[a, c*self.renormalize(a)]])
         il+=1

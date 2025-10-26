@@ -12,7 +12,7 @@ def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          rep_type='bond',auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
-         pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
+         pairfile=None, dump_and_exit=False, same_basis=False, only_z=None):
     """ Computes SPAHM-b representations for a set of molecules.
 
     Args:
@@ -38,6 +38,8 @@ def bond(mols, dms,
                 - Nfeatures: the number of features (for each omods)
     """
     maxlen = 0 # This needs fixing `UnboundLocalError`
+    if only_z is None:
+        only_z = []
     if rep_type == 'bond':
         elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                          elements=elements, cutoff=cutoff,
@@ -55,7 +57,8 @@ def bond(mols, dms,
         maxlen = sum([len(v) for v in idx.values()])
 
     if len(only_z) > 0:
-        print(f"Selecting atom-types in {only_z}")
+        if printlevel>0:
+            print(f"Selecting atom-types in {only_z}")
         zinmols = []
         for mol in mols:
             zinmol = [sum(z == np.array(mol.elements)) for z in only_z]
@@ -66,7 +69,7 @@ def bond(mols, dms,
         zinmols = [mol.natm for mol in mols]
     allvec = np.zeros((len(omods), len(mols), natm, maxlen))
 
-    for imol, (mol, dm) in enumerate(zip(mols,dms)):
+    for imol, (mol, dm) in enumerate(zip(mols, dms, strict=True)):
         if printlevel>0:
             print('mol', imol, flush=True)
         if len(only_z) >0:
@@ -91,7 +94,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              rep_type='bond', auxbasis='ccpvdzjkfit', model="lowdin-long-x",
-             with_symbols=False, only_z=[], merge=True):
+             with_symbols=False, only_z=None, merge=True):
     """ Computes and reshapes an array of SPAHM-b representation
 
     Args:
@@ -135,7 +138,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     else:
         dms = []
 
-    if len(only_z) > 0:
+    if only_z is not None and len(only_z) > 0:
         all_atoms   = [ [sym for sym in mol.elements if sym in only_z] for mol in mols]
     else:
         all_atoms   = [mol.elements for mol in mols]
@@ -157,21 +160,21 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
             allvec = np.concatenate(allvec, axis=2)
             if with_symbols:
                 allvec = np.array([
-                    np.array(list(zip(mol_atoms,molvec)), dtype=object)
-                    for molvec,mol_atoms in zip(allvec, all_atoms)
+                    np.array(list(zip(mol_atoms, molvec, strict=False)), dtype=object)
+                    for molvec,mol_atoms in zip(allvec, all_atoms, strict=True)
                 ], dtype=object)
             else:
                 allvec = np.array([
                     molvec[:len(mol_atoms)]
-                    for molvec,mol_atoms in zip(allvec, all_atoms)
+                    for molvec, mol_atoms in zip(allvec, all_atoms, strict=True)
                 ], dtype=object)
 
         else:
             if with_symbols:
                 allvec = np.array([
                     [
-                        np.array(list(zip(mol_atoms,molvec)), dtype=object)
-                        for molvec,mol_atoms in zip(modvec,all_atoms)
+                        np.array(list(zip(mol_atoms, molvec, strict=False)), dtype=object)
+                        for molvec, mol_atoms in zip(modvec, all_atoms, strict=True)
                     ]
                     for modvec in allvec
                 ], dtype=object)
@@ -179,7 +182,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                 allvec = np.array([
                     [
                         molvec[:len(mol_atoms)]
-                        for molvec,mol_atoms in zip(modvec,all_atoms)
+                        for molvec,mol_atoms in zip(modvec, all_atoms, strict=True)
                     ]
                     for modvec in allvec
                 ], dtype=object)
@@ -198,11 +201,11 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         if merge:
             allvec = np.hstack(allvec)
             if with_symbols:
-                allvec = np.array(list(zip(all_atoms, allvec)), dtype=object)
+                allvec = np.array(list(zip(all_atoms, allvec, strict=True)), dtype=object)
         else:
             if with_symbols:
                 allvec = np.array([
-                    np.array(list(zip(all_atoms, modvec)), dtype=object)
+                    np.array(list(zip(all_atoms, modvec, strict=True)), dtype=object)
                     for modvec in allvec
                 ], dtype=object)
 
@@ -238,7 +241,7 @@ def main(args=None):
     parser.add_argument('--pairfile',      dest='pairfile',      type=str,            default=None,                     help='path to the atom pair file')
     parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true', default=False,                    help='write the atom pair file and exit if --pairfile is set')
     parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
-    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=[],                       help="restrict the representation to one or several atom types")
+    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=None,                     help="restrict the representation to one or several atom types")
     args = parser.parse_args(args=args)
     if args.print>0:
         print(vars(args))
@@ -281,7 +284,7 @@ def main(args=None):
         else:
             mod_iter = [(reps, '_'+'_'.join(args.omod))]
     else:
-        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod)]
+        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod, strict=True)]
 
     for modvec, mod_suffix in mod_iter:
         if args.split >=2:

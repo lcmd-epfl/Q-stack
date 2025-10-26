@@ -146,8 +146,8 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
     if printlvl>=2:
         print("Initial exponents")
-        for l, a in zip(angular_momenta, exponents):
-            print('l =', l, 'a = ', a)
+        for l, a in zip(angular_momenta, exponents, strict=True):
+            print(f'{l=} {a=}')
         print(flush=True)
 
     x0 = np.log(exponents)

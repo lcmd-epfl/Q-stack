@@ -57,7 +57,7 @@ def xyz_comment_line_parser(line):
             return {}
     else:
         # other possibilities include having the name of the compound
-        warnings.warn(f"could not interpret the data in the XYZ title line: {line}", RuntimeWarning)
+        warnings.warn(f"could not interpret the data in the XYZ title line: {line}", RuntimeWarning, stacklevel=2)
         return {}
 
     for part in line_parts:
@@ -128,7 +128,7 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
 
     if ignore:
         if charge not in (0, None) or spin not in (0, None):
-            warnings.warn("Spin and charge values are overwritten", RuntimeWarning)
+            warnings.warn("Spin and charge values are overwritten", RuntimeWarning, stacklevel=2)
         mol.spin = 0
         mol.charge = - sum(mol.atom_charges())%2
     else:
@@ -288,7 +288,7 @@ ERROR: cannot import cell2mol. Have you installed qstack with the \"gmol\" optio
 
     # Define attributes to the Mole object and build it
     mole = gto.Mole()
-    atoms = list(zip(mol.labels, mol.coord))
+    atoms = list(zip(mol.labels, mol.coord, strict=True))
     mole.atom = atoms
     mole.basis = basis
     mole.charge = mol.totcharge
@@ -342,7 +342,7 @@ def rotate_molecule(mol, a, b, g, rad=False):
     atom_types = mol.elements
 
     rotated_mol = gto.Mole()
-    rotated_mol.atom = list(zip(atom_types, rotated_coords.tolist()))
+    rotated_mol.atom = list(zip(atom_types, rotated_coords.tolist(), strict=True))
     rotated_mol.charge = mol.charge
     rotated_mol.spin = mol.spin
     rotated_mol.basis = mol.basis

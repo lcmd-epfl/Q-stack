@@ -45,7 +45,7 @@ def main():
                             xc=args.xc, spin=args.spin, printlevel=args.print)
     mybasis, idx, M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print, same_basis=args.same_basis)
 
-    for j, (bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
+    for j, (bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist, strict=True)):
         if args.print>0:
             print('mol', j, flush=True)
         q = [mol.atom_symbol(i) for i in range(mol.natm)]

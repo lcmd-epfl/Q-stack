@@ -51,7 +51,7 @@ def cv_results(X, y,
                                 akernel=akernel, test_size=test_size, splits=splits,
                                 printlevel=printlevel, adaptive=adaptive, random_state=seed,
                                 sparse=sparse)
-        mae, stdev, eta, sigma = zip(*error)
+        mae, stdev, eta, sigma = zip(*error, strict=True)
         maes_all = regression(X, y, read_kernel=False, sigma=sigma[-1], eta=eta[-1],
                               akernel=akernel, test_size=test_size, train_size=train_size,
                               n_rep=1, debug=True, save_pred=save_pred,
@@ -68,7 +68,7 @@ def cv_results(X, y,
         lc_runs.append(maes_all)
     lc_runs = np.array(lc_runs)
     hyper_runs = np.array(hyper_runs, dtype=object)
-    lc = list(zip(lc_runs[:,:,0].mean(axis=0), lc_runs[:,:,1].mean(axis=0), lc_runs[:,:,1].std(axis=0)))
+    lc = list(zip(lc_runs[:,:,0].mean(axis=0), lc_runs[:,:,1].mean(axis=0), lc_runs[:,:,1].std(axis=0), strict=True))
     lc = np.array(lc)
     if save:
         np.save(f"{preffix}_{n_rep}-hyper-runs.npy", hyper_runs)

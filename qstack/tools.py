@@ -13,20 +13,24 @@ def _orca2gpr_idx(mol):
     Returns:
         A numpy ndarray of re-arranged indices.
     """
-    def _M1(n):
-        return (n+1)//2 if n%2 else -((n+1)//2)
+    #def _M1(n):
+    #    return (n+1)//2 if n%2 else -((n+1)//2)
     idx = np.arange(mol.nao, dtype=int)
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
         for gto in mol._basis[q]:
             l = gto[0]
+            msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
-            for n in range(nf):
-                for m in range(-l, l+1):
-                    m1 = _M1(m+l)
-                    idx[(i+(m1-m))] = i
-                    i+=1
+            for _n in range(nf):
+                #for m in range(-l, l+1):
+                #    m1 = _M1(m+l)
+                #    idx[(i+(m1-m))] = i
+                #    i+=1
+                t = idx[i:i+msize]
+                idx[i:i+msize] = np.concatenate((t[::-2], t[1::2]))
+                i += msize
     return idx
 
 
@@ -50,7 +54,7 @@ def _orca2gpr_sign(mol):
             if l<3:
                 i += msize*nf
             else:
-                for n in range(nf):
+                for _n in range(nf):
                     signs[i+5:i+msize] = -1  # |m| >= 3
                     i+= msize
     return signs
@@ -75,10 +79,8 @@ def _pyscf2gpr_idx(mol):
             msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
             if l==1:
-                for n in range(nf):
-                    idx[i  ] = i+1
-                    idx[i+1] = i+2
-                    idx[i+2] = i
+                for _n in range(nf):
+                    idx[i:i+3] = [i+1,i+2,i]
                     i += 3
             else:
                 i += msize * nf
