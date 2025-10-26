@@ -134,7 +134,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     """
     if not dump_and_exit:
         dms     = utils.mols_guess(mols, xyzlist, guess,
-                               xc=defaults.xc, spin=spin, readdm=readdm, printlevel=printlevel)
+                               xc=xc, spin=spin, readdm=readdm, printlevel=printlevel)
     else:
         dms = []
 
