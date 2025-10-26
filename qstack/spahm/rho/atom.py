@@ -20,7 +20,7 @@ def get_repr(mol, elements, charge, spin,
              auxbasis=defaults.auxbasis, only_z=None):
 
     # User-defined options
-    elements = sorted(list(set(elements)))
+    elements = sorted(set(elements))
     guess = spahm.guesses.get_guess(guess)
     model = dmba.get_model(model)
     df_wrapper, sym_wrapper = model

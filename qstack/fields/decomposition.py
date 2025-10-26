@@ -87,8 +87,9 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
 
     # Solve Jc = projection to get the coefficients
     if slices is not None:
-        assert slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2
-        assert slices[0,0] == 0 and slices[-1,1] == projection.shape[0]
+        if not (slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2) or\
+           not (slices[0,0] == 0 and slices[-1,1] == projection.shape[0]):
+            raise RuntimeError(f"Wrong argument {slices=}")
 
         c = np.empty_like(projection)
         for s0,s1 in slices:

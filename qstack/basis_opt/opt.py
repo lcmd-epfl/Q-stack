@@ -121,7 +121,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             'self'     : self,
             'idx'      : idx,
             'centers'  : centers,
-            'distances': distances
+            'distances': distances,
         }
 
     basis = read_bases(basis_in)

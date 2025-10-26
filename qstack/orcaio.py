@@ -129,7 +129,8 @@ def _parse_gbw(fname):
         f.seek(offset)
         sets   = struct.unpack("<i", f.read(np.int32().itemsize))[0]    # int32: number of MO sets
         nao    = struct.unpack("<i", f.read(np.int32().itemsize))[0]    # int32: number of orbitals
-        assert sets in (1,2)
+        if sets not in (1,2):
+            raise RuntimeError(f"Cannot interpret number of MO sets = {sets}")
 
         coefficients_ab = []
         energies_ab = []
@@ -203,7 +204,8 @@ def _get_indices(mol, ls_from_orca):
         indices = np.array([j for i in indices for j in i[2]])
         atom_slice = np.s_[ao_limits[iat][0]:ao_limits[iat][1]]
         indices_full[atom_slice] = indices[:] + ao_limits[iat][0]
-    assert np.all(sorted(indices_full)==np.arange(mol.nao))
+    if np.all(sorted(indices_full)!=np.arange(mol.nao)):
+        raise RuntimeError("Cannot reorder AOs")
     return indices_full
 
 

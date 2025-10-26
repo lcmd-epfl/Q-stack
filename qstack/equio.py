@@ -9,14 +9,14 @@ vector_label_names = SimpleNamespace(
     tm = ['spherical_harmonics_l', 'species_center'],
     block_prop = ['radial_channel'],
     block_samp = ['atom_id'],
-    block_comp = ['spherical_harmonics_m']
+    block_comp = ['spherical_harmonics_m'],
     )
 
 matrix_label_names = SimpleNamespace(
     tm = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'species_center1', 'species_center2'],
     block_prop = ['radial_channel1', 'radial_channel2'],
     block_samp = ['atom_id1', 'atom_id2'],
-    block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
+    block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2'],
     )
 
 _molid_name = 'mol_id'
@@ -125,7 +125,7 @@ def vector_to_tensormap(mol, c):
 
     # Fill in the blocks
 
-    iq = {q:0 for q in elements}
+    iq = dict.fromkeys(elements, 0)
     i = 0
     for q in atom_charges:
         if llists[q]==sorted(llists[q]):
@@ -138,7 +138,7 @@ def vector_to_tensormap(mol, c):
                 blocks[(l,q)][iq[q],:,:] = cslice
                 i += msize*nsize
         else:
-            il = {l:0 for l in range(max(llists[q])+1)}
+            il = dict.fromkeys(range(max(llists[q]) + 1), 0)
             for l in llists[q]:
                 msize = 2*l+1
                 cslice = c[i:i+msize]
@@ -177,7 +177,7 @@ def tensormap_to_vector(mol, tensor):
     i = 0
     for iat, q in enumerate(atom_charges):
         llist = _get_llist(q, mol)
-        il = {l: 0 for l in range(max(llist)+1)}
+        il = dict.fromkeys(range(max(llist) + 1), 0)
         for l in llist:
             block = tensor.block(spherical_harmonics_l=l, species_center=q)
             id_samp = block.samples.position((iat,))
@@ -250,14 +250,14 @@ def matrix_to_tensormap(mol, dm):
 
     # Fill in the blocks
 
-    if all([llists[q]==sorted(llists[q]) for q in llists]):
-        iq1 = {q1: 0 for q1 in elements}
+    if all(llists[q]==sorted(llists[q]) for q in llists):
+        iq1 = dict.fromkeys(elements, 0)
         i1 = 0
         for iat1, q1 in enumerate(atom_charges):
             for l1 in set(llists[q1]):
                 msize1 = 2*l1+1
                 nsize1 = llists[q1].count(l1)
-                iq2 = {q2: 0 for q2 in elements}
+                iq2 = dict.fromkeys(elements, 0)
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     for l2 in set(llists[q2]):
@@ -273,16 +273,16 @@ def matrix_to_tensormap(mol, dm):
                 i1 += msize1*nsize1
             iq1[q1] += 1
     else:
-        iq1 = {q1: 0 for q1 in elements}
+        iq1 = dict.fromkeys(elements, 0)
         i1 = 0
         for iat1, q1 in enumerate(atom_charges):
-            il1 = {l1: 0 for l1 in range(max(llists[q1])+1)}
+            il1 = dict.fromkeys(range(max(llists[q1]) + 1), 0)
             for l1 in llists[q1]:
                 msize1 = 2*l1+1
-                iq2 = {q2: 0 for q2 in elements}
+                iq2 = dict.fromkeys(elements, 0)
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
-                    il2 = {l2: 0 for l2 in range(max(llists[q2])+1)}
+                    il2 = dict.fromkeys(range(max(llists[q2]) + 1), 0)
                     for l2 in llists[q2]:
                         msize2 = 2*l2+1
                         dmslice = dm[i1:i1+msize1,i2:i2+msize2]
@@ -332,14 +332,14 @@ def tensormap_to_matrix(mol, tensor):
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):
         llist1 = _get_llist(q1, mol)
-        il1 = {l1: 0 for l1 in range(max(llist1)+1)}
+        il1 = dict.fromkeys(range(max(llist1) + 1), 0)
         for l1 in llist1:
             for m1 in _get_mrange(l1):
 
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     llist2 = _get_llist(q2, mol)
-                    il2 = {l2: 0 for l2 in range(max(llist2)+1)}
+                    il2 = dict.fromkeys(range(max(llist2) + 1), 0)
                     for l2 in llist2:
 
                         block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, species_center1=q1, species_center2=q2)
@@ -458,7 +458,7 @@ def split(tensor):
     # Check if the molecule indices are continuous
     mollist = sorted(reduce(
         lambda a,b: a.union(b),
-        [set(block.samples.column(_molid_name)) for block in tensor.blocks()]
+        [set(block.samples.column(_molid_name)) for block in tensor.blocks()],
     ))
     if mollist==list(range(len(mollist))):
         tensors = [None] * len(mollist)
@@ -493,7 +493,7 @@ def split(tensor):
             blocks[key] = block.values[sampleidx]
             block_samp_labels[key] = metatensor.Labels(tensor.sample_names[1:], np.array(samplelbl)[:,1:])
 
-        tm_label_vals = sorted(list(blocks.keys()))
+        tm_label_vals = sorted(blocks.keys())
         tm_labels = metatensor.Labels(tensor.keys.names, np.array(tm_label_vals))
         tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
         tensors[imol] = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)

@@ -92,7 +92,7 @@ def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_bas
 
 def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None, pairfile=None, dump_and_exit=False, same_basis=False):
     if elements is None:
-        elements = sorted(list(set([q for mol in mols for q in mol.elements])))
+        elements = sorted({q for mol in mols for q in mol.elements})
 
     if pairfile and not dump_and_exit:
         qqs0, qqs4q = np.load(pairfile, allow_pickle=True)
@@ -106,7 +106,7 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
         np.save(pairfile, np.asanyarray((qqs0, qqs4q), dtype=object))
         exit(0)
 
-    qqs = {q: qqs0 for q in elements}
+    qqs = dict.fromkeys(elements, qqs0)
     if printlevel>1:
         print(qqs0)
     mybasis = read_df_basis(qqs0, bpath, same_basis=same_basis)

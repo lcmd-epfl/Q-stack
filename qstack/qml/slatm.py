@@ -138,7 +138,7 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
         if qml_compatible:
             slatm1b = (mbtypes[1] == qi)*qi.astype(float)
         else:
-            slatm1b = np.array((float(qi,)))
+            slatm1b = np.array((float(qi),))
 
         # 2-body terms
         slatm2b = []
@@ -285,7 +285,7 @@ def get_slatm_rxn(reactions, progress=False, qml_mbtypes=True,
                 sum(get_slatm(mol.numbers, mol.positions, mbtypes,
                               global_repr=True, stack_all=True,
                               r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
-                              theta0=theta0, sigma3=sigma3, dgrid3=dgrid3
+                              theta0=theta0, sigma3=sigma3, dgrid3=dgrid3,
                               ) for mol in mols)
                 for mols in (reaction.reactants, reaction.products)]
         slatm_diff.append(slatm_products-slatm_reactants)

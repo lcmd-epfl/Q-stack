@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import pyscf
 from .dm import make_grid_for_rho
 
@@ -36,7 +36,7 @@ def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
 
     # promolecular density
     grid_n = len(grid_coord)
-    rho_atm = numpy.zeros((mol_full.natm, grid_n), dtype=float)
+    rho_atm = np.zeros((mol_full.natm, grid_n), dtype=float)
     for i in range(mol_full.natm):
         q = mol_full._atom[i][0]
         mol_atm    = pyscf.gto.M(atom=mol_full._atom[i:i+1], basis=atm_bas, spin=pyscf.data.elements.ELEMENTS_PROTON[q]%2, unit='Bohr')
@@ -45,16 +45,16 @@ def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
 
     # get hirshfeld weights
     rho = rho_atm.sum(axis=0)
-    idx = numpy.where(rho > 0)[0]
-    h_weights = numpy.zeros_like(rho_atm)
+    idx = np.where(rho > 0)[0]
+    h_weights = np.zeros_like(rho_atm)
     for i in range(mol_full.natm):
         h_weights[i,idx] = rho_atm[i,idx] /rho[idx]
 
     if dominant:
         # get dominant hirshfeld weights
         for point in range(grid_n):
-            i = numpy.argmax(h_weights[:,point])
-            h_weights[:,point] = numpy.zeros(mol_full.natm)
+            i = np.argmax(h_weights[:,point])
+            h_weights[:,point] = np.zeros(mol_full.natm)
             h_weights[i,point] = 1.0
     return h_weights
 
@@ -81,10 +81,10 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
 
     def atom_contributions(cd, ao, tot_weights):
         if cd.ndim==1:
-            tmp = numpy.einsum('i,xi->x', cd, ao)
+            tmp = np.einsum('i,xi->x', cd, ao)
         elif cd.ndim==2:
-            tmp = numpy.einsum('pq,xp,xq->x', cd, ao, ao)
-        return numpy.einsum('x,ax->a', tmp, tot_weights)
+            tmp = np.einsum('pq,xp,xq->x', cd, ao, ao)
+        return np.einsum('x,ax->a', tmp, tot_weights)
 
     # check input
     if type(cd) is list:
@@ -103,7 +103,7 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
 
     # compute weights
     h_weights   = _hirshfeld_weights(mol, g.coords, dm_atoms, atm_bas, dominant)
-    tot_weights = numpy.einsum('x,ax->ax', g.weights, h_weights)
+    tot_weights = np.einsum('x,ax->ax', g.weights, h_weights)
 
     # atom partitioning
     ao  = pyscf.dft.numint.eval_ao(mol, g.coords)

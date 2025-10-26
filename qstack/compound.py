@@ -159,7 +159,7 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     return mol
 
 
-def mol_to_xyz(mol, fout, format="xyz"):
+def mol_to_xyz(mol, fout, fmt="xyz"):
     """Converts a pyscf Mole object into a molecular file in xyz format.
 
     Args:
@@ -170,11 +170,11 @@ def mol_to_xyz(mol, fout, format="xyz"):
         A file in xyz format containing the charge, total spin and molecular coordinates.
     """
 
-    format = format.lower()
-    if format == "xyz":
+    fmt = fmt.lower()
+    if fmt == "xyz":
         coords = mol.atom_coords() * constants.BOHR2ANGS
         output = []
-        if format == "xyz":
+        if fmt == "xyz":
             output.append("%d" % mol.natm)
             output.append("%d %d" % (mol.charge, mol.multiplicity))
 

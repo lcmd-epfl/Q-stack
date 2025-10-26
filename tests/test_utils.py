@@ -90,7 +90,8 @@ def test_check_data_structure():
                   ]
     for ft in test_files:
         is_single, is_labeled = ut.check_data_struct(ft['path2file'], local = ft['is_local'])
-        assert((ft['is_single'] == is_single) and (ft['is_labeled'] == is_labeled))
+        assert(ft['is_single'] == is_single)
+        assert(ft['is_labeled'] == is_labeled)
 
 
 def main():

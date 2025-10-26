@@ -14,7 +14,7 @@ def xyz(n,m,k):
 
 def I23(n,m,k):
   I23 = 0.0
-  for l in range(0, n+m+2):
+  for l in range(n+m+2):
     I23 = I23 + (-1)**l * trinomial( n+m+1, n+m+1-l, l) / (2.0*l+2.0*k-1.0)
   I23 = I23 / ( (2*n+1) * 2**(2*n+2*m) )
   for l in range(1, n+2):

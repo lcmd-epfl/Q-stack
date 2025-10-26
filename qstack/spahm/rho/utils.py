@@ -185,7 +185,7 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
     try:
         reps = np.array(reps, dtype=float)
     except ValueError as err:
-        shapes = set([r.shape[0]  for r in reps])
+        shapes = {r.shape[0] for r in reps}
         print(f'{len(reps)=} {shapes=}')
         raise RuntimeError(f"Error while loading representations in {f_in}, check the parameters") from err
     if with_labels and (len(labels) < len(reps)):

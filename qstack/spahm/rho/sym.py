@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import numpy as np
 from qstack import compound
 from qstack.mathutils.matrix import sqrtm

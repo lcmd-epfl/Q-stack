@@ -1,5 +1,5 @@
 import warnings
-import numpy
+import numpy as np
 import scipy
 from pyscf import dft, scf
 from .LB2020guess import LB2020guess as LB20
@@ -27,7 +27,7 @@ def GWH(mol, *_):
   h = hcore(mol)
   S = mol.intor_symmetric('int1e_ovlp')
   K = 1.75 # See J. Chem. Phys. 1952, 20, 837
-  h_gwh = numpy.zeros_like(h)
+  h_gwh = np.zeros_like(h)
   for i in range(h.shape[0]):
     for j in range(h.shape[1]):
       if i != j:
@@ -55,7 +55,7 @@ def SAD(mol, func):
       fock = hc + vhf
   else:
       fock = hc + vhf[0]
-      if not numpy.array_equal(vhf[0], vhf[1]):
+      if not np.array_equal(vhf[0], vhf[1]):
         msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
         warnings.warn(msg, RuntimeWarning, stacklevel=2)
   return fock
@@ -126,9 +126,9 @@ def get_guess(arg):
 def check_nelec(nelec, nao):
     """ Checks if there is enough orbitals
     for the electrons"""
-    if numpy.any(numpy.array(nelec) > nao):
+    if np.any(np.array(nelec) > nao):
         raise RuntimeError(f'Too many electrons ({nelec}) for {nao} orbitals')
-    elif numpy.any(numpy.array(nelec) == nao):
+    elif np.any(np.array(nelec) == nao):
         msg = f'{nelec} electrons for {nao} orbitals. Is the input intended to have a complete shell?'
         warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
@@ -150,7 +150,7 @@ def get_occ(e, nelec, spin):
         return e[:nocc,...]
     else:
         nocc = nelec
-        e1 = numpy.zeros((2, *e.shape))[:,:nocc[0],...]
+        e1 = np.zeros((2, *e.shape))[:,:nocc[0],...]
         e1[0,:nocc[0],...] = e[:nocc[0],...]
         e1[1,:nocc[1],...] = e[:nocc[1],...]
         return e1
@@ -177,7 +177,7 @@ def get_dm(v, nelec, spin):
     nocc = nelec
     dm0 = v[:,:nocc[0]] @ v[:,:nocc[0]].T
     dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
-    return numpy.array((dm0,dm1))
+    return np.array((dm0,dm1))
 
 ###############################################################################
 
@@ -213,12 +213,12 @@ def eigenvalue_grad(mol, e, c, s1, h1):
         numpy 3d ndarray, mol.nao*mol.natm*3: gradient of the eigenvalues in Eh/bohr
 
     """
-    de_dr = numpy.zeros((mol.nao, mol.natm, 3))
+    de_dr = np.zeros((mol.nao, mol.natm, 3))
     aoslices = mol.aoslice_by_atom()[:,2:]
     for iat in range(mol.natm):
         dH_dr = h1(iat)
         p0, p1 = aoslices[iat]
-        Hcomp = numpy.einsum('pi,aqp,qi->ia', c, dH_dr, c)
-        Scomp = 2.0 * numpy.einsum('pi,aqp,qi->ia', c, s1[:,p0:p1], c[p0:p1])
+        Hcomp = np.einsum('pi,aqp,qi->ia', c, dH_dr, c)
+        Scomp = 2.0 * np.einsum('pi,aqp,qi->ia', c, s1[:,p0:p1], c[p0:p1])
         de_dr[:,iat,:] = Hcomp - Scomp * e[:,None]
     return de_dr

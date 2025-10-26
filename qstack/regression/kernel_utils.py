@@ -125,13 +125,17 @@ def train_test_split_idx(y, idx_test=None, idx_train=None,
         # Check there is no repeating indices in `idx_test`.
         # Note that negative indices could be used (`np.delete` handles them)
         # this is why a check if some indices are duplicated is not sufficient.
-        assert len(idx_test)+len(idx_train)==len(y)
+        if len(idx_test)+len(idx_train)!=len(y):
+            raise RuntimeError("Repeated test indices")
     elif idx_test is None and idx_train is not None:
         idx_test = np.delete(np.arange(len(y)), idx_train)
-        assert len(idx_test)+len(idx_train)==len(y)
+        if len(idx_test)+len(idx_train)!=len(y):
+            raise RuntimeError("Repeated test indices")
     else:
-        assert len(np.delete(np.arange(len(y)), idx_train)) == len(y)-len(idx_train)
-        assert len(np.delete(np.arange(len(y)), idx_test)) == len(y)-len(idx_test)
+        if len(np.delete(np.arange(len(y)), idx_train)) != len(y)-len(idx_train):
+            raise RuntimeError("Repeated train indices")
+        if len(np.delete(np.arange(len(y)), idx_test)) != len(y)-len(idx_test):
+            raise RuntimeError("Repeated test indices")
         if len(np.delete(np.arange(len(y)), idx_test+idx_train)) != len(y)-len(idx_test)-len(idx_train):
             warnings.warn('Train and test set indices overlap. Is it intended?', RuntimeWarning, stacklevel=2)
     return np.array(idx_train), np.array(idx_test), y[idx_train], y[idx_test]
