@@ -181,7 +181,7 @@ def mol_to_xyz(mol, fout, fmt="xyz"):
         for i in range(mol.natm):
             symb = mol.atom_pure_symbol(i)
             x, y, z = coords[i]
-            output.append(f"{symb:-4s} {x:14.5f} {y:14.5f} {z:14.5f}")
+            output.append(f"{symb:4s} {x:14.5f} {y:14.5f} {z:14.5f}")
         string = "\n".join(output)
 
     else:
