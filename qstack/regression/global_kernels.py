@@ -109,7 +109,7 @@ def sumsq(x):
     return x@x
 
 
-def avg_kernel(kernel, options):
+def avg_kernel(kernel, _options):
     """
 
     .. todo::

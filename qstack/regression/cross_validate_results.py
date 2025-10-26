@@ -47,12 +47,14 @@ def cv_results(X, y,
     if save_pred:
         predictions_n = []
     for seed in tqdm(seeds, disable=(not progress)):
-        error = hyperparameters(X, y, read_kernel=False, sigma=sigmaarr, eta=etaarr,
+        error = hyperparameters(X, y, read_kernel=read_kernel, sigma=sigmaarr, eta=etaarr,
+                                gkernel=gkernel, gdict=gdict,
                                 akernel=akernel, test_size=test_size, splits=splits,
                                 printlevel=printlevel, adaptive=adaptive, random_state=seed,
                                 sparse=sparse)
         mae, stdev, eta, sigma = zip(*error, strict=True)
-        maes_all = regression(X, y, read_kernel=False, sigma=sigma[-1], eta=eta[-1],
+        maes_all = regression(X, y, read_kernel=read_kernel, sigma=sigma[-1], eta=eta[-1],
+                              gkernel=gkernel, gdict=gdict,
                               akernel=akernel, test_size=test_size, train_size=train_size,
                               n_rep=1, debug=True, save_pred=save_pred,
                               sparse=sparse, random_state=seed)
@@ -116,7 +118,9 @@ def main():
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
     print(vars(args))
-    final = cv_results(X, y, sigmaarr=args.sigma, etaarr=args.eta, akernel=args.akernel,
+    final = cv_results(X, y, sigmaarr=args.sigma, etaarr=args.eta,
+                       gdict=args.gdict, gkernel=args.gkernel, akernel=args.akernel,
+                       read_kernel=args.read_kernel,
                        test_size=args.test_size, splits=args.splits, printlevel=args.printlevel,
                        adaptive=args.adaptive, train_size=args.train_size, n_rep=args.n_rep,
                        preffix=args.nameout, save=args.save_all, save_pred=args.save_pred,

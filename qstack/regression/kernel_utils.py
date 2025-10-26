@@ -10,7 +10,7 @@ REGMODULE_PATH = os.path.dirname(__file__)
 
 
 class ParseKwargs(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
+    def __call__(self, _parser, namespace, values, _option_string=None):
         setattr(namespace, self.dest, defaults.gdict)
         for value in values:
             key, value = value.split('=')

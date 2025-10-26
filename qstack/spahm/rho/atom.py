@@ -14,7 +14,7 @@ def check_file(mol_file):
     return mol_file
 
 
-def get_repr(mol, elements, charge, spin,
+def get_repr(mol, elements, spin,
              open_mod=defaults.omod, dm=None,
              guess=defaults.guess, model=defaults.model, xc=defaults.xc,
              auxbasis=defaults.auxbasis, only_z=None):
@@ -83,7 +83,7 @@ def main(args=None):
     else:
         elements = args.elements
 
-    representations = get_repr(mol, elements, args.charge, args.spin,
+    representations = get_repr(mol, elements, args.spin,
                                open_mod=args.omod,
                                dm=dm, guess=args.guess, model=args.model,
                                xc=args.xc, auxbasis=args.auxbasis, only_z=args.only_z)

@@ -78,11 +78,11 @@ def custom_C_kernels(kernel_function, return_distance_function=False):
         return kernel_func_c
 
 
-def dot_kernel_wrapper(x, y, *kargs, **kwargs):
+def dot_kernel_wrapper(x, y, *_kargs, **_kwargs):
     return _SKLEARN_PAIRWISE.linear_kernel(x, y)
 
 
-def cosine_similarity_wrapper(x, y, *kargs, **kwargs):
+def cosine_similarity_wrapper(x, y, *_kargs, **_kwargs):
     return _SKLEARN_PAIRWISE.cosine_similarity(x, y)
 
 
