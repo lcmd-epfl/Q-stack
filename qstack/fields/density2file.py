@@ -43,9 +43,6 @@ def coeffs_to_molden(mol, coeffs, moldenname):
     """
 
     with open(moldenname, 'w') as f:
+        N = number_of_electrons_deco(mol, coeffs)
         pyscf.tools.molden.header(mol, f, True)
-        try:
-            N = number_of_electrons_deco(mol, coeffs)
-        except:
-            N = 0.0
         pyscf.tools.molden.orbital_coeff(mol, f, np.array([coeffs]).T, ene=[0.0], occ=[N], ignore_h=True)

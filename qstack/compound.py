@@ -4,7 +4,6 @@ Module containing all the operations to load, transform, and save molecular obje
 
 import json
 import re
-import pickle
 import warnings
 import numpy as np
 from pyscf import gto, data

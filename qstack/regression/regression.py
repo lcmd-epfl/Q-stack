@@ -58,14 +58,16 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
     if debug:
         # Ensures reproducibility of the sample selection for each train_size over repetitions (n_rep)
-        np.random.seed(666)
+        rng = np.random.RandomState(666)
+    else:
+        rng = np.random.RandomState()
 
     maes_all = []
     for size in train_size:
         size_train = int(np.floor(len(y_train)*size)) if size <= 1.0 else size
         maes = []
         for _rep in range(n_rep):
-            train_idx = np.random.choice(all_indices_train, size = size_train, replace=False)
+            train_idx = rng.choice(all_indices_train, size = size_train, replace=False)
             y_kf_train = y_train[train_idx]
 
             if not sparse:

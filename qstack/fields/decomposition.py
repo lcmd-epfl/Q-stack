@@ -57,7 +57,7 @@ def get_self_repulsion(mol, dm):
 
     try:
         j, _k = mol.get_jk()
-    except:
+    except AttributeError:
         j, _k = scf.hf.get_jk(mol, dm)
     return np.einsum('ij,ij', j, dm)
 
@@ -195,7 +195,7 @@ def number_of_electrons_deco_vec(mol, per_atom=False):
             if l==0:
                 w = mol.bas_ctr_coeff(bas_id)
                 a = mol.bas_exp(bas_id)
-                q = pow (2.0*np.pi/a, 0.75) @ w
+                q = np.pow(2.0*np.pi/a, 0.75) @ w
                 if per_atom:
                     Q[i:i+n,iat] = q
                 else:

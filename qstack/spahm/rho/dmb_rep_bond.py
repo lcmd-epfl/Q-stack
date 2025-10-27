@@ -1,4 +1,5 @@
 import operator
+from ast import literal_eval
 import numpy as np
 from pyscf import gto
 from qstack import fields
@@ -32,7 +33,7 @@ def read_df_basis(bnames, bpath, same_basis=False):
             continue
         fname = f'{bpath}/{bname}.bas' if not same_basis else f'{bpath}/CC.bas'
         with open(fname) as f:
-            mybasis[bname] = eval(f.read())
+            mybasis[bname] = literal_eval(f.read())
     return mybasis
 
 

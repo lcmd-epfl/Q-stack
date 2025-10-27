@@ -140,8 +140,8 @@ def _parse_gbw(fname):
             coefficients = read_array(f, nao*nao, np.float64).reshape(-1, nao)
             occupations  = read_array(f, nao,     np.float64)
             energies     = read_array(f, nao,     np.float64)
-            irreps       = read_array(f, nao,     np.int32)
-            cores        = read_array(f, nao,     np.int32)
+            _irreps      = read_array(f, nao,     np.int32)
+            _cores       = read_array(f, nao,     np.int32)
             coefficients_ab.append(coefficients)
             energies_ab.append(energies)
             occupations_ab.append(occupations)
@@ -162,8 +162,8 @@ def _parse_gbw(fname):
             _, nao_at = struct.unpack("<2i", f.read(2 * np.int32().itemsize))
             for _iao in range(nao_at):
                 l, _, _ngto, _ = struct.unpack("<4i", f.read(4 * np.int32().itemsize))
-                a = read_array(f, MAX_PRIMITIVES, np.float64)   # exponents
-                c = read_array(f, MAX_PRIMITIVES, np.float64)   # coefficients
+                _a = read_array(f, MAX_PRIMITIVES, np.float64)   # exponents
+                _c = read_array(f, MAX_PRIMITIVES, np.float64)   # coefficients
                 ls[at].append(l)
         return ls
 

@@ -1,4 +1,5 @@
 import sys
+from ast import literal_eval
 import numpy as np
 import scipy.optimize
 from pyscf import gto
@@ -62,7 +63,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         for i in basis_files:
             if isinstance(i, str):
                 with open(i) as f:
-                    addbasis = eval(f.read())
+                    addbasis = literal_eval(f.read())
                 q = list(addbasis.keys())[0]
                 if q in basis:
                     raise RuntimeError('several sets for element ' + q)
