@@ -92,6 +92,16 @@ def test_check_data_structure():
         is_single, is_labeled = ut.check_data_struct(ft['path2file'], local = ft['is_local'])
         assert((ft['is_single'] == is_single) and (ft['is_labeled'] == is_labeled))
 
+def test_regroup_symbols():
+    path = os.path.dirname(os.path.realpath(__file__))
+    filelist = os.path.join(path, "./data/list_water3.txt")
+    regrouped_species = ut.regroup_symbols(filelist)
+    rep_count = {"H":2, "O":1}
+    print(regrouped_species)
+    for z,v in regrouped_species.items():
+        assert(len(v) == rep_count[z])
+
+
 
 def main():
     test_load_mols()
@@ -102,6 +112,7 @@ def main():
     test_load_reps_singleatom()
     test_load_reps_singleatom_sum_local()
     test_load_reps_singleatom_sum_local2()
+    test_regroup_symbols()
 
 
 if __name__ == '__main__': main()
