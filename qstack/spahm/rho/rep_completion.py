@@ -98,6 +98,7 @@ def get_vpattern_bond(bonds_dict, bpath, omod=False, same_basis=False):
     else:
         return v_atoms, max_length
 
+#### I don't think this is needed (--> add to test-suite)
 def test_equivalence(old_vectors, new_vectors):
     correspondances = []
     for nv in new_vectors[:,1]:
@@ -159,7 +160,7 @@ def fromr1tor2(vectors, r1_info, r2_info, atom_type=None, bond=False, bpath=None
     else:
         for atom, v in vectors:
             new_vec = mytransform(v, r1_info, r2_info, aux, atom)
-            new_vectors.append([atom, new_vec])
+            new_vectors.append(new_vec)
     new_vectors= np.array(new_vectors, dtype=object, like=vectors)
     return new_vectors
 
