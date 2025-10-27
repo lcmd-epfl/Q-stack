@@ -83,11 +83,11 @@ def xyz_comment_line_parser(line):
         props['spin'] = props['spin']-1
     return props
 
-def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False):
+def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False, read_string=False):
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
-        fin (str): Name (including path) of the xyz file to read.
+        inp (str): path of the xyz file to read / xyz fine contents if read_string==True
         basis (str or dict): Basis set.
         charge (int): Provide/override charge of the molecule.
         spin (int): Provide/override spin of the molecule (alpha electrons - beta electrons).
@@ -99,13 +99,19 @@ def xyz_to_mol(fin, basis="def2-svp", charge=None, spin=None, ignore=False, unit
         A pyscf Mole object containing the molecule information.
     """
 
-    # Open and read the file
-    molxyz = gto.fromfile(fin)
+    if read_string:
+        molxyz = gto.fromstring(inp)
+    else:
+        molxyz = gto.fromfile(inp)
+
     if parse_comment:
-        with open(fin) as f:
-            _ = f.readline()
-            comment_line = f.readline()
-            props = xyz_comment_line_parser(comment_line)
+        if read_string:
+            comment_line = inp.split('\n')[1]
+        else:
+            with open(inp) as f:
+                _ = f.readline()
+                comment_line = f.readline()
+        props = xyz_comment_line_parser(comment_line)
     else:
         props = [None]
 
@@ -191,111 +197,6 @@ def mol_to_xyz(mol, fout, fmt="xyz"):
         f.write(string)
         f.write("\n")
     return string
-
-
-def gmol_to_mol(fin, basis="def2-svp"):
-    """Reads a molecular file in gmol format and returns a pyscf Mole object.
-
-    Args:
-        fin (str): Name (including path) of the xyz file to read.
-        basis (str or dict): Basis set.
-        charge (int): Charge of the molecule.
-        spin (int): Alpha electrons - beta electrons.
-
-    Returns:
-        pyscf Mole: pyscf Mole object.
-    """
-
-    try:
-        from cell2mol.tmcharge_common import Cell, atom, molecule, ligand, metal
-        from cell2mol.tmcharge_common import labels2formula
-    except ImportError:
-            print("""
-
-ERROR: cannot import cell2mol. Have you installed qstack with the \"gmol\" option?\n\n
-(for instance, with `pip install qstack[gmol] or `pip install qstack[all]``)
-
-""")
-    raise
-
-
-    # Open and read the file
-    if fin.endswith(".gmol"):
-
-        with open(fin, "rb") as pickle_file:
-            gmol = pickle.load(pickle_file)
-
-            if hasattr(gmol, "cellvec"):
-                gmoltype = "cell"
-            elif gmol.type == "Ligand":
-                gmoltype = "ligand"
-            elif gmol.type == "Other" or gmol.type == "Complex":
-                gmoltype = "molecule"
-
-            refcode = gmol.refcode
-
-            if gmoltype == "cell":
-                cell = gmol
-                for mol in cell.moleclist:
-                    if not hasattr(mol, "totcharge"):
-                        print(
-                            "Total Charge is Missing for molecule:",
-                            refcode,
-                            mol.type,
-                            mol.natoms,
-                            mol.labels,
-                        )
-                    else:
-                        print(
-                            f"Info (Charge, number of atoms): {mol.totcharge}, {mol.natoms}"
-                        )
-
-            elif gmoltype == "ligand":
-                lig = gmol
-                if not hasattr(lig, "totcharge"):
-                    print(
-                        "Total Charge is Missing for Ligand:",
-                        refcode,
-                        lig.type,
-                        lig.natoms,
-                    )
-                elif not hasattr(lig, "totmconnec"):
-                    print(
-                        "ML connectivity is Missing for Ligand:",
-                        refcode,
-                        lig.type,
-                        lig.natoms,
-                    )
-                else:
-                    print(
-                        f"Info (Charge, number of atoms, denticity): {lig.totcharge}, {lig.totmconnec}"
-                    )
-
-            elif gmoltype == "molecule":
-                mol = gmol
-                if not hasattr(mol, "totcharge"):
-                    print(
-                        "Total Charge is Missing for Molecule:",
-                        refcode,
-                        mol.type,
-                        mol.natoms,
-                        mol.labels,
-                    )
-                else:
-                    print(
-                        f"Info (Charge, number of atoms): {mol.totcharge}, {mol.natoms}"
-                    )
-
-    # Define attributes to the Mole object and build it
-    mole = gto.Mole()
-    atoms = list(zip(mol.labels, mol.coord, strict=True))
-    mole.atom = atoms
-    mole.basis = basis
-    mole.charge = mol.totcharge
-    mole.spin = (sum(mol.atnums) - mol.totcharge) % 2
-    mole.build()
-
-    return mole
 
 
 def make_auxmol(mol, basis, copy_ecp=False):
