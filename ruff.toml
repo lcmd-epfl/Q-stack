@@ -45,14 +45,22 @@ docstring-code-line-length = "dynamic"
 [lint]
 select = [
   "A", "E", "F", "B",
-  "S101", "COM", "C4", "EXE", "ICN", "PIE", "PLR1714", "ARG", "PERF", "FURB", "PLE", "TRY002", "W", "UP", "RUF", "SIM",
-#"FIX", "TD", "D", "NPY"  # later
+  "S", "COM", "C4", "EXE", "ICN", "PIE", "PLR1714", "ARG",
+  "PERF", "FURB", "PLE", "TRY002", "W", "UP", "RUF", "SIM", "NPY",
+  #"FIX", "TD", "D",  # later
 ]
-ignore = ["E741", "E722", "E731", "E501", "RUF003", "RUF002", "RUF015", "SIM3", "SIM114", "SIM108"]
+ignore = [
+"E741",     # ambiguous variable name
+"E731",     # do not assign lambda expression
+"E501",     # line length
+"RUF003",   # `×` in comments
+"RUF002",   # `–` in comments
+"RUF015",   # single element slice
+"SIM3",     # yoda condition
+"SIM114",   # combine if branches
+"SIM108",   # use ternary operator
+]
 
 [lint.per-file-ignores]
-"qstack/spahm/rho/Dmatrix.py" = ["E702"]
-"qstack/orcaio.py"            = ["F841"]
-"qstack/qml.py"               = ["F403"]
-"qstack/spahm/rho/bond.py"    = ["E711"]
-"qstack/compound.py" = ["F401", "COM812", "PLR1714", "PLE0704"] #  TODO
+"qstack/spahm/rho/Dmatrix.py" = ["E702"]  # multiple statements on one line (semicolon)
+"qstack/spahm/rho/bond.py"    = ["E711"]  # comparison to `None` for np.array elements
