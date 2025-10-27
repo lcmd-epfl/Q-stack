@@ -56,8 +56,20 @@ def test_spahm_LB_field():
     assert np.allclose(true_R, R[0])
 
 
+def test_generate_reps():
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data/mols/')
+    xyzlist = [os.path.join(path,s) for s in sorted(os.listdir(path)) if ".xyz" in s]
+    mols = [compound.xyz_to_mol(f, basis='minao', charge=0, spin=0) for f in xyzlist]
+    xmols = [compute_spahm.get_spahm_representation(mol, 'lb')[0] for mol in mols]
+    maxlen = max([len(x) for x in xmols])
+    X = np.array([np.pad(x, pad_width=(0,maxlen-len(x)), constant_values=0) for x in xmols])
+    Xtrue = np.load(os.path.join(path, 'X_lb.npy'))
+    assert(np.allclose(X, Xtrue))
+
+
 if __name__ == '__main__':
     test_spahm_huckel()
     test_spahm_LB()
     test_spahm_LB_ecp()
     test_spahm_LB_field()
+    test_generate_reps()

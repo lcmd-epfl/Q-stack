@@ -53,8 +53,6 @@ python -m pip install -e .[all]    # note: this translates as "install as '-e'di
 
 For the optional step above, we also have an `environment.yml` file available, if you prefer working with conda environments.
 
-A small part of Q-stack, isolated in the `qstack_qml` module name, can be installed on its own, see [the qstack-qml subdirectory's readme](../master/qstack/qstack-qml/README.md).
-
 
 ## Examples [↑](#contents)
 Q-stack comes with several example codes that illustrate some of its key capabilities. To run the examples, go to the example folder and run the following commands:

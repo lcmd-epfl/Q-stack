@@ -1,6 +1,4 @@
-import sys
 import numpy as np
-from pyscf import dft,df,tools
 
 class Lowdin_split:
 
@@ -30,4 +28,3 @@ class Lowdin_split:
     dmL_bond[ix1] = self.dmL[ix1]
     dmL_bond[ix2] = self.dmL[ix2]
     return self.S12i @ dmL_bond @ self.S12i
-

@@ -8,20 +8,6 @@ import qstack.regression.final_error as final_error
 import qstack.regression.condition as condition
 import qstack.regression.oos as oos
 import qstack.regression.cross_validate_results as cv_results
-import qstack.spahm.compute_spahm as espahm
-import qstack.compound as compound
-
-
-def test_generate_reps():
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data/mols/')
-    xyzlist = [os.path.join(path,s) for s in sorted(os.listdir(path)) if ".xyz" in s]
-    mols = [compound.xyz_to_mol(f, basis='minao', charge=0, spin=0) for f in xyzlist]
-    xmols = [espahm.get_spahm_representation(mol, 'lb')[0] for mol in mols]
-    maxlen = max([len(x) for x in xmols])
-    X = np.array([np.pad(x, pad_width=(0,maxlen-len(x)), constant_values=0) for x in xmols])
-    xfile = os.path.join(path, 'X_lb.npy')
-    Xtrue = np.load(xfile)
-    assert(np.allclose(X,Xtrue))
 
 
 def test_hyperparameters():
@@ -135,7 +121,6 @@ def test_cross_validate_results():
 
 
 if __name__ == '__main__':
-    test_generate_reps()
     test_hyperparameters()
     test_regression()
     test_regression_sparse()

@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
-
-import argparse
-from types import SimpleNamespace
-import sys,os
-from os.path import join, isfile, isdir
+import os
 import numpy as np
-import pyscf
-from  qstack import compound
 import qstack.tools as tls
-from . import utils, dmb_rep_atom as dmba, dmb_rep_bond as dmbb
+from . import dmb_rep_atom as dmba, dmb_rep_bond as dmbb
 
 
 
@@ -112,7 +106,7 @@ def test_equivalence(old_vectors, new_vectors):
 _func=None
 def worker_init(func):
     global _func
-    _func = func 
+    _func = func
 
 def worker(*args):
     return _func(*args)

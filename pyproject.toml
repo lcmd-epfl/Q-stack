@@ -39,17 +39,20 @@ requires-python = ">=3.9"
 dependencies = [
     'numpy >= 1.22.3, < 2.4',
     'scipy >= 1.1.0, < 1.17',
-    'pyscf >= 2.0.1, < 2.12',
     'tqdm >= 4.66',
 ]
 
 [project.optional-dependencies]
-#qml = ["qstack-qml @ file://qstack/qstack-qml"]  # this is managed in setup.py because of course.
+pyscf = ['pyscf >= 2.0.1, < 2.12']
+qml = ['ase >= 3.22, < 3.27']
 regression = ["scikit-learn >= 0.24.2, < 1.8"]
 wigner = ["sympy >= 1.5, < 1.15"]
-gmol = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@feat/pydantic"]
-equio = ["metatensor-core >= 0.1.8, == 0.1.*"]
-all = ["qstack[qml,regression,wigner,equio,gmol]"]
+cell2mol-itself = ["cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@40b3237"]
+cell2mol = ["qstack[pyscf,cell2mol-itself]"]
+equio-itself = ["metatensor-core >= 0.1.8, == 0.1.*"]
+equio = ["qstack[pyscf,equio-itself]"]
+spahm = ["qstack[pyscf]"]
+all = ["qstack[pyscf,qml,regression,wigner,equio,gmol]"]
 
 [project.urls]
 Repository = "https://github.com/lcmd-epfl/Q-stack.git"

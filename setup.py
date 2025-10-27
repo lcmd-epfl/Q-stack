@@ -4,9 +4,6 @@ import os, tempfile, shutil
 
 VERSION="0.0.1"
 
-ROOT = os.path.realpath(os.path.dirname(__file__))
-QSTACK_QML = os.path.join(ROOT, "qstack", "qstack-qml")
-
 def get_git_version_hash():
     """Get tag/hash of the latest commit.
     Thanks to https://gist.github.com/nloadholtes/07a1716a89b53119021592a1d2b56db8"""
@@ -41,9 +38,6 @@ if __name__ == '__main__':
 
     setup(
         version=get_git_version_hash(),
-        extras_require = {
-             "qml":[f"qstack-qml @ file://{QSTACK_QML:s}"],
-        },
         ext_modules=[Extension('qstack.regression.lib.manh',
                                ['qstack/regression/lib/manh.c'],
                                extra_compile_args=['-fopenmp', '-std=gnu11'] if openmp_enabled else ['-std=gnu11'],
