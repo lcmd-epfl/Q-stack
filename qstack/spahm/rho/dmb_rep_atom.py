@@ -4,10 +4,6 @@ from qstack import compound, fields
 from . import sym, atomic_density, lowdin
 
 
-def set_default(arg, value):
-    return value if arg is None else arg
-
-
 def get_basis_info(atom_types, auxbasis):
     ao = {}
     idx = {}

@@ -28,8 +28,8 @@ def _orca2gpr_idx(mol):
                 #    m1 = _M1(m+l)
                 #    idx[(i+(m1-m))] = i
                 #    i+=1
-                t = idx[i:i+msize]
-                idx[i:i+msize] = np.concatenate((t[::-2], t[1::2]))
+                I = np.s_[i:i+msize]
+                idx[I] = np.concatenate((idx[I][::-2], idx[I][1::2]))
                 i += msize
     return idx
 
