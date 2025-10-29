@@ -7,6 +7,7 @@ import numpy as np
 from qstack import compound, spahm
 from . import utils, dmb_rep_atom as dmba
 from .utils import defaults
+from .compute_rho_spahm import get_repr
 
 
 def check_file(mol_file):
@@ -14,48 +15,6 @@ def check_file(mol_file):
         print(f"Error xyz-file {mol_file} not found !\nExiting !!", file=sys.stderr)
         exit(1)
     return mol_file
-
-
-def get_repr(mol, elements, charge, spin,
-             open_mod=defaults.omod, dm=None,
-             guess=defaults.guess, model=defaults.model, xc=defaults.xc,
-             auxbasis=defaults.auxbasis, only_z=None):
-
-    # User-defined options
-    elements = sorted(list(set(elements)))
-    guess = spahm.guesses.get_guess(guess)
-    model = dmba.get_model(model)
-    df_wrapper, sym_wrapper = model
-    ao, ao_len, idx, M = dmba.get_basis_info(elements, auxbasis)
-
-    # Compute density matrices
-    if dm is None:
-        dm = spahm.compute_spahm.get_guess_dm(mol, guess, openshell=spin, xc=xc)
-# if only the representations for a given atom type are to be computed restricts the considered atomic indices
-    if only_z is not None:
-        only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
-    else:
-        only_i = range(mol.natm) #otherwise consider the full list of atomic indices
-
-    rep = []
-    for omod in open_mod:
-        DM      = utils.dm_open_mod(dm, omod) if spin is not None else dm
-        c_df    = df_wrapper(mol, DM, auxbasis, only_i=only_i)
-        vectors = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
-        if spin is None:
-            rep = vectors
-            break
-        rep.append(vectors)
-
-    if spin is not None:
-        rep = [
-            np.concatenate([ per_spin_rep[atom_i] for per_spin_rep in rep ], axis=0)
-            for atom_i in range(len(rep[0]))
-        ]
-
-    mrep = [np.array((q,v), dtype=object) for q,v in zip(np.array(mol.elements)[only_i], rep)]
-    return np.array(mrep)
-
 
 def main(args=None):
     parser = argparse.ArgumentParser(description='This program computes the SPAHM(a) representation for a given molecular system')
@@ -86,7 +45,7 @@ def main(args=None):
         elements = args.elements
 
     representations = get_repr(mol, elements, args.charge, args.spin,
-                               open_mod=args.omod,
+                               open_mod=args.omod, rep_type="atom",
                                dm=dm, guess=args.guess, model=args.model,
                                xc=args.xc, auxbasis=args.auxbasis, only_z=args.only_z)
 
