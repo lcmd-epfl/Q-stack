@@ -32,7 +32,7 @@ def test_water_O_only():
     xyz_in = PATH+'/data/H2O.xyz'
     mols = utils.load_mols([xyz_in], [0], [0], 'minao')
     dms = utils.mols_guess(mols, [xyz_in], 'LB', spin=[0])
-    X = bond.bond(mols, dms, only_z=['O'])
+    X = bond.spahm_a_b(mols, dms, only_z=['O'])
     X = np.squeeze(X) #contains a single elements but has shape (1,Nfeat)
     X = np.hstack(X) # merging alpha-beta components for spin unrestricted representation #TODO: should be included into function not in main
 
@@ -46,7 +46,7 @@ def test_water_same_basis():
     xyz_in = PATH+'/data/H2O.xyz'
     mols = utils.load_mols([xyz_in], [0], [0], 'minao')
     dms = utils.mols_guess(mols, [xyz_in], 'LB', spin=[0])
-    X = bond.bond(mols, dms, same_basis=True)
+    X = bond.spahm_a_b(mols, dms, same_basis=True)
     X = np.squeeze(X) #contains a single elements but has shape (1,Nfeat)
     X = np.hstack(X) # merging alpha-beta components for spin unrestricted representation #TODO: should be included into function not in main
     underlying_test(X, '/data/H2O_spahm_b_CCbas.npy_alpha_beta.npy')
@@ -55,7 +55,7 @@ def test_ecp():
     xyz_in = PATH+'/data/I2.xyz'
     mols = utils.load_mols([xyz_in], [0], [0], 'minao', ecp='def2-svp')
     dms = utils.mols_guess(mols, [xyz_in], 'LB', spin=[0])
-    X = bond.bond(mols, dms, same_basis=True)
+    X = bond.spahm_a_b(mols, dms, same_basis=True)
     X = np.squeeze(X) #contains a single elements but has shape (1,Nfeat)
     X = np.hstack(X) # merging alpha-beta components for spin unrestricted representation #TODO: should be included into function not in main
 

@@ -7,7 +7,7 @@ from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
 from .utils import defaults
-from .compute_rho_spahm import get_repr, bond
+from .compute_rho_spahm import get_repr, spahm_a_b
 
 
 def main(args=None):

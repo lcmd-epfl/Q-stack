@@ -8,7 +8,7 @@ from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
 from .utils import defaults
 
-def bond(mols, dms,
+def spahm_a_b(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          rep_type='bond',auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
@@ -143,7 +143,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     if (spin == None).all():
         omods = [None]
 
-    allvec  = bond(mols, dms, bpath, cutoff, omods,
+    allvec  = spahm_a_b(mols, dms, bpath, cutoff, omods,
                    model=model,
                    elements=elements, only_m0=only_m0,
                    zeros=zeros, printlevel=printlevel,
