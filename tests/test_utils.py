@@ -42,7 +42,9 @@ def test_load_reps_singleatom():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O'])
+    rep = atom.get_repr([mol], [xyzpath], 'LB', rep_type="atom",
+                        elements=["H", "O"], spin=[0], with_symbols=True,
+                        model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
     X, symbols = ut.load_reps(tmpfile, from_list=False, \
             with_labels=True, local=True, sum_local=False, printlevel=0, progress=True)
@@ -56,7 +58,9 @@ def test_load_reps_singleatom_sum_local():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['H'])
+    rep = atom.get_repr([mol], [xyzpath], 'LB', rep_type="atom",
+                        elements=["H", "O"], spin=[0], with_symbols=True,
+                        model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
     X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
@@ -68,7 +72,9 @@ def test_load_reps_singleatom_sum_local2():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O']) #since only one O checks if the sum is not run over the representations elements
+    rep = atom.get_repr([mol], [xyzpath], 'LB', rep_type="atom",
+                        elements=["H", "O"], spin=[0], with_symbols=True,
+                        model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
     X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
