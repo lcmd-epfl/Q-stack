@@ -93,15 +93,15 @@ def get_vpattern_bond(bonds_dict, bpath, omod=False, same_basis=False):
         return v_atoms, max_length
 
 #### I don't think this is needed (--> add to test-suite)
-def test_equivalence(old_vectors, new_vectors):
-    correspondances = []
-    for nv in new_vectors[:,1]:
-        l_corr = []
-        for ov in old_vectors[:,1]:
-            l_corr.append(np.linalg.norm(nv) == np.linalg.norm(ov))
-        correspondances.append(l_corr)
-    print([sum(loc) for loc in correspondances])
-    return 0
+#def test_equivalence(old_vectors, new_vectors):
+#    correspondances = []
+#    for nv in new_vectors[:,1]:
+#        l_corr = []
+#        for ov in old_vectors[:,1]:
+#            l_corr.append(np.linalg.norm(nv) == np.linalg.norm(ov))
+#        correspondances.append(l_corr)
+#    print([sum(loc) for loc in correspondances])
+#    return 0
 
 _func=None
 def worker_init(func):
@@ -164,8 +164,8 @@ EXPLORATION_EXAMPLE=False
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Program to convert feature vector from one set of atom types to another.')
-    parser.add_argument('--X', type = str, dest='XREP', required=True, help='A txt file with the list of paths to the representation file (.npy)')
-    parser.add_argument('--basis', type = str, dest='BasisSet', required=True, help='A txt file with the list of paths to the representation file (.npy)')
+    parser.add_argument('--X', type = str, dest='XREP', required=True, help='representation file with local representations and corresponding atom-types (.npy)')
+    parser.add_argument('--basis', type = str, dest='BasisSet', required=True, help='the auxiliary bassis-set (atom representation) or a pairfile (.npy) (bond representations)')
     parser.add_argument('--source', type = str, nargs= '+', dest='AtomsIn', required=True, help='The set of atom types the representation were generated with.')
     parser.add_argument('--destination', type = str, nargs= '+', dest='AtomsOut', required=True, help='The target set of atom types for the new feature vector.')
     parser.add_argument('--fout', type = str, dest='FileOut', required=False, default=None, help='The ouput filename or path.')
@@ -200,39 +200,6 @@ def main():
             new_vectors.append([atom, new_vec])
     new_vectors= np.array(new_vectors, dtype=object, like=vectors)
     np.save(args.FileOut, new_vectors, allow_pickle=True)
-
-
-    if EXPLORATION_EXAMPLE:
-        vectors = np.load('/home/calvino/yannick/SPAHM-RHO/rxn/Hydroform/X_Hydro/rh/r/XR_Cat100.npy', allow_pickle=True)
-        print([[atom, idx] for idx, atom in enumerate(vectors[:5,0])])
-        atom_types = ['F', 'H', 'Rh', 'C', 'Cl', 'O', 'P']
-        dest_types = ['F', 'H', 'Rh', 'C', 'Cl', 'O', 'P', 'Ir']
-        atom_types = sorted(atom_types)
-        aux_basis_set = 'def2svpjkfit'
-        ao, ao_len, idx, M = dmba.get_basis_info(atom_types, aux_basis_set)
-        print(len(ao['H']['m']),len(ao['H']['l']), ao_len.keys(), idx['H'][10], sep='\n')
-
-        v_feat = get_vpattern(atom_types, aux_basis_set)
-        print(v_feat.items())
-
-        C = []
-        i=0
-        for a, v in vectors:
-            if a == 'C' :
-                print(i, end='    ')
-                C.append([i, print_elem(v,  v_feat, 'O')])
-            i+=1
-        C = np.array(C)
-        print(C.shape)
-        max_idx = np.argmax(C[:,1])
-        print("Max Norm = ", C[:,1].max(), " ; idx = ", C[max_idx,0])
-        print_elem(vectors[16,1], v_feat, atom_types)
-        vec = vectors[0,1]
-        print(vec.shape)
-        vec = transform(vec, atom_types, dest_types, aux_basis_set)
-        print(vec.shape)
-        dest_feat = get_vpattern(dest_types, aux_basis_set)
-        print_elem(vec,  dest_feat, 'Ir', extract=True)
 
     return 0
 

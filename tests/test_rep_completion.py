@@ -16,3 +16,6 @@ def test_tranform_atom():
     assert(len(X1_set1[0,1]) == len(X2_set1[0,1])) # test the final vector-length
     assert(all([np.isclose(np.linalg.norm(x1),np.linalg.norm(x2)) for x1,x2 in zip(X2_set2[:,1], X2_set1[:,1])])) # test that atomic-reps have not changed 
 
+#def test_transform_bond():
+
+
