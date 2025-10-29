@@ -107,6 +107,17 @@ def test_regroup_symbols():
     for z,v in regrouped_species.items():
         assert(len(v) == rep_count[z])
 
+def test_regroup_symbols_and_trim():
+    path = os.path.dirname(os.path.realpath(__file__))
+    filelist = os.path.join(path, "./data/list_water_lowdin-short-padded.txt")
+    regrouped_species = ut.regroup_symbols(filelist, trim_reps=True)
+    #trimedlist = os.path.join(path, "./data/list_water_lowdin-short.txt") ## this is not possible because of inhomogenous array
+    X_truth = np.load(path+"/data/SPAHM_a_H2O/X_H2O_lowdin-short.npy", allow_pickle=True)
+    regrouped_truth = {z:[] for z in regrouped_species.keys()}
+    for z,v in X_truth:
+        regrouped_truth[z].append(v)
+    for z in regrouped_species.keys():
+        assert(np.allclose(regrouped_species[z], regrouped_truth[z]))
 
 
 def main():

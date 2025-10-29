@@ -190,11 +190,13 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
     else:
         return reps
 
-def regroup_symbols(file_list, print_level=0):
+def regroup_symbols(file_list, print_level=0, trim_reps=False):
     reps, atoms = load_reps(file_list, from_list=True, with_labels=True, local=True, printlevel=print_level)
     if print_level > 0: print(f"Extracting {len(atoms)} atoms from {file_list}:")
     atoms_set = {e:[] for e in set(atoms)}
     for e, v in zip(atoms, reps):
+        if trim_reps:
+            v = np.trim_zeros(v)
         atoms_set[e].append(v)
     if print_level > 0: print([(k, len(v)) for k, v in atoms_set.items()])
     return atoms_set
