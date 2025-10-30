@@ -22,7 +22,6 @@ def main(args=None):
     parser.add_argument('--cutoff',        dest='cutoff',        type=float,          default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
     parser.add_argument('--bpath',         dest='bpath',         type=str,            default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
     parser.add_argument('--omod',          dest='omod',          type=str, nargs='+', default=defaults.omod,            help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
-    parser.add_argument('--model',         dest='model',         type=str,            default=defaults.model,           help=f'model for the atomic density fitting (default={defaults.model})')
     parser.add_argument('--print',         dest='print',         type=int,            default=0,                        help='printing level')
     parser.add_argument('--zeros',         dest='zeros',         action='store_true', default=False,                    help='use a version with more padding zeros')
     parser.add_argument('--split',         dest='split',         action='count',      default=0,                        help='split into molecules (use twice to also split the output in one file per molecule)')
@@ -63,13 +62,13 @@ def main(args=None):
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
 
     reps = get_repr("bond",
-        mols, xyzlist, args.guess, xc=args.xc, spin=spin,
+        mols=mols, xyzlist=xyzlist, guess=args.guess, xc=args.xc, spin=spin,
         readdm=args.readdm, printlevel=args.print,
-        auxbasis=args.auxbasis, rep_type="bond", model=args.model,
         pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
         bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
         elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z,
     )
+
     if args.print > 0:
         print(reps.shape)
     if args.merge:
