@@ -1,7 +1,7 @@
 import os
 import itertools
 import numpy as np
-from qstack.spahm.rho import bond, utils
+from qstack.spahm.rho import utils, compute_rho_spahm as bond
 from qstack import compound
 
 PATH = os.path.dirname(os.path.realpath(__file__))

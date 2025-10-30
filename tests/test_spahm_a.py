@@ -3,7 +3,7 @@
 import os
 import numpy as np
 from qstack import compound
-from qstack.spahm.rho import atom, bond
+from qstack.spahm.rho import atom
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
