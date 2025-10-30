@@ -42,7 +42,7 @@ def test_load_reps_singleatom():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr([mol], [xyzpath], 'LB', rep_type="atom",
+    rep = atom.get_repr("atom", [mol], [xyzpath], 'LB',
                         elements=["H", "O"], spin=[0], with_symbols=True,
                         model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
@@ -58,7 +58,7 @@ def test_load_reps_singleatom_sum_local():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr([mol], [xyzpath], 'LB', rep_type="atom",
+    rep = atom.get_repr("atom", [mol], [xyzpath], 'LB',
                         elements=["H", "O"], spin=[0], with_symbols=True,
                         model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
@@ -72,7 +72,7 @@ def test_load_reps_singleatom_sum_local2():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr([mol], [xyzpath], 'LB', rep_type="atom",
+    rep = atom.get_repr("atom", [mol], [xyzpath], 'LB',
                         elements=["H", "O"], spin=[0], with_symbols=True,
                         model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)

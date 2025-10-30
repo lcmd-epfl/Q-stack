@@ -64,7 +64,7 @@ def main(args=None):
 
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
 
-    reps = get_repr(
+    reps = get_repr("bond",
         mols, xyzlist, args.guess, xc=args.xc, spin=spin,
         readdm=args.readdm, printlevel=args.print,
         auxbasis=args.auxbasis, rep_type="bond", model=args.model,

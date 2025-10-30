@@ -8,10 +8,10 @@ from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
 from .utils import defaults
 
-def spahm_a_b(mols, dms,
+def spahm_a_b(rep_type, mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
-         rep_type='bond',auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
+         auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
     """ Computes SPAHM-b representations for a set of molecules.
 
@@ -85,11 +85,11 @@ def spahm_a_b(mols, dms,
 
     return allvec
 
-def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
+def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              pairfile=None, dump_and_exit=False, same_basis=True,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
-             rep_type='bond', auxbasis='ccpvdzjkfit', model="lowdin-long-x",
+             auxbasis='ccpvdzjkfit', model="lowdin-long-x",
              with_symbols=False, only_z=[], merge=True):
     """ Computes and reshapes an array of SPAHM-b representation
 
@@ -143,11 +143,11 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     if (spin == None).all():
         omods = [None]
 
-    allvec  = spahm_a_b(mols, dms, bpath, cutoff, omods,
+    allvec  = spahm_a_b(rep_type, mols, dms, bpath, cutoff, omods,
                    model=model,
                    elements=elements, only_m0=only_m0,
                    zeros=zeros, printlevel=printlevel,
-                   rep_type=rep_type, auxbasis=auxbasis,
+                   auxbasis=auxbasis,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
@@ -263,10 +263,10 @@ def main(args=None):
 
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units, ecp=args.ecp)
 
-    reps = get_repr(
+    reps = get_repr(args.rep,
         mols, xyzlist, args.guess, xc=args.xc, spin=spin,
         readdm=args.readdm, printlevel=args.print,
-        auxbasis=args.auxbasis, rep_type=args.rep, model=args.model,
+        auxbasis=args.auxbasis, model=args.model,
         pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
         bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
         elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z,
