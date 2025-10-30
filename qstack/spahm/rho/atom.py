@@ -3,8 +3,7 @@
 import argparse
 import os
 import numpy as np
-from qstack import compound, spahm
-from . import utils, dmb_rep_atom as dmba
+from qstack import compound
 from .utils import defaults
 from .compute_rho_spahm import get_repr
 

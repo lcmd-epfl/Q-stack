@@ -5,8 +5,6 @@ exclude = [
     ".ruff_cache",
     "qstack.egg-info",
     "__init__.py",
-    "qstack/spahm/rho/rep_completion.py", #TODO
-    "qstack/spahm/rho/01_bind.py",# TODO
 ]
 
 line-length = 88
@@ -62,5 +60,6 @@ ignore = [
 ]
 
 [lint.per-file-ignores]
-"qstack/spahm/rho/Dmatrix.py" = ["E702"]  # multiple statements on one line (semicolon)
-"qstack/spahm/rho/bond.py"    = ["E711"]  # comparison to `None` for np.array elements
+"qstack/spahm/rho/Dmatrix.py"           = ["E702"]  # multiple statements on one line (semicolon)
+"qstack/spahm/rho/bond.py"              = ["E711"]  # comparison to `None` for np.array elements
+"qstack/spahm/rho/compute_rho_spahm.py" = ["E711"]  # comparison to `None` for np.array elements

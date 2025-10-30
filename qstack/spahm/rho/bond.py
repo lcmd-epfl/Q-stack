@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 import os
-import itertools
 import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
-from . import utils, dmb_rep_bond as dmbb
-from . import dmb_rep_atom as dmba
+from . import utils
 from .utils import defaults
-from .compute_rho_spahm import get_repr, spahm_a_b
+from .compute_rho_spahm import get_repr
 
 
 def main(args=None):
@@ -18,7 +16,7 @@ def main(args=None):
     parser.add_argument('--guess',         dest='guess',         type=str,            default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help=f'effective core potential to use (default: None)')
+    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help='effective core potential to use (default: None)')
     parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                   help='charge / path to a file with a list of thereof')
     parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                   help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
