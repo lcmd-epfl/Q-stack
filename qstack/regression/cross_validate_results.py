@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import numpy as np
 from tqdm import tqdm
 from .kernel_utils import defaults, ParseKwargs

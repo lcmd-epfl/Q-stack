@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import numpy as np
 from .kernel_utils import get_kernel, defaults, ParseKwargs
 
