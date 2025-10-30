@@ -13,9 +13,10 @@ def spahm_a_b(rep_type, mols, dms,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
-    """ Computes SPAHM-b representations for a set of molecules.
+    """ Computes SPAHM(a,b) representations for a set of molecules.
 
     Args:
+        - rep_type (str) : the representation type ('atom' or 'bond' centered)
         - mols (list): the list of molecules (pyscf.Mole objects)
         - dms (list of numpy.ndarray): list of guess density matrices for each molecule
         - bpath (str): path to the directory containing bond-optimized basis-functions (.bas)
@@ -91,9 +92,10 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              auxbasis='ccpvdzjkfit', model="lowdin-long-x",
              with_symbols=False, only_z=[], merge=True):
-    """ Computes and reshapes an array of SPAHM-b representation
+    """ Computes and reshapes an array of SPAHM(a,b) representations
 
     Args:
+        - rep_type (str) : the representation type ('atom' or 'bond' centered)
         - mols (list): the list of molecules (pyscf.Mole objects)
         - xyzlist (list of str): list with the paths to the xyz files
         - guess (str): the guess Hamiltonian
@@ -208,7 +210,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
     return allvec
 
 def main(args=None):
-    parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
+    parser = argparse.ArgumentParser(description='This program computes the SPAHM(a,b) representations for a given molecular system or a list thereof')
     parser.add_argument('--mol',           dest='filename',      type=str,            required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
     parser.add_argument('--name',          dest='name_out',      type=str,            required=True,                    help='name of the output file')
     parser.add_argument('--rep',           dest='rep',           type=str, choices=['atom', 'bond'], required=True,     help='the type of representation')
