@@ -75,7 +75,7 @@ def main():
         outname = f'{args.dir}/{outname}'
         if args.print>1:
             print(outname)
-        np.save(f'{args.dir}/{outname}', vec)
+        np.save(outname, vec)
 
 
 if __name__ == "__main__":
