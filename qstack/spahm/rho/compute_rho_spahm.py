@@ -11,7 +11,7 @@ from .utils import defaults
 def spahm_a_b(rep_type, mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
-         auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
+         auxbasis=defaults.auxbasis, model=defaults.model,
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=None):
     """ Computes SPAHM(a,b) representations for a set of molecules.
 
@@ -93,7 +93,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
              pairfile=None, dump_and_exit=False, same_basis=True,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
-             auxbasis='ccpvdzjkfit', model="lowdin-long-x",
+             auxbasis=defaults.auxbasis, model=defaults.model,
              with_symbols=False, only_z=None, merge=True):
     """ Computes and reshapes an array of SPAHM(a,b) representations
 
@@ -232,7 +232,7 @@ def main(args=None):
     parser.add_argument('--print',         dest='print',         type=int,            default=0,                        help='printing level')
     parser.add_argument('--zeros',         dest='zeros',         action='store_true', default=False,                    help='use a version with more padding zeros')
     parser.add_argument('--split',         dest='split',         action='count',      default=0,                        help='split into molecules (use twice to also split the output in one file per molecule)')
-    parser.add_argument('--merge',         dest='merge',         action='store_true', default=True,                     help='merge different omods')
+    parser.add_argument('--merge',         dest='merge',         action='store_true', default=False,                    help='merge different omods')
     parser.add_argument('--symbols',       dest='with_symbols',  action='store_true', default=False,                    help='if save tuples with (symbol, vec) for all atoms')
     parser.add_argument('--onlym0',        dest='only_m0',       action='store_true', default=False,                    help='use only functions with m=0')
     parser.add_argument('--savedm',        dest='savedm',        action='store_true', default=False,                    help='save density matrices')
