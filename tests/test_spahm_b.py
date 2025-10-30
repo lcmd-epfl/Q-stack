@@ -66,7 +66,7 @@ def test_repr_shapes():
     mols = utils.load_mols(xyz_in, [0,-1], [0,0], 'ccpvdz')
 
     for with_symbols, split, merge in itertools.product([False,True],repeat=3):
-        X = bond.get_repr("bond", mols, xyz_in, 'LB', spin=[None], with_symbols=with_symbols, merge=merge, split=split, same_basis=False)
+        X = bond.get_repr("bond", mols, xyz_in, 'LB', spin=None, with_symbols=with_symbols, merge=merge, split=split, same_basis=False)
 
         if split:
             assert X.ndim == 2 - int(merge)  # shape of (Nmods[optional], Nmols). each element is another array

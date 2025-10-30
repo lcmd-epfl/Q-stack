@@ -1,4 +1,5 @@
 import operator
+from ast import literal_eval
 import numpy as np
 from pyscf import gto
 from qstack import fields
@@ -14,23 +15,25 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
     idx = {}
     M   = {}
     for qq in qqs:
-        if printlevel>1: print(qq)
+        if printlevel>1:
+            print(qq)
         S, ao, _ = sym.get_S('No', mybasis[qq])
         if not only_m0:
             idx[qq] = sym.store_pair_indices_z(ao)
         else:
             idx[qq] = sym.store_pair_indices_z_only0(ao)
-        M[qq] = sym.metric_matrix_z('No', idx[qq], ao, S)
+        M[qq] = sym.metric_matrix_z(idx[qq], ao, S)
     return idx, M
 
 
 def read_df_basis(bnames, bpath, same_basis=False):
     mybasis = {}
     for bname in bnames:
-        if bname in mybasis: continue
-        fname = bpath+'/'+bname+'.bas' if not same_basis else bpath+'/CC.bas'
-        with open(fname, 'r') as f:
-            mybasis[bname] = eval(f.read())
+        if bname in mybasis:
+            continue
+        fname = f'{bpath}/{bname}.bas' if not same_basis else f'{bpath}/CC.bas'
+        with open(fname) as f:
+            mybasis[bname] = literal_eval(f.read())
     return mybasis
 
 
@@ -52,20 +55,22 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
     qqs4q = {q: [] for q in elements}
     qqs = []
     if align:
-        for i0, q0 in enumerate(elements):
-            for i1, q1 in enumerate(elements):
-                    qq = make_bname(q1,q0)
-                    qqs4q[q0].append(qq)
-                    qqs4q[q1].append(qq)
-                    qqs.append(qq)
+        for q0 in elements:
+            for q1 in elements:
+                qq = make_bname(q1,q0)
+                qqs4q[q0].append(qq)
+                qqs4q[q1].append(qq)
+                qqs.append(qq)
     else:
         for mol in mols:
             q = [mol.atom_symbol(i) for i in range(mol.natm)]
             r = mol.atom_coords(unit='ANG')
             for i0, q0 in enumerate(q):
-                if q0 not in elements: continue
+                if q0 not in elements:
+                    continue
                 for i1, q1 in enumerate(q[:i0]):
-                    if q1 not in elements: continue
+                    if q1 not in elements:
+                        continue
                     if np.linalg.norm(r[i1]-r[i0]) <= cutoff:
                         qq = make_bname(q1,q0)
                         qqs4q[q0].append(qq)
@@ -77,9 +82,10 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
 
 
 def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_basis=False):
-    qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols)]
+    qqs0 = [make_bname(*map(mol.atom_symbol, bondij)) for (bondij, mol) in zip(bondidx, mols, strict=True)]
     qqs0 = sorted(set(qqs0))
-    if printlevel>1: print(qqs0)
+    if printlevel>1:
+        print(qqs0)
     mybasis = read_df_basis(qqs0, bpath, same_basis=same_basis)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return mybasis, idx, M
@@ -87,7 +93,7 @@ def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_bas
 
 def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None, pairfile=None, dump_and_exit=False, same_basis=False):
     if elements is None:
-        elements = sorted(list(set([q for mol in mols for q in mol.elements])))
+        elements = sorted({q for mol in mols for q in mol.elements})
 
     if pairfile and not dump_and_exit:
         qqs0, qqs4q = np.load(pairfile, allow_pickle=True)
@@ -101,8 +107,9 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
         np.save(pairfile, np.asanyarray((qqs0, qqs4q), dtype=object))
         exit(0)
 
-    qqs = {q: qqs0 for q in elements}
-    if printlevel>1: print(qqs0)
+    qqs = dict.fromkeys(elements, qqs0)
+    if printlevel>1:
+        print(qqs0)
     mybasis = read_df_basis(qqs0, bpath, same_basis=same_basis)
     idx, M  = get_basis_info(qqs0, mybasis, only_m0, printlevel)
     return elements, mybasis, qqs, qqs4q, idx, M
@@ -119,7 +126,7 @@ def bonds_dict_init(qqs, M):
 
 def fit_dm(dm, mol, mybasis, ri0, ri1):
     rm = (ri0+ri1)*0.5
-    atom = "No  % f % f % f" % (rm[0], rm[1], rm[2])
+    atom = f"No {rm[0]} {rm[1]} {rm[2]}"
     auxmol = gto.M(atom=atom, basis=mybasis)
     e2c, e3c = fields.decomposition.get_integrals(mol, auxmol)[1:]
     c = fields.decomposition.get_coeff(dm, e2c, e3c)
@@ -130,7 +137,7 @@ def fit_dm(dm, mol, mybasis, ri0, ri1):
 def vec_from_cs(z, cs, lmax, idx):
     D = Dmatrix_for_z(z, lmax)
     c_new = rotate_c(D, cs)
-    v = sym.vectorize_c('No', idx, c_new)
+    v = sym.vectorize_c(idx, c_new)
     return v
 
 
@@ -149,7 +156,10 @@ def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
     return [v0, v1], bname
 
 
-def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
+def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=None):
+
+    if only_z is None:
+        only_z = []
 
     L = lowdin.Lowdin_split(mol, dm)
     q = [mol.atom_symbol(i) for i in range(mol.natm)]
@@ -163,7 +173,8 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
     for i0 in all_atoms:
         rest = mol.natm if len(only_z) > 0 else i0
         for i1 in range(rest):
-            if i0 == i1 : continue
+            if i0 == i1 :
+                continue
             v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff)
             if v is None:
                 continue

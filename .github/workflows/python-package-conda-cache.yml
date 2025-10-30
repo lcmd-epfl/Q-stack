@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build C 
+      - name: Build C
         run: make -C qstack/regression/lib/
 
       - name: Setup Miniforge

@@ -1,0 +1,66 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    "qstack.egg-info",
+    "__init__.py",
+    "qstack/spahm/rho/rep_completion.py", #TODO
+    "qstack/spahm/rho/01_bind.py",# TODO
+]
+
+line-length = 88
+indent-width = 4
+
+target-version = "py313"
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
+
+
+[lint]
+select = [
+  "A", "E", "F", "B",
+  "S", "COM", "C4", "EXE", "ICN", "PIE", "PLR1714", "ARG",
+  "PERF", "FURB", "PLE", "TRY002", "W", "UP", "RUF", "SIM", "NPY",
+  #"FIX", "TD", "D",  # later
+]
+ignore = [
+"E741",     # ambiguous variable name
+"E731",     # do not assign lambda expression
+"E501",     # line length
+"RUF003",   # `×` in comments
+"RUF002",   # `–` in comments
+"RUF015",   # single element slice
+"SIM3",     # yoda condition
+"SIM114",   # combine if branches
+"SIM108",   # use ternary operator
+]
+
+[lint.per-file-ignores]
+"qstack/spahm/rho/Dmatrix.py" = ["E702"]  # multiple statements on one line (semicolon)
+"qstack/spahm/rho/bond.py"    = ["E711"]  # comparison to `None` for np.array elements

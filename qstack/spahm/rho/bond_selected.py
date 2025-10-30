@@ -16,7 +16,7 @@ parser.add_argument('--basis',         type=str,            dest='basis'  ,     
 parser.add_argument('--charge',        type=str,            dest='charge',         default=None,                     help='file with a list of charges')
 parser.add_argument('--spin',          type=str,            dest='spin',           default=None,                     help='file with a list of numbers of unpaired electrons')
 parser.add_argument('--xc',            type=str,            dest='xc',             default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
-parser.add_argument('--dir',           type=str,            dest='dir',            default='./',                     help=f'directory to save the output in (default=current dir)')
+parser.add_argument('--dir',           type=str,            dest='dir',            default='./',                     help='directory to save the output in (default=current dir)')
 parser.add_argument('--cutoff',        type=float,          dest='cutoff',         default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
 parser.add_argument('--bpath',         type=str,            dest='bpath',          default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
 parser.add_argument('--same_basis',    action='store_true', dest='same_basis',     default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
@@ -25,7 +25,8 @@ parser.add_argument('--print',         type=int,            dest='print',       
 parser.add_argument('--onlym0',        action='store_true', dest='only_m0',        default=False,                    help='use only functions with m=0')
 
 args = parser.parse_args()
-if args.print>0: print(vars(args))
+if args.print>0:
+    print(vars(args))
 
 
 def main():
@@ -42,10 +43,11 @@ def main():
     mols = utils.load_mols(xyzlist, charge, spin, args.basis, args.print, units=args.units)
     dms  = utils.mols_guess(mols, xyzlist, args.guess,
                             xc=args.xc, spin=args.spin, printlevel=args.print)
-    mybasis, idx, M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print, same_basis=args.same_basis)
+    mybasis, idx, _M = dmbb.read_basis_wrapper_pairs(mols, bondidx, args.bpath, args.only_m0, args.print, same_basis=args.same_basis)
 
-    for j, (bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist)):
-        if args.print>0: print('mol', j, flush=True)
+    for j, (bondij, mol, dm, fname) in enumerate(zip(bondidx, mols, dms, xyzlist, strict=True)):
+        if args.print>0:
+            print('mol', j, flush=True)
         q = [mol.atom_symbol(i) for i in range(mol.natm)]
         r = mol.atom_coords(unit='ANG')
         vec = []

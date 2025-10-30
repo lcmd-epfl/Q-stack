@@ -4,6 +4,8 @@ import os
 import numpy as np
 from pyscf.data import elements
 import qstack.orcaio
+import qstack.compound
+import qstack.fields
 from qstack.tools import reorder_ao
 
 

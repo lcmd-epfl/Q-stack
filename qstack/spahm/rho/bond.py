@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import itertools
 import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -18,10 +19,10 @@ def main(args=None):
     parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
     parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help=f'effective core potential to use (default: None)')
-    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                     help='charge / path to a file with a list of thereof')
-    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                     help='number of unpaired electrons / path to a file with a list of thereof')
+    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                   help='charge / path to a file with a list of thereof')
+    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                   help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
-    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help=f'directory to save the output in (default=current dir)')
+    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help='directory to save the output in (default=current dir)')
     parser.add_argument('--cutoff',        dest='cutoff',        type=float,          default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
     parser.add_argument('--bpath',         dest='bpath',         type=str,            default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
     parser.add_argument('--omod',          dest='omod',          type=str, nargs='+', default=defaults.omod,            help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
@@ -38,9 +39,10 @@ def main(args=None):
     parser.add_argument('--pairfile',      dest='pairfile',      type=str,            default=None,                     help='path to the atom pair file')
     parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true', default=False,                    help='write the atom pair file and exit if --pairfile is set')
     parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
-    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=[],                       help="restrict the representation to one or several atom types")
+    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=None,                     help="restrict the representation to one or several atom types")
     args = parser.parse_args(args=args)
-    if args.print>0: print(vars(args))
+    if args.print>0:
+        print(vars(args))
     correct_num_threads()
 
     if args.name_out is None:
@@ -72,14 +74,15 @@ def main(args=None):
         bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
         elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z,
     )
-    if args.print > 0: print(reps.shape)
+    if args.print > 0:
+        print(reps.shape)
     if args.merge:
         if (spin == None).all():
             mod_iter = [(reps, '')]
         else:
             mod_iter = [(reps, '_'+'_'.join(args.omod))]
     else:
-        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod)]
+        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod, strict=True)]
 
     for modvec, mod_suffix in mod_iter:
         if args.split >=2:

@@ -27,7 +27,7 @@ def xyz(n,m,k):
 def I23(n,m,k):
   I23 = 0.0
   K = sympy.symbols('K')
-  for l in range(0, n+m+2):
+  for l in range(n+m+2):
     I23 = I23 + (-1)**l * trinomial( n+m+1, n+m+1-l, l) / (2*l+2*K-1)
   I23 = I23.subs(K,k)
   I23 = I23 / ( (2*n+1) * 2**(2*n+2*m) )
@@ -44,5 +44,5 @@ def trinomial(k1,k2,k3):
 if __name__ == "__main__":
   k,n,m = map(int, sys.argv[1:4])
   x = xyz(k,n,m)
-  print("%.15f ="%x, x)
+  print(f"{x:.15f} = {x}")
 

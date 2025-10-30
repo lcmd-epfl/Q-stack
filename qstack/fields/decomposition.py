@@ -16,7 +16,7 @@ def decompose(mol, dm, auxbasis):
     """
 
     auxmol = compound.make_auxmol(mol, auxbasis)
-    S, eri2c, eri3c = get_integrals(mol, auxmol)
+    _S, eri2c, eri3c = get_integrals(mol, auxmol)
     c = get_coeff(dm, eri2c, eri3c)
     return auxmol, c
 
@@ -56,9 +56,9 @@ def get_self_repulsion(mol, dm):
     """
 
     try:
-        j, k = mol.get_jk()
-    except:
-        j, k = scf.hf.get_jk(mol, dm)
+        j, _k = mol.get_jk()
+    except AttributeError:
+        j, _k = scf.hf.get_jk(mol, dm)
     return np.einsum('ij,ij', j, dm)
 
 def decomposition_error(self_repulsion, c, eri2c):
@@ -87,8 +87,9 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
 
     # Solve Jc = projection to get the coefficients
     if slices is not None:
-        assert slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2
-        assert slices[0,0] == 0 and slices[-1,1] == projection.shape[0]
+        if not (slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2) or\
+           not (slices[0,0] == 0 and slices[-1,1] == projection.shape[0]):
+            raise RuntimeError(f"Wrong argument {slices=}")
 
         c = np.empty_like(projection)
         for s0,s1 in slices:
@@ -108,11 +109,11 @@ def _get_inv_metric(mol, metric, v):
   """
   if isinstance(metric, str):
       metric = metric.lower()
-      if metric == 'u' or metric == 'unit' or metric == '1' :
+      if metric in ['u', 'unit', '1']:
           return v
-      elif metric == 's' or metric == 'overlap' or metric == 'ovlp' :
+      elif metric in ['s', 'overlap', 'ovlp']:
           O = mol.intor('int1e_ovlp_sph')
-      elif metric=='j' or metric == 'coulomb':
+      elif metric in ['j', 'coulomb']:
           O = mol.intor('int2c2e_sph')
   else:
       O = metric
@@ -194,7 +195,7 @@ def number_of_electrons_deco_vec(mol, per_atom=False):
             if l==0:
                 w = mol.bas_ctr_coeff(bas_id)
                 a = mol.bas_exp(bas_id)
-                q = pow (2.0*np.pi/a, 0.75) @ w
+                q = np.pow(2.0*np.pi/a, 0.75) @ w
                 if per_atom:
                     Q[i:i+n,iat] = q
                 else:

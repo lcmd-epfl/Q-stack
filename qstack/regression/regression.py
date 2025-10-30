@@ -58,14 +58,16 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
     if debug:
         # Ensures reproducibility of the sample selection for each train_size over repetitions (n_rep)
-        np.random.seed(666)
+        rng = np.random.RandomState(666)
+    else:
+        rng = np.random.RandomState()
 
     maes_all = []
     for size in train_size:
         size_train = int(np.floor(len(y_train)*size)) if size <= 1.0 else size
         maes = []
-        for rep in range(n_rep):
-            train_idx = np.random.choice(all_indices_train, size = size_train, replace=False)
+        for _rep in range(n_rep):
+            train_idx = rng.choice(all_indices_train, size = size_train, replace=False)
             y_kf_train = y_train[train_idx]
 
             if not sparse:
@@ -107,7 +109,8 @@ def main():
     parser.add_argument('--name',          type=str,   dest='nameout',     required=False, default=None, help='the name of the output file containting the LC data (.txt).')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll): correct_num_threads()
+    if(args.ll):
+        correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
 
@@ -116,7 +119,7 @@ def main():
                           test_size=args.test_size, train_size=args.train_size, n_rep=args.splits, sparse=args.sparse,
                           debug=args.debug, random_state=args.random_state)
     for size_train, meanerr, stderr in maes_all:
-        print("%d\t%e\t%e" % (size_train, meanerr, stderr))
+        print(f"{size_train}\t{meanerr:e}\t{stderr:e}")
     maes_all = np.array(maes_all)
     if args.nameout is not None:
         np.savetxt(args.nameout, maes_all, header="size_train, meanerr, stderr")

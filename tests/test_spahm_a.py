@@ -19,15 +19,13 @@ def test_water():
     X = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'LB',
                       elements=["H", "O"], spin=None, with_symbols=True,
                       model='lowdin-long-x', auxbasis='ccpvdzjkfit')
-
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O.npy', X)
 
 def test_water_alternate():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-    #X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    #X = atom.get_repr(mol, ["H", "O"], None, dm=None,
     #                  guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
     X = atom.get_repr("atom", [mol], [PATH], 'LB', spin=[None], auxbasis='ccpvdzjkfit', with_symbols=True)
-
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O.npy', X)
 
 def test_water_lowdinshortx():
@@ -36,7 +34,6 @@ def test_water_lowdinshortx():
                       elements=["H", "O"], spin=None, with_symbols=True,
                       model='lowdin-short-x', auxbasis='ccpvdzjkfit')
     X = np.array([(z,np.trim_zeros(v)) for z,v in X], dtype=object) ## trimming is necessary to get the short-version vector !
-
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-short-x.npy', X)
 
 def test_water_lowdinlong():
@@ -44,7 +41,6 @@ def test_water_lowdinlong():
     X = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'LB',
                       elements=["H", "O"], spin=None, with_symbols=True,
                       model='lowdin-long', auxbasis='ccpvdzjkfit')
-
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-long.npy', X)
 
 def test_water_lowdinshort():
@@ -53,7 +49,6 @@ def test_water_lowdinshort():
                       elements=["H", "O"], spin=None, with_symbols=True,
                       model='lowdin-short', auxbasis='ccpvdzjkfit')
     X = np.array([(z,np.trim_zeros(v)) for z,v in X], dtype=object) ## trimming is necessary to get the short-version vector !
-
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-short.npy', X)
 
 def test_water_SAD_guess_open_shell():
@@ -61,7 +56,6 @@ def test_water_SAD_guess_open_shell():
     Xsad = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'sad',
                          elements=["H", "O"], spin=[1], with_symbols=True,
                          xc = 'hf', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
-
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O-RC_SAD.npy', Xsad)
 
 def test_water_SAD_guess_close_shell():
@@ -73,20 +67,16 @@ def test_water_SAD_guess_close_shell():
 
 def test_water_single_element():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-
     X = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'LB',
                       elements=["H", "O"], spin=None, with_symbols=True,
                       model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
-
     X_true = np.load(PATH+'/data/SPAHM_a_H2O/X_H2O.npy', allow_pickle=True)
-
     # the next two lines deviate from the common template
     a = X[0]
     assert(X.shape == np.array(X_true[0], ndmin=2).shape)
     for a_true in X_true:
         if a[0] == a_true[0]:                       # atom type
             assert(np.linalg.norm(a[1]-a_true[1]) < 1e-08)   # atom representations
-
 
 
 if __name__ == '__main__':

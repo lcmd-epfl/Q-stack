@@ -13,21 +13,24 @@ def _orca2gpr_idx(mol):
     Returns:
         A numpy ndarray of re-arranged indices.
     """
-    def _M1(n):
-        return (n+1)//2 if n%2 else -((n+1)//2)
+    #def _M1(n):
+    #    return (n+1)//2 if n%2 else -((n+1)//2)
     idx = np.arange(mol.nao, dtype=int)
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
         for gto in mol._basis[q]:
             l = gto[0]
+            msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
-            for n in range(nf):
-                for m in range(-l, l+1):
-                    m1 = _M1(m+l)
-                    idx[(i+(m1-m))] = i
-                    i+=1
+            for _n in range(nf):
+                #for m in range(-l, l+1):
+                #    m1 = _M1(m+l)
+                #    idx[(i+(m1-m))] = i
+                #    i+=1
+                I = np.s_[i:i+msize]
+                idx[I] = np.concatenate((idx[I][::-2], idx[I][1::2]))
+                i += msize
     return idx
 
 
@@ -44,7 +47,6 @@ def _orca2gpr_sign(mol):
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
         for gto in mol._basis[q]:
             l = gto[0]
             msize = 2*l+1
@@ -52,7 +54,7 @@ def _orca2gpr_sign(mol):
             if l<3:
                 i += msize*nf
             else:
-                for n in range(nf):
+                for _n in range(nf):
                     signs[i+5:i+msize] = -1  # |m| >= 3
                     i+= msize
     return signs
@@ -72,16 +74,13 @@ def _pyscf2gpr_idx(mol):
     i=0
     for iat in range(mol.natm):
         q = mol._atom[iat][0]
-        max_l = mol._basis[q][-1][0]
         for gto in mol._basis[q]:
             l = gto[0]
             msize = 2*l+1
             nf = max([len(prim)-1 for prim in gto[1:]])
             if l==1:
-                for n in range(nf):
-                    idx[i  ] = i+1
-                    idx[i+1] = i+2
-                    idx[i+2] = i
+                for _n in range(nf):
+                    idx[i:i+3] = [i+1,i+2,i]
                     i += 3
             else:
                 i += msize * nf
@@ -132,8 +131,8 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         idx_dest = np.ix_(idx_dest,idx_dest)
         idx_src  = np.ix_(idx_src,idx_src)
     elif vector.ndim!=1:
-        errstr = 'Dim = '+ str(vector.ndim)+' (should be 1 or 2)'
-        raise Exception(errstr)
+        errstr = f'Dim = {vector.ndim} (should be 1 or 2)'
+        raise ValueError(errstr)
 
     newvector = np.zeros_like(vector)
     newvector[idx_dest] = (sign_src*vector)[idx_src]
@@ -241,10 +240,10 @@ def unix_time_decorator(func):
     start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
     ret = func(*args, **kwargs)
     end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
-    print(func.__name__, ':  real: %.4f  user: %.4f  sys: %.4f'%
-          (end_time - start_time,
-           end_resources.ru_utime - start_resources.ru_utime,
-           end_resources.ru_stime - start_resources.ru_stime))
+    real = end_time - start_time
+    user = end_resources.ru_utime - start_resources.ru_utime
+    syst = end_resources.ru_stime - start_resources.ru_stime
+    print(f'{func.__name__} :  real: {real:.4f}  user: {user:.4f}  sys: {syst:.4f}')
     return ret
   return wrapper
 

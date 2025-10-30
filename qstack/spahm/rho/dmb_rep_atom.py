@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import pyscf
 from qstack import compound, fields
@@ -13,7 +12,7 @@ def get_basis_info(atom_types, auxbasis):
     for q in atom_types:
         S, ao[q], ao_start = sym.get_S(q, auxbasis)
         idx[q] = sym.store_pair_indices_short(ao[q], ao_start)
-        M[q]   = sym.metric_matrix_short(q, idx[q], ao[q], S)
+        M[q]   = sym.metric_matrix_short(idx[q], ao[q], S)
         ao_len[q] = len(S)
     return ao, ao_len, idx, M
 
@@ -29,16 +28,16 @@ def get_model(arg):
         dm = dm - dm_sad
         return fields.decomposition.decompose(mol, dm, auxbasis)[1]
 
-    def df_lowdin_long(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_long(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, only_i=only_i)
 
-    def df_lowdin_short(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_short(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, short=True, only_i=only_i)
 
-    def df_lowdin_long_x(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_long_x(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, w_slicing=False, only_i=only_i)
 
-    def df_lowdin_short_x(mol, dm, auxbasis, only_i=[]):
+    def df_lowdin_short_x(mol, dm, auxbasis, only_i=None):
         return atomic_density.fit(mol, dm, auxbasis, short=True, w_slicing=False, only_i=only_i)
 
     def df_occup(mol, dm, auxbasis):
@@ -60,19 +59,18 @@ def get_model(arg):
               'lowdin-short-x': [df_lowdin_short_x,  coefficients_symmetrize_short ],
               'lowdin-long-x' : [df_lowdin_long_x,   coefficients_symmetrize_long  ],
               'mr2021'        : [df_pure,            coefficients_symmetrize_MR2021]}
-    if arg not in models.keys():
-        print('Unknown model. Available models:', list(models.keys()), file=sys.stderr)
-        exit(1)
+    if arg not in models:
+        raise RuntimeError(f'Unknown model. Available models: {list(models.keys())}')
     return models[arg]
 
 
-def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, M, _):
+def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, _M, _):
     # J. T. Margraf and K. Reuter, Nat. Commun. 12, 344 (2021).
     v = []
     i0 = 0
     for q in mol.elements:
         n = ao_len[q]
-        v.append(sym.vectorize_c_MR2021(q, idx[q], ao[q], c[i0:i0+n]))
+        v.append(sym.vectorize_c_MR2021(idx[q], ao[q], c[i0:i0+n]))
         i0 += n
     return v
 
@@ -83,7 +81,7 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
     i0 = 0
     for q in mol.elements:
         n = ao_len[q]
-        v.append(M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c[i0:i0+n]))
+        v.append(M[q] @ sym.vectorize_c_short(idx[q], ao[q], c[i0:i0+n]))
         i0 += n
     maxlen = sum([len(v) for v in idx.values()])
     v = np.array([np.pad(x, (0, maxlen-len(x)), constant_values=0) for x in v])
@@ -93,14 +91,12 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
 def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
     # long lowdin
     vectors = []
-    for c_a, e in zip(c_df, mol.elements):
-        v_atom = {}
-        for q in atom_types:
-            v_atom[q] = np.zeros(len(idx[q]))
+    for c_a in c_df:
+        v_atom = {q: np.zeros(len(idx[q])) for q in atom_types}
         i0 = 0
         for q in mol.elements:
             n = ao_len[q]
-            v_atom[q] += M[q] @ sym.vectorize_c_short(q, idx[q], ao[q], c_a[i0:i0+n])
+            v_atom[q] += M[q] @ sym.vectorize_c_short(idx[q], ao[q], c_a[i0:i0+n])
             i0 += n
         v_a = np.hstack([v_atom[q] for q in atom_types])
         vectors.append(v_a)

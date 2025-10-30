@@ -1,7 +1,4 @@
 import numpy as np
-import pyscf
-from pyscf import scf, tdscf
-from qstack import compound
 from . import moments
 
 def get_cis(mf, nstates):
@@ -75,8 +72,8 @@ def exciton_properties_c(mol, hole, part):
         Three floats: the hole-particle distance, the hole size, and the particle size respectively.
     """
 
-    hole_N, hole_r, hole_r2 = moments.r2_c(hole, mol)
-    part_N, part_r, part_r2 = moments.r2_c(part, mol)
+    _hole_N, hole_r, hole_r2 = moments.r2_c(hole, mol)
+    _part_N, part_r, part_r2 = moments.r2_c(part, mol)
 
     dist = np.linalg.norm(hole_r-part_r)
     hole_extent = np.sqrt(hole_r2-hole_r@hole_r)
