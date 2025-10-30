@@ -5,8 +5,6 @@ import numpy as np
 from pyscf import gto, data
 from qstack import compound, spahm
 
-np.set_printoptions(formatter={'all':lambda x: '% .4f'%x})
-
 
 def build_mol(mol, r):
     r = r.reshape((-1,3))
@@ -27,7 +25,7 @@ def grad_num(func, mol, guess, eps=1e-4):
 
 def derivatives_num(r, func, mol, guess, eps=1e-4):
     g = []
-    for i, ri in enumerate(r):
+    for i in range(len(r)):
         u   = np.eye(1, len(r), i).flatten()  # unit vector || ith dimension
         e1  = func(r+eps*u, mol, guess)
         e2  = func(r-eps*u, mol, guess)
@@ -40,14 +38,14 @@ def derivatives_num(r, func, mol, guess, eps=1e-4):
 def test_spahm_ev_grad():
     def spahm_ev(r, mol, guess):
         mymol = build_mol(mol, r)
-        e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0])
+        e, _ = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0])
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
     mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
     guess = spahm.guesses.get_guess_g('lb')
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_ev, mol, guess).T
-    for g1, g2 in zip(ngrad, agrad):
+    for g1, g2 in zip(ngrad, agrad, strict=True):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
@@ -61,28 +59,28 @@ def test_spahm_re_grad():
     guess = 'lb'
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_re, mol, guess).reshape(mol.natm*3, -1).T
-    for g1, g2 in zip(ngrad, agrad):
+    for g1, g2 in zip(ngrad, agrad, strict=True):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_ev_grad_ecp():
     def spahm_ev(r, mol, guess):
         mymol = build_mol(mol, r)
-        e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0])
+        e, _ = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0])
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
     mol   = compound.xyz_to_mol(path+'/data/H2Te.xyz', 'minao', charge=0, spin=0, ecp='def2-svp')
     guess = spahm.guesses.get_guess_g('lb')
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_ev, mol, guess).T
-    for g1, g2 in zip(ngrad, agrad):
+    for g1, g2 in zip(ngrad, agrad, strict=True):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_ev_grad_field():
     def spahm_ev(r, mol, guess):
         mymol = build_mol(mol, r)
-        e, c = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0], field=field)
+        e, _ = spahm.compute_spahm.get_guess_orbitals(mymol, guess[0], field=field)
         return e
     path  = os.path.dirname(os.path.realpath(__file__))
     mol   = compound.xyz_to_mol(path+'/data/H2O_dist_rot.xyz', 'def2svp', charge=0, spin=0)
@@ -90,7 +88,7 @@ def test_spahm_ev_grad_field():
     guess = spahm.guesses.get_guess_g('lb')
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess, field=field)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_ev, mol, guess).T
-    for g1, g2 in zip(ngrad, agrad):
+    for g1, g2 in zip(ngrad, agrad, strict=True):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
@@ -106,7 +104,7 @@ def test_spahm_re_grad_field():
     guess = 'lb'
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_re, mol, guess).reshape(mol.natm*3, -1).T
-    for g1, g2 in zip(ngrad, agrad):
+    for g1, g2 in zip(ngrad, agrad, strict=True):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 
@@ -120,7 +118,7 @@ def test_spahm_re_field_grad():
     guess = 'lb'
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)[2].reshape(-1, 3)
     ngrad = derivatives_num(field, spahm_re, mol, guess).reshape(3, -1).T
-    for g1, g2 in zip(ngrad, agrad):
+    for g1, g2 in zip(ngrad, agrad, strict=True):
         assert(np.linalg.norm(g1-g2)<1e-6)
 
 

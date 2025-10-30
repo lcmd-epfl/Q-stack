@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import os
-import tempfile, filecmp
+import tempfile
+import filecmp
 import numpy as np
 from qstack import compound
 from qstack.fields.density2file import coeffs_to_molden

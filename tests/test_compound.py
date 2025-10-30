@@ -21,7 +21,7 @@ def test_makeauxmol():
     auxmol = compound.make_auxmol(mol, auxbasis)
     assert auxmol.natm == 3
     assert auxmol.nelectron == 10
-    assert type(auxmol.elements) == type([])
+    assert type(auxmol.elements) is type([])
     assert auxmol.basis == "cc-pvtz-jkfit"
 
 def test_rotate_molecule():

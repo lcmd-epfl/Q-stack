@@ -1,8 +1,9 @@
+#!/usr/bin/env python3
+
 import os
 import itertools
 import numpy as np
 from qstack.spahm.rho import utils, compute_rho_spahm as bond
-from qstack import compound
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -10,13 +11,12 @@ def underlying_test(X, truepath):
     true_file = PATH + truepath
     X_true = np.load(true_file)
     assert(X_true.shape == X.shape)
-    for Xa, Xa_true in zip(X, X_true):
+    for Xa, Xa_true in zip(X, X_true, strict=True):
         assert(np.linalg.norm(Xa-Xa_true) < 1e-8) # evaluating representation diff as norm (threshold = 1e-8)
 
 def test_water():
     xyz_in = PATH+'/data/H2O.xyz'
     mols = utils.load_mols([xyz_in], [0], [0], 'minao')
-    dms = utils.mols_guess(mols, [xyz_in], 'LB', spin=[0])
     X = bond.get_repr("bond", mols, [xyz_in], 'LB', spin=[0], with_symbols=False, same_basis=False)
 
     underlying_test(X, '/data/H2O_spahm_b.npy_alpha_beta.npy')
@@ -24,7 +24,6 @@ def test_water():
 def test_water_closed():
     xyz_in = PATH+'/data/H2O.xyz'
     mols = utils.load_mols([xyz_in], [None], [0], 'minao')
-    dms = utils.mols_guess(mols, [xyz_in], 'LB', spin=[None])
     X = bond.get_repr("bond", mols, [xyz_in], 'LB', spin=[None], with_symbols=False, same_basis=False)
     underlying_test(X, '/data/H2O_spahm_b.npy')
 
@@ -39,7 +38,7 @@ def test_water_O_only():
     X_true = np.load(PATH+'/data/H2O_spahm_b.npy_alpha_beta.npy')
     X_true = X_true[0]  # this line makes it incompatible with a call to underlying_test()
     assert(X_true.shape == X.shape)
-    for Xa, Xa_true in zip(X, X_true):
+    for Xa, Xa_true in zip(X, X_true, strict=True):
         assert(np.linalg.norm(Xa-Xa_true) < 1e-8) # evaluating representation diff as norm (threshold = 1e-8)
 
 def test_water_same_basis():

@@ -114,14 +114,14 @@ def test_regroup_symbols_and_trim():
     regrouped_species = ut.regroup_symbols(filelist, trim_reps=True)
     #trimedlist = os.path.join(path, "./data/list_water_lowdin-short.txt") ## this is not possible because of inhomogenous array
     X_truth = np.load(path+"/data/SPAHM_a_H2O/X_H2O_lowdin-short.npy", allow_pickle=True)
-    regrouped_truth = {z:[] for z in regrouped_species.keys()}
+    regrouped_truth = {z:[] for z in regrouped_species}
     for z,v in X_truth:
         regrouped_truth[z].append(v)
-    for z in regrouped_species.keys():
+    for z in regrouped_species:
         assert(np.allclose(regrouped_species[z], regrouped_truth[z]))
 
 
-def main():
+if __name__ == '__main__':
     test_load_mols()
     test_load_reps()
     test_load_rep_from_list()
@@ -131,6 +131,3 @@ def main():
     test_load_reps_singleatom_sum_local()
     test_load_reps_singleatom_sum_local2()
     test_regroup_symbols()
-
-
-if __name__ == '__main__': main()
