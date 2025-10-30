@@ -42,7 +42,7 @@ def test_load_reps_singleatom():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O'])
+    rep = atom.get_repr(mol, ['H', 'O'], 0, dm=None, guess="LB", only_z=['O'])
     np.save(tmpfile, rep)
     X, symbols = ut.load_reps(tmpfile, from_list=False, \
             with_labels=True, local=True, sum_local=False, printlevel=0, progress=True)
@@ -56,7 +56,7 @@ def test_load_reps_singleatom_sum_local():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['H'])
+    rep = atom.get_repr(mol, ['H', 'O'], 0, dm=None, guess="LB", only_z=['H'])
     np.save(tmpfile, rep)
     X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
@@ -68,7 +68,7 @@ def test_load_reps_singleatom_sum_local2():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, 0, dm=None, guess="LB", only_z=['O']) #since only one O checks if the sum is not run over the representations elements
+    rep = atom.get_repr(mol, ['H', 'O'], 0, dm=None, guess="LB", only_z=['O']) #since only one O checks if the sum is not run over the representations elements
     np.save(tmpfile, rep)
     X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
@@ -90,7 +90,8 @@ def test_check_data_structure():
                   ]
     for ft in test_files:
         is_single, is_labeled = ut.check_data_struct(ft['path2file'], local = ft['is_local'])
-        assert((ft['is_single'] == is_single) and (ft['is_labeled'] == is_labeled))
+        assert(ft['is_single'] == is_single)
+        assert(ft['is_labeled'] == is_labeled)
 
 
 def main():

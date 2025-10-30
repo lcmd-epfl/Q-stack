@@ -25,6 +25,7 @@ for f in X_files :
 for e in X_atom.keys() :
     X_array = np.array(X_atom[e])
     name_out = 'X_' + e + '_' + args.XDir
-    if name_out[-1] == '/': name_out = name_out[:-1]
+    if name_out[-1] == '/':
+        name_out = name_out[:-1]
     np.save(name_out, X_array)
     print('# Atoms for ', e, '=', X_array.shape)

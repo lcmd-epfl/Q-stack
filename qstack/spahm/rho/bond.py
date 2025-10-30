@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import itertools
 import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -12,7 +13,7 @@ def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          rep_type='bond',auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
-         pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
+         pairfile=None, dump_and_exit=False, same_basis=False, only_z=None):
     """ Computes SPAHM-b representations for a set of molecules.
 
     Args:
@@ -38,6 +39,8 @@ def bond(mols, dms,
                 - Nfeatures: the number of features (for each omods)
     """
     maxlen = 0 # This needs fixing `UnboundLocalError`
+    if only_z is None:
+        only_z = []
     if rep_type == 'bond':
         elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                          elements=elements, cutoff=cutoff,
@@ -55,7 +58,8 @@ def bond(mols, dms,
         maxlen = sum([len(v) for v in idx.values()])
 
     if len(only_z) > 0:
-        print(f"Selecting atom-types in {only_z}")
+        if printlevel>0:
+            print(f"Selecting atom-types in {only_z}")
         zinmols = []
         for mol in mols:
             zinmol = [sum(z == np.array(mol.elements)) for z in only_z]
@@ -66,8 +70,9 @@ def bond(mols, dms,
         zinmols = [mol.natm for mol in mols]
     allvec = np.zeros((len(omods), len(mols), natm, maxlen))
 
-    for imol, (mol, dm) in enumerate(zip(mols,dms)):
-        if printlevel>0: print('mol', imol, flush=True)
+    for imol, (mol, dm) in enumerate(zip(mols, dms, strict=True)):
+        if printlevel>0:
+            print('mol', imol, flush=True)
         if len(only_z) >0:
             only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
         else:
@@ -90,7 +95,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              rep_type='bond', auxbasis='ccpvdzjkfit', model="lowdin-long-x",
-             with_symbols=False, only_z=[], merge=True):
+             with_symbols=False, only_z=None, merge=True):
     """ Computes and reshapes an array of SPAHM-b representation
 
     Args:
@@ -130,11 +135,11 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     """
     if not dump_and_exit:
         dms     = utils.mols_guess(mols, xyzlist, guess,
-                               xc=defaults.xc, spin=spin, readdm=readdm, printlevel=printlevel)
+                               xc=xc, spin=spin, readdm=readdm, printlevel=printlevel)
     else:
         dms = []
 
-    if len(only_z) > 0:
+    if only_z is not None and len(only_z) > 0:
         all_atoms   = [ [sym for sym in mol.elements if sym in only_z] for mol in mols]
     else:
         all_atoms   = [mol.elements for mol in mols]
@@ -150,28 +155,27 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                    rep_type=rep_type, auxbasis=auxbasis,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
     maxlen=allvec.shape[-1]
-    natm = allvec.shape[-2]
     if split:
         # note: whenever there is zip() on a molecule, this automatically removes the padding
         if merge:
             allvec = np.concatenate(allvec, axis=2)
             if with_symbols:
                 allvec = np.array([
-                    np.array(list(zip(mol_atoms,molvec)), dtype=object)
-                    for molvec,mol_atoms in zip(allvec, all_atoms)
+                    np.array(list(zip(mol_atoms, molvec, strict=False)), dtype=object)
+                    for molvec,mol_atoms in zip(allvec, all_atoms, strict=True)
                 ], dtype=object)
             else:
                 allvec = np.array([
                     molvec[:len(mol_atoms)]
-                    for molvec,mol_atoms in zip(allvec, all_atoms)
+                    for molvec, mol_atoms in zip(allvec, all_atoms, strict=True)
                 ], dtype=object)
 
         else:
             if with_symbols:
                 allvec = np.array([
                     [
-                        np.array(list(zip(mol_atoms,molvec)), dtype=object)
-                        for molvec,mol_atoms in zip(modvec,all_atoms)
+                        np.array(list(zip(mol_atoms, molvec, strict=False)), dtype=object)
+                        for molvec, mol_atoms in zip(modvec, all_atoms, strict=True)
                     ]
                     for modvec in allvec
                 ], dtype=object)
@@ -179,7 +183,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                 allvec = np.array([
                     [
                         molvec[:len(mol_atoms)]
-                        for molvec,mol_atoms in zip(modvec,all_atoms)
+                        for molvec,mol_atoms in zip(modvec, all_atoms, strict=True)
                     ]
                     for modvec in allvec
                 ], dtype=object)
@@ -191,17 +195,18 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
         for mol_i, elems in enumerate(all_atoms):
             allvec_new[:, atm_i:atm_i+len(elems), :] = allvec[:, mol_i, :len(elems), :]
             atm_i += len(elems)
-        allvec = allvec_new; del allvec_new
-        all_atoms = sum(all_atoms, start=[])
+        allvec = allvec_new
+        del allvec_new
+        all_atoms = [*itertools.chain(*all_atoms)]
 
         if merge:
             allvec = np.hstack(allvec)
             if with_symbols:
-                allvec = np.array(list(zip(all_atoms, allvec)), dtype=object)
+                allvec = np.array(list(zip(all_atoms, allvec, strict=True)), dtype=object)
         else:
             if with_symbols:
                 allvec = np.array([
-                    np.array(list(zip(all_atoms, modvec)), dtype=object)
+                    np.array(list(zip(all_atoms, modvec, strict=True)), dtype=object)
                     for modvec in allvec
                 ], dtype=object)
 
@@ -215,12 +220,12 @@ def main(args=None):
     parser.add_argument('--guess',         dest='guess',         type=str,            default=defaults.guess,           help='initial guess')
     parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
     parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help=f'effective core potential to use (default: None)')
-    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                     help='charge / path to a file with a list of thereof')
-    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                     help='number of unpaired electrons / path to a file with a list of thereof')
+    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help='effective core potential to use (default: None)')
+    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                   help='charge / path to a file with a list of thereof')
+    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                   help='number of unpaired electrons / path to a file with a list of thereof')
     parser.add_argument('--aux-basis',     dest='auxbasis',      type=str,            default=defaults.auxbasis,        help=f"auxiliary basis set for density fitting (default: {defaults.auxbasis})")
     parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
-    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help=f'directory to save the output in (default=current dir)')
+    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help='directory to save the output in (default=current dir)')
     parser.add_argument('--cutoff',        dest='cutoff',        type=float,          default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
     parser.add_argument('--bpath',         dest='bpath',         type=str,            default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
     parser.add_argument('--omod',          dest='omod',          type=str, nargs='+', default=defaults.omod,            help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
@@ -237,9 +242,10 @@ def main(args=None):
     parser.add_argument('--pairfile',      dest='pairfile',      type=str,            default=None,                     help='path to the atom pair file')
     parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true', default=False,                    help='write the atom pair file and exit if --pairfile is set')
     parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
-    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=[],                       help="restrict the representation to one or several atom types")
+    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=None,                     help="restrict the representation to one or several atom types")
     args = parser.parse_args(args=args)
-    if args.print>0: print(vars(args))
+    if args.print>0:
+        print(vars(args))
     correct_num_threads()
 
     if args.name_out is None:
@@ -271,14 +277,15 @@ def main(args=None):
         bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
         elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=(args.split>0), only_z=args.only_z,
     )
-    if args.print > 0: print(reps.shape)
+    if args.print > 0:
+        print(reps.shape)
     if args.merge:
         if (spin == None).all():
             mod_iter = [(reps, '')]
         else:
             mod_iter = [(reps, '_'+'_'.join(args.omod))]
     else:
-        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod)]
+        mod_iter = [(modvec, '_'+omod) for modvec, omod in zip(reps, args.omod, strict=True)]
 
     for modvec, mod_suffix in mod_iter:
         if args.split >=2:

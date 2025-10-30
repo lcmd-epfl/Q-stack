@@ -22,8 +22,8 @@ def read_input(fname, basis, ecp=None):
         pyscf Mole object.
     """
 
-    with open(fname, "r") as f:
-        lines = [x.strip() for x in f.readlines()]
+    with open(fname) as f:
+        lines = [x.strip() for x in f]
 
     command_line = '\n'.join(y[1:] for y in filter(lambda x: x.startswith('!'), lines)).lower().split()
     if 'bohrs' in command_line:
@@ -91,7 +91,7 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
     if is_def2 and has_3d:
         msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
-        warnings.warn(msg)
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
         if reorder_dest is not None:
             msg = f'\nDensity matrix reordering for ORCA to {reorder_dest} is compromised.'
             raise RuntimeError(msg)
@@ -129,18 +129,19 @@ def _parse_gbw(fname):
         f.seek(offset)
         sets   = struct.unpack("<i", f.read(np.int32().itemsize))[0]    # int32: number of MO sets
         nao    = struct.unpack("<i", f.read(np.int32().itemsize))[0]    # int32: number of orbitals
-        assert sets in (1,2)
+        if sets not in (1,2):
+            raise RuntimeError(f"Cannot interpret number of MO sets = {sets}")
 
         coefficients_ab = []
         energies_ab = []
         occupations_ab = []
 
-        for i in range(sets):
+        for _i in range(sets):
             coefficients = read_array(f, nao*nao, np.float64).reshape(-1, nao)
             occupations  = read_array(f, nao,     np.float64)
             energies     = read_array(f, nao,     np.float64)
-            irreps       = read_array(f, nao,     np.int32)
-            cores        = read_array(f, nao,     np.int32)
+            _irreps      = read_array(f, nao,     np.int32)
+            _cores       = read_array(f, nao,     np.int32)
             coefficients_ab.append(coefficients)
             energies_ab.append(energies)
             occupations_ab.append(occupations)
@@ -159,10 +160,10 @@ def _parse_gbw(fname):
         for at in range(nat):
             ls[at] = []
             _, nao_at = struct.unpack("<2i", f.read(2 * np.int32().itemsize))
-            for iao in range(nao_at):
-                l, _, ngto, _ = struct.unpack("<4i", f.read(4 * np.int32().itemsize))
-                a = read_array(f, MAX_PRIMITIVES, np.float64)   # exponents
-                c = read_array(f, MAX_PRIMITIVES, np.float64)   # coefficients
+            for _iao in range(nao_at):
+                l, _, _ngto, _ = struct.unpack("<4i", f.read(4 * np.int32().itemsize))
+                _a = read_array(f, MAX_PRIMITIVES, np.float64)   # exponents
+                _c = read_array(f, MAX_PRIMITIVES, np.float64)   # coefficients
                 ls[at].append(l)
         return ls
 
@@ -170,7 +171,7 @@ def _parse_gbw(fname):
         coefficients_ab, energies_ab, occupations_ab = read_mos()
         try:
             ls = read_basis()
-        except:  # Orca version 4.0
+        except struct.error:
             ls = {}
         return coefficients_ab, energies_ab, occupations_ab, ls
 
@@ -203,7 +204,8 @@ def _get_indices(mol, ls_from_orca):
         indices = np.array([j for i in indices for j in i[2]])
         atom_slice = np.s_[ao_limits[iat][0]:ao_limits[iat][1]]
         indices_full[atom_slice] = indices[:] + ao_limits[iat][0]
-    assert np.all(sorted(indices_full)==np.arange(mol.nao))
+    if np.all(sorted(indices_full)!=np.arange(mol.nao)):
+        raise RuntimeError("Cannot reorder AOs")
     return indices_full
 
 
@@ -261,7 +263,7 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
     ls = {iat: lsiat for iat, lsiat in ls.items() if np.any(lsiat!=sorted(lsiat))}
     if ls and not sort_l:
         msg = f'\n{fname}: basis set is not sorted wrt angular momenta for atoms # {list(ls.keys())} and is kept as is'
-        warnings.warn(msg)
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
     if reorder_dest is not None:
         reorder_coeff_inplace(c, mol, reorder_dest, ls if (ls and sort_l) else None)

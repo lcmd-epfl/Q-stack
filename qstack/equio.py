@@ -9,14 +9,14 @@ vector_label_names = SimpleNamespace(
     tm = ['spherical_harmonics_l', 'species_center'],
     block_prop = ['radial_channel'],
     block_samp = ['atom_id'],
-    block_comp = ['spherical_harmonics_m']
+    block_comp = ['spherical_harmonics_m'],
     )
 
 matrix_label_names = SimpleNamespace(
     tm = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'species_center1', 'species_center2'],
     block_prop = ['radial_channel1', 'radial_channel2'],
     block_samp = ['atom_id1', 'atom_id2'],
-    block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2']
+    block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2'],
     )
 
 _molid_name = 'mol_id'
@@ -68,10 +68,10 @@ def _get_tsize(tensor):
 
 def _labels_to_array(labels):
     """Represents a set of metatensor labels as an array of the labels, using custom dtypes
-    
+
     Args:
         labels (metatensor Labels): Labels
-    
+
     Returns:
         labels (numpy ndarray[ndim=1, structured dtype]): the same labels
     """
@@ -125,9 +125,9 @@ def vector_to_tensormap(mol, c):
 
     # Fill in the blocks
 
-    iq = {q:0 for q in elements}
+    iq = dict.fromkeys(elements, 0)
     i = 0
-    for iat, q in enumerate(atom_charges):
+    for q in atom_charges:
         if llists[q]==sorted(llists[q]):
             for l in set(llists[q]):
                 msize = 2*l+1
@@ -138,7 +138,7 @@ def vector_to_tensormap(mol, c):
                 blocks[(l,q)][iq[q],:,:] = cslice
                 i += msize*nsize
         else:
-            il = {l:0 for l in range(max(llists[q])+1)}
+            il = dict.fromkeys(range(max(llists[q]) + 1), 0)
             for l in llists[q]:
                 msize = 2*l+1
                 cslice = c[i:i+msize]
@@ -170,14 +170,14 @@ def tensormap_to_vector(mol, tensor):
 
     nao = _get_tsize(tensor)
     if mol.nao != nao:
-        raise Exception(f'Tensor size mismatch ({nao} instead of {mol.nao})')
+        raise RuntimeError(f'Tensor size mismatch ({nao} instead of {mol.nao})')
 
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
     i = 0
     for iat, q in enumerate(atom_charges):
         llist = _get_llist(q, mol)
-        il = {l: 0 for l in range(max(llist)+1)}
+        il = dict.fromkeys(range(max(llist) + 1), 0)
         for l in llist:
             block = tensor.block(spherical_harmonics_l=l, species_center=q)
             id_samp = block.samples.position((iat,))
@@ -243,21 +243,21 @@ def matrix_to_tensormap(mol, dm):
 
     block_prop_labels = {key: metatensor.Labels(matrix_label_names.block_prop, block_prop_label_vals[key]) for key in blocks}
     block_samp_labels = {key: metatensor.Labels(matrix_label_names.block_samp, block_samp_label_vals[key]) for key in blocks}
-    block_comp_labels = {key: [metatensor.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key])] for key in blocks}
+    block_comp_labels = {key: [metatensor.Labels([name], vals) for name, vals in zip(matrix_label_names.block_comp, block_comp_label_vals[key], strict=True)] for key in blocks}
 
     # Build tensor blocks
     tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
 
     # Fill in the blocks
 
-    if all([llists[q]==sorted(llists[q]) for q in llists]):
-        iq1 = {q1: 0 for q1 in elements}
+    if all(llists[q]==sorted(llists[q]) for q in llists):
+        iq1 = dict.fromkeys(elements, 0)
         i1 = 0
         for iat1, q1 in enumerate(atom_charges):
             for l1 in set(llists[q1]):
                 msize1 = 2*l1+1
                 nsize1 = llists[q1].count(l1)
-                iq2 = {q2: 0 for q2 in elements}
+                iq2 = dict.fromkeys(elements, 0)
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     for l2 in set(llists[q2]):
@@ -273,16 +273,16 @@ def matrix_to_tensormap(mol, dm):
                 i1 += msize1*nsize1
             iq1[q1] += 1
     else:
-        iq1 = {q1: 0 for q1 in elements}
+        iq1 = dict.fromkeys(elements, 0)
         i1 = 0
         for iat1, q1 in enumerate(atom_charges):
-            il1 = {l1: 0 for l1 in range(max(llists[q1])+1)}
+            il1 = dict.fromkeys(range(max(llists[q1]) + 1), 0)
             for l1 in llists[q1]:
                 msize1 = 2*l1+1
-                iq2 = {q2: 0 for q2 in elements}
+                iq2 = dict.fromkeys(elements, 0)
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
-                    il2 = {l2: 0 for l2 in range(max(llists[q2])+1)}
+                    il2 = dict.fromkeys(range(max(llists[q2]) + 1), 0)
                     for l2 in llists[q2]:
                         msize2 = 2*l2+1
                         dmslice = dm[i1:i1+msize1,i2:i2+msize2]
@@ -325,21 +325,21 @@ def tensormap_to_matrix(mol, tensor):
 
     nao2 = _get_tsize(tensor)
     if mol.nao*mol.nao != nao2:
-        raise Exception(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
+        raise RuntimeError(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
 
     dm = np.zeros((mol.nao, mol.nao))
     atom_charges = mol.atom_charges()
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):
         llist1 = _get_llist(q1, mol)
-        il1 = {l1: 0 for l1 in range(max(llist1)+1)}
+        il1 = dict.fromkeys(range(max(llist1) + 1), 0)
         for l1 in llist1:
             for m1 in _get_mrange(l1):
 
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     llist2 = _get_llist(q2, mol)
-                    il2 = {l2: 0 for l2 in range(max(llist2)+1)}
+                    il2 = dict.fromkeys(range(max(llist2) + 1), 0)
                     for l2 in llist2:
 
                         block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, species_center1=q1, species_center2=q2)
@@ -372,7 +372,7 @@ def array_to_tensormap(mol, v):
     elif v.ndim==2:
         return matrix_to_tensormap(mol, v)
     else:
-        raise Exception(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
+        raise ValueError(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
 
 
 def tensormap_to_array(mol, tensor):
@@ -391,7 +391,7 @@ def tensormap_to_array(mol, tensor):
     elif tensor.keys.names==matrix_label_names.tm:
         return tensormap_to_matrix(mol, tensor)
     else:
-        raise Exception(f'Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
+        raise RuntimeError('Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
 
 
 def join(tensors):
@@ -405,9 +405,9 @@ def join(tensors):
     """
 
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
-        raise Exception(f'Cannot merge tensors with different label names')
+        raise RuntimeError('Cannot merge tensors with different label names')
     tm_label_vals = set().union(*[set(_labels_to_array(tensor.keys)) for tensor in tensors])
-    tm_label_vals = sorted((tuple(value) for value in tm_label_vals))
+    tm_label_vals = sorted(tuple(value) for value in tm_label_vals)
     tm_labels = metatensor.Labels(tensors[0].keys.names, np.array(tm_label_vals))
 
     blocks = {}
@@ -421,13 +421,13 @@ def join(tensors):
         blocks[key] = []
         block_samp_label_vals[key] = []
         for imol,tensor in enumerate(tensors):
-            if not label in tensor.keys:
+            if label not in tensor.keys:
                 continue
             block = tensor.block(label)
             blocks[key].append(block.values)
             block_samp_label_vals[key].extend([(imol, *s) for s in block.samples])
 
-            if not key in block_comp_labels:
+            if key not in block_comp_labels:
                 block_comp_labels[key] = block.components
                 block_prop_labels[key] = block.properties
 
@@ -453,12 +453,12 @@ def split(tensor):
     """
 
     if tensor.sample_names[0]!=_molid_name:
-        raise Exception(f'Tensor does not seem to contain several molecules')
+        raise RuntimeError('Tensor does not seem to contain several molecules')
 
     # Check if the molecule indices are continuous
     mollist = sorted(reduce(
         lambda a,b: a.union(b),
-        [set(block.samples.column(_molid_name)) for block in tensor.blocks()]
+        [set(block.samples.column(_molid_name)) for block in tensor.blocks()],
     ))
     if mollist==list(range(len(mollist))):
         tensors = [None] * len(mollist)
@@ -493,7 +493,7 @@ def split(tensor):
             blocks[key] = block.values[sampleidx]
             block_samp_labels[key] = metatensor.Labels(tensor.sample_names[1:], np.array(samplelbl)[:,1:])
 
-        tm_label_vals = sorted(list(blocks.keys()))
+        tm_label_vals = sorted(blocks.keys())
         tm_labels = metatensor.Labels(tensor.keys.names, np.array(tm_label_vals))
         tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
         tensors[imol] = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)

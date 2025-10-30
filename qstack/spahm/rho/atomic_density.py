@@ -3,10 +3,10 @@ from qstack import compound, fields
 from . import lowdin
 
 
-def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
+def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
     L = lowdin.Lowdin_split(mol, dm)
 
-    if len(only_i) > 0:
+    if only_i is not None and len(only_i) > 0:
         dm_slices = mol.aoslice_nr_by_atom()[only_i,2:]
     else:
         dm_slices = mol.aoslice_nr_by_atom()[:,2:]
@@ -35,7 +35,7 @@ def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=[]):
 
     if short:
         cc = []
-        for i, c in zip(auxmol.aoslice_by_atom()[:,2:], a_dfs):
+        for i, c in zip(auxmol.aoslice_by_atom()[:,2:], a_dfs, strict=True):
             cc.append(c[i[0]:i[1]])
         return np.hstack(cc)
 

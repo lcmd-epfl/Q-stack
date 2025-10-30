@@ -1,6 +1,6 @@
 import copy
-import numpy
-import pyscf.data, pyscf.df, pyscf.scf
+import numpy as np
+from pyscf import data, df, scf
 
 """ Taken from https://github.com/briling/aepm and modified """
 
@@ -15,11 +15,11 @@ class LB2020guess:
     # 1/norm1 = \int \exp(-a*r^2) d^3 r       => norm1 = (a/pi)^(3/2)
     # 1/norm2^2 = \int (\exp(-a*r^2))^2 d^3 r => norm2 = (2.0*a/pi)^(3/4)
     # coefficient = norm1 / norm2 = (0.5*a/pi)^(3/4)
-    x = numpy.sqrt(numpy.sqrt(0.5*a/numpy.pi))
+    x = np.sqrt(np.sqrt(0.5*a/np.pi))
     return x*x*x
 
   def read_ac(self, fname):
-    if fname==None:
+    if fname is None:
       fname = self.acfile_default
     with open(fname) as f:
       lines = f.readlines()
@@ -29,33 +29,33 @@ class LB2020guess:
       q,ng = map(int,lines[il].split())
       il+=1
       qbasis = []
-      for ig in range(ng):
+      for _ig in range(ng):
         a,c = map(float,lines[il].split())
         qbasis.append([0,[a, c*self.renormalize(a)]])
         il+=1
-      basis[pyscf.data.elements.ELEMENTS[q]] = qbasis
+      basis[data.elements.ELEMENTS[q]] = qbasis
     return basis
 
   def add_caps(self, basis):
-    caps_array = numpy.zeros(103)
-    caps_array  [  1 :   2 +1] = 1.0 /  3.0,
-    caps_array  [  3 :   4 +1] = 1.0 / 16.0,
-    caps_array  [  5 :  10 +1] = 1.0 /  3.0,
-    caps_array  [ 11 :  12 +1] = 1.0 / 32.0,
-    caps_array  [ 13 :  18 +1] = 1.0 /  8.0,
-    caps_array  [ 19 :  20 +1] = 1.0 / 32.0,
-    caps_array  [ 21 :  30 +1] = 1.0 /  6.0,
-    caps_array  [ 31 :  36 +1] = 1.0 / 12.0,
-    caps_array  [ 37 :  38 +1] = 1.0 / 32.0,
-    caps_array  [ 39 :  48 +1] = 1.0 /  8.0,
-    caps_array  [ 49 :  54 +1] = 1.0 / 12.0,
-    caps_array  [ 55 :  70 +1] = 1.0 / 32.0,
-    caps_array  [ 71 :  86 +1] = 1.0 / 12.0,
+    caps_array = np.zeros(103)
+    caps_array  [  1 :   2 +1] = 1.0 /  3.0
+    caps_array  [  3 :   4 +1] = 1.0 / 16.0
+    caps_array  [  5 :  10 +1] = 1.0 /  3.0
+    caps_array  [ 11 :  12 +1] = 1.0 / 32.0
+    caps_array  [ 13 :  18 +1] = 1.0 /  8.0
+    caps_array  [ 19 :  20 +1] = 1.0 / 32.0
+    caps_array  [ 21 :  30 +1] = 1.0 /  6.0
+    caps_array  [ 31 :  36 +1] = 1.0 / 12.0
+    caps_array  [ 37 :  38 +1] = 1.0 / 32.0
+    caps_array  [ 39 :  48 +1] = 1.0 /  8.0
+    caps_array  [ 49 :  54 +1] = 1.0 / 12.0
+    caps_array  [ 55 :  70 +1] = 1.0 / 32.0
+    caps_array  [ 71 :  86 +1] = 1.0 / 12.0
     caps_array  [ 87 : 102 +1] = 1.0 / 32.0
     for q in range(1,103):
       a = caps_array[q]
-      qname = pyscf.data.elements.ELEMENTS[q]
-      if qname in basis.keys():
+      qname = data.elements.ELEMENTS[q]
+      if qname in basis:
         basis[qname].append( [0, [a, self.renormalize(a) ]] )
     return basis
 
@@ -282,7 +282,7 @@ class LB2020guess:
       if self.parameters == 'HF':
           acbasis = copy.deepcopy(self.acbasis)
           factor = 1.0-mol.charge/mol.natm
-          for q in acbasis.keys():
+          for q in acbasis:
               acbasis[q][-1][1][1] *= factor
       else:
           acbasis = self.acbasis
@@ -297,18 +297,18 @@ class LB2020guess:
               continue
           else:
               q_cleaned.add(q)
-          zcore = pyscf.data.elements.charge(q) - z
+          zcore = data.elements.charge(q) - z
           if zcore > 0:
               zrest = zcore
               bad_idx = []
               for iprim in range(len(acbasis[q])):
-                  if numpy.isclose(zrest, 0):
+                  if np.isclose(zrest, 0):
                       break
                   a, c = acbasis[q][iprim][1]
                   renorm = self.renormalize(a)
                   c /= renorm  # convert back to charge units: sum {c} == charge(q)
                   dc = min(c, zrest)
-                  if numpy.isclose(c, dc):
+                  if np.isclose(c, dc):
                       bad_idx.append(iprim)
                   else:
                       acbasis[q][iprim][1][1] = (c-dc)*renorm
@@ -318,7 +318,7 @@ class LB2020guess:
       return acbasis
 
   def get_auxweights(self, auxmol):
-      w = numpy.zeros(auxmol.nao)
+      w = np.zeros(auxmol.nao)
       iao = 0
       for iat in range(auxmol.natm):
           q = auxmol._atom[iat][0]
@@ -328,7 +328,7 @@ class LB2020guess:
       return w
 
   def merge_caps(self, w, eri3c):
-      return numpy.einsum('...i,i->...', eri3c, w)
+      return np.einsum('...i,i->...', eri3c, w)
 
   def get_eri3c(self, mol, auxmol):
       pmol       = mol + auxmol
@@ -339,7 +339,8 @@ class LB2020guess:
   def check_coefficients(self, mol, acbasis):
       ch1 = sum(sum(c/self.renormalize(a) for _, (a, c) in acbasis[mol.atom_pure_symbol(iat)]) for iat in range(mol.natm))
       ch2 = sum(mol.atom_charges()) - (mol.charge if self.parameters == 'HF' else 0)
-      assert numpy.isclose(ch1, ch2)
+      if not np.isclose(ch1, ch2):
+          raise RuntimeError("Coefficients corrupted after adding ECP")
 
   def HLB20(self, mol):
       acbasis = self.use_charge(mol)
@@ -347,14 +348,14 @@ class LB2020guess:
           acbasis = self.use_ecp(mol, acbasis)
       self.check_coefficients(mol, acbasis)
 
-      auxmol  = pyscf.df.make_auxmol(mol, acbasis)
+      auxmol  = df.make_auxmol(mol, acbasis)
       eri3c   = self.get_eri3c(mol, auxmol)
       auxw    = self.get_auxweights(auxmol)
       return self.merge_caps(auxw, eri3c)
 
   def Heff(self, mol):
       self.mol   = mol
-      self.Hcore = pyscf.scf.hf.get_hcore(mol)
+      self.Hcore = scf.hf.get_hcore(mol)
       self.H     = self.Hcore + self.HLB20(mol)
       return self.H
 
@@ -369,7 +370,7 @@ class LB2020guess:
       def HLB20_ints_deriv(iat):
           p0, p1 = aoslices[iat]
           P0, P1 = auxaoslices[iat]
-          eri3c2e_ip = numpy.zeros_like(eri3c2e_ip1)
+          eri3c2e_ip = np.zeros_like(eri3c2e_ip1)
           eri3c2e_ip[:,p0:p1,:,:] += eri3c2e_ip1[:,p0:p1,:,:]
           eri3c2e_ip[:,:,p0:p1,:] += eri3c2e_ip1[:,p0:p1,:,:].transpose((0,2,1,3))
           eri3c2e_ip[:,:,:,P0:P1] += eri3c2e_ip2[:,:,:,P0:P1]
@@ -381,7 +382,7 @@ class LB2020guess:
       if mol.has_ecp():
           acbasis = self.use_ecp(mol, acbasis)
       self.check_coefficients(mol, acbasis)
-      auxmol  = pyscf.df.make_auxmol(mol, acbasis)
+      auxmol  = df.make_auxmol(mol, acbasis)
       eri3c   = self.HLB20_ints_generator(mol, auxmol)
       auxw    = self.get_auxweights(auxmol)
       def HLB20_deriv(iat):

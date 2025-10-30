@@ -1,5 +1,5 @@
-import os
 import sys
+from ast import literal_eval
 import numpy as np
 import scipy.optimize
 from pyscf import gto
@@ -62,23 +62,21 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         basis = {}
         for i in basis_files:
             if isinstance(i, str):
-                with open(i, "r") as f:
-                    addbasis = eval(f.read())
+                with open(i) as f:
+                    addbasis = literal_eval(f.read())
                 q = list(addbasis.keys())[0]
-                if q in basis.keys():
+                if q in basis:
                     raise RuntimeError('several sets for element ' + q)
                 basis.update(addbasis)
             else:
                 q = list(i.keys())[0]
-                if q in basis.keys():
+                if q in basis:
                     raise RuntimeError('several sets for element ' + q)
                 basis.update(i)
         return basis
 
     def make_bf_start():
-        nbf = []
-        for q in elements:
-            nbf.append(len(basis[q]))
+        nbf = [len(basis[q]) for q in elements]
         bf_bounds = {}
         for i, q in enumerate(elements):
             start = sum(nbf[0:i])
@@ -122,7 +120,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             'self'     : self,
             'idx'      : idx,
             'centers'  : centers,
-            'distances': distances
+            'distances': distances,
         }
 
     basis = read_bases(basis_in)
@@ -141,14 +139,12 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
     nexp = len(basis_list)
     bf_bounds = make_bf_start()
 
-    moldata = []
-    for fname in molecules_in:
-        moldata.append(make_moldata(fname))
+    moldata = [make_moldata(fname) for fname in molecules_in]
 
     if printlvl>=2:
         print("Initial exponents")
-        for l, a in zip(angular_momenta, exponents):
-            print('l =', l, 'a = ', a)
+        for l, a in zip(angular_momenta, exponents, strict=True):
+            print(f'{l=} {a=}')
         print(flush=True)
 
     x0 = np.log(exponents)

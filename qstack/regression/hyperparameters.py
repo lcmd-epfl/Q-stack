@@ -113,8 +113,10 @@ def hyperparameters(X, y,
         new_sigma = None
 
         if direction is None:
-            if   best_sigma==max(work_sigma): direction = 'up'
-            elif best_sigma==min(work_sigma): direction = 'down'
+            if   best_sigma==max(work_sigma):
+                direction = 'up'
+            elif best_sigma==min(work_sigma):
+                direction = 'down'
 
         # at the 1st iteration if is checked twice on purpose
         if direction=='up'     and best_sigma==max(work_sigma):
@@ -151,9 +153,11 @@ def main():
     parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
     parser.add_argument('--name',      type=str,   dest='nameout',       required=False, default=None,  help='the name of the output file')
     args = parser.parse_args()
-    if(args.readk): args.sigma = [np.nan]
+    if(args.readk):
+        args.sigma = [np.nan]
     print(vars(args))
-    if(args.ll): correct_num_threads()
+    if(args.ll):
+        correct_num_threads()
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
@@ -168,7 +172,7 @@ def main():
     print()
     print('error        stdev          eta          sigma')
     for error in errors:
-        print("%e %e | %e %e" % tuple(error))
+        print("{:e} {:e} | {:e} {:e}".format(*tuple(error)))
 
 
 if __name__ == "__main__":

@@ -37,7 +37,7 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
     drho_dr = np.zeros((3, len(rho)))
     if deriv==2:
         d2rho_dr2 = np.zeros((3, 3, len(rho)))
-        triu_idx = {(i,j): k for k, (i,j) in enumerate(zip(*np.triu_indices(3)))}
+        triu_idx = {(i,j): k for k, (i,j) in enumerate(zip(*np.triu_indices(3), strict=True))}
 
     for i in range(3):
         drho_dr[i] = 2.0*_contract_rho(dAO_dr[i], DM_AO)
@@ -52,12 +52,11 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
     return rho, drho_dr, d2rho_dr2
 
 
-def eval_rho_df(mol, ao, c, deriv=2):
+def eval_rho_df(ao, c, deriv=2):
     r'''Calculate the electron density and the density derivatives
         for a fitted density.
 
     Args:
-        mol : an instance of :class:`pyscf.gto.Mole`
         ao : 3D array of shape (*,ngrids,nao):
             ao[0] : atomic oribitals values on the grid
             ao[1:4] : atomic oribitals derivatives values (if deriv>=1)
@@ -82,7 +81,7 @@ def eval_rho_df(mol, ao, c, deriv=2):
         return rho_all[0], rho_all[1:4]
     if deriv==2:
         d2rho_dr2 = np.zeros((3, 3, rho_all.shape[-1]))
-        for k, (i, j) in enumerate(zip(*np.triu_indices(3))):
+        for k, (i, j) in enumerate(zip(*np.triu_indices(3), strict=True)):
             d2rho_dr2[i,j] = d2rho_dr2[j,i] = rho_all[4+k]
         return rho_all[0], rho_all[1:4], d2rho_dr2
 
@@ -114,7 +113,7 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
     if dm is not None:
         eval_rho = lambda ao, deriv: eval_rho_dm(mol, ao.reshape(-1, ao.shape[-2], ao.shape[-1]), dm, deriv=deriv)
     if c is not None:
-        eval_rho = lambda ao, deriv: eval_rho_df(mol, ao.reshape(-1, ao.shape[-2], ao.shape[-1]), c, deriv=deriv)
+        eval_rho = lambda ao, deriv: eval_rho_df(ao.reshape(-1, ao.shape[-2], ao.shape[-1]), c, deriv=deriv)
 
     ao0 = eval_ao(mol, coords, deriv=0)
     rho = eval_rho(ao0, deriv=0)

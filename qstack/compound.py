@@ -2,8 +2,8 @@
 Module containing all the operations to load, transform, and save molecular objects.
 """
 
-import json, re
-import pickle
+import json
+import re
 import warnings
 import numpy as np
 from pyscf import gto, data
@@ -56,7 +56,7 @@ def xyz_comment_line_parser(line):
             return {}
     else:
         # other possibilities include having the name of the compound
-        warnings.warn(f"could not interpret the data in the XYZ title line: {line}", RuntimeWarning)
+        warnings.warn(f"could not interpret the data in the XYZ title line: {line}", RuntimeWarning, stacklevel=2)
         return {}
 
     for part in line_parts:
@@ -107,7 +107,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
         if read_string:
             comment_line = inp.split('\n')[1]
         else:
-            with open(inp, "r") as f:
+            with open(inp) as f:
                 _ = f.readline()
                 comment_line = f.readline()
         props = xyz_comment_line_parser(comment_line)
@@ -133,7 +133,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
 
     if ignore:
         if charge not in (0, None) or spin not in (0, None):
-            warnings.warn("Spin and charge values are overwritten", RuntimeWarning)
+            warnings.warn("Spin and charge values are overwritten", RuntimeWarning, stacklevel=2)
         mol.spin = 0
         mol.charge = - sum(mol.atom_charges())%2
     else:
@@ -164,7 +164,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     return mol
 
 
-def mol_to_xyz(mol, fout, format="xyz"):
+def mol_to_xyz(mol, fout, fmt="xyz"):
     """Converts a pyscf Mole object into a molecular file in xyz format.
 
     Args:
@@ -175,18 +175,18 @@ def mol_to_xyz(mol, fout, format="xyz"):
         A file in xyz format containing the charge, total spin and molecular coordinates.
     """
 
-    format = format.lower()
-    if format == "xyz":
+    fmt = fmt.lower()
+    if fmt == "xyz":
         coords = mol.atom_coords() * constants.BOHR2ANGS
         output = []
-        if format == "xyz":
-            output.append("%d" % mol.natm)
-            output.append("%d %d" % (mol.charge, mol.multiplicity))
+        if fmt == "xyz":
+            output.append(str(mol.natm))
+            output.append(f"{mol.charge} {mol.multiplicity}")
 
         for i in range(mol.natm):
             symb = mol.atom_pure_symbol(i)
             x, y, z = coords[i]
-            output.append("%-4s %14.5f %14.5f %14.5f" % (symb, x, y, z))
+            output.append(f"{symb:4s} {x:14.5f} {y:14.5f} {z:14.5f}")
         string = "\n".join(output)
 
     else:
@@ -242,7 +242,7 @@ def rotate_molecule(mol, a, b, g, rad=False):
     atom_types = mol.elements
 
     rotated_mol = gto.Mole()
-    rotated_mol.atom = list(zip(atom_types, rotated_coords.tolist()))
+    rotated_mol.atom = list(zip(atom_types, rotated_coords.tolist(), strict=True))
     rotated_mol.charge = mol.charge
     rotated_mol.spin = mol.spin
     rotated_mol.basis = mol.basis
@@ -261,8 +261,8 @@ def fragments_read(frag_file):
     Returns:
         A list of arrays containing the fragments.
     """
-    with open(frag_file, 'r') as f:
-        fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f.readlines()]
+    with open(frag_file) as f:
+        fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f]
     return fragments
 
 def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
@@ -277,7 +277,7 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
         A list of arrays or an array containing the contribution of each fragment.
     """
 
-    if type(prop_atom_inp)==list:
+    if type(prop_atom_inp) is list:
         props_atom = prop_atom_inp
     else:
         props_atom = [prop_atom_inp]
@@ -295,7 +295,7 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
             tot = prop_frag.sum()
             props_frag[i] *= 100.0 / tot
 
-    if type(prop_atom_inp)==list:
+    if type(prop_atom_inp) is list:
         return props_frag
     else:
         return props_frag[0]

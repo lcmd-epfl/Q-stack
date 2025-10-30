@@ -99,7 +99,7 @@ def get_three_body(j, mbtype, q, r, dist,
             continue
 
         for k in np.where(q==q3)[0]:
-            if k==j or k==i or dist[i,k]>rcut or dist[j,k]>rcut:
+            if k in [i,j] or dist[i,k]>rcut or dist[j,k]>rcut:
                 continue
 
             cos_ikj = get_cos(i, k, j)
@@ -138,7 +138,7 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
         if qml_compatible:
             slatm1b = (mbtypes[1] == qi)*qi.astype(float)
         else:
-            slatm1b = np.array((float(qi,)))
+            slatm1b = np.array((float(qi),))
 
         # 2-body terms
         slatm2b = []
@@ -225,13 +225,13 @@ def get_slatm_for_dataset(molecules,
         import tqdm
         molecules = tqdm.tqdm(molecules)
 
-    slatm = []
-    for mol in molecules:
-        slatm.append(get_slatm(mol.numbers, mol.positions, mbtypes,
-                               global_repr=global_repr,
-                               qml_compatible=qml_compatible, stack_all=stack_all,
-                               r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
-                               theta0=theta0, sigma3=sigma3, dgrid3=dgrid3))
+    slatm = [get_slatm(mol.numbers, mol.positions, mbtypes,
+                       global_repr=global_repr,
+                       qml_compatible=qml_compatible, stack_all=stack_all,
+                       r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
+                       theta0=theta0, sigma3=sigma3, dgrid3=dgrid3)
+             for mol in molecules]
+
     if stack_all:
         if not qml_compatible:
             slatm = pad_zeros(slatm)
@@ -285,7 +285,7 @@ def get_slatm_rxn(reactions, progress=False, qml_mbtypes=True,
                 sum(get_slatm(mol.numbers, mol.positions, mbtypes,
                               global_repr=True, stack_all=True,
                               r0=r0, rcut=rcut, sigma2=sigma2, dgrid2=dgrid2,
-                              theta0=theta0, sigma3=sigma3, dgrid3=dgrid3
+                              theta0=theta0, sigma3=sigma3, dgrid3=dgrid3,
                               ) for mol in mols)
                 for mols in (reaction.reactants, reaction.products)]
         slatm_diff.append(slatm_products-slatm_reactants)

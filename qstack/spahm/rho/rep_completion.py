@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
+
 import os
 import numpy as np
 import qstack.tools as tls
 from . import dmb_rep_atom as dmba, dmb_rep_bond as dmbb
 
 
-
 def print_elem(vector,  pattern, atoms, extract=False):
-    if type(atoms) != list:
+    if type(atoms) is not list:
         atoms = [atoms]
     if len(atoms) == 0 :
         print("Please select the desired atomic fragment, try again!\nExiting!")
@@ -36,8 +36,8 @@ def transform(vector, source_atoms, dest_atoms, aux_basis_set, atom_id=None):
             source_start = source_idx[k][0]
             source_stop = source_idx[k][1]
             dest_vector[idx[0]:idx[1]] += vector[source_start:source_stop]
-#    return dest_vector if atom_id == None else [atom_id, dest_vector]
-    if atom_id == None:
+#    return dest_vector if atom_id is None else [atom_id, dest_vector]
+    if atom_id is None:
         return dest_vector
     else:
         return atom_id, dest_vector
@@ -52,7 +52,7 @@ def transform_bond(atom_type, vector, source_bonds, dest_bonds, bpath):
             source_start = source_idx[atom_type][k][0]
             source_stop = source_idx[atom_type][k][1]
             dest_vector[idx[0]:idx[1]] += vector[source_start:source_stop]
-#    return dest_vector if atom_id == None else [atom_id, dest_vector]
+#    return dest_vector if atom_id is None else [atom_id, dest_vector]
     return atom_type, dest_vector
 
 def get_vpattern(atom_set, aux_basis_set):
@@ -125,7 +125,7 @@ def fromr1tor2(vectors, r1_info, r2_info, atom_type=None, bond=False, bpath=None
 
     new_vectors = []
     if bond :
-        if bpath == None:
+        if bpath is None:
             print("Missing atom_type or bond-basis path for bond-representation conversion")
             exit(1)
         mode = 'bond'

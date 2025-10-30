@@ -90,7 +90,7 @@ def gradient_mol(nexp, newbasis, moldata):
 
 def exp2basis(exponents, elements, basis):
     """
-    
+
     Argas:
         exponents():
         elements():
@@ -102,7 +102,7 @@ def exp2basis(exponents, elements, basis):
     i = 0
     newbasis = copy.deepcopy(basis)
     for q in elements:
-        for j, b in enumerate(basis[q]):
+        for j in range(len(basis[q])):
             newbasis[q][j][1] = [exponents[i], 1]
             i += 1
     return newbasis

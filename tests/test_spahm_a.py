@@ -16,14 +16,14 @@ def underlying_test(mol, true_data_relpath, X):
 
 def test_water():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    X = atom.get_repr(mol, ["H", "O"], None, dm=None,
                       guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O.npy', X)
 
 def test_water_alternate():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-    #X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    #X = atom.get_repr(mol, ["H", "O"], None, dm=None,
     #                  guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
     X = bond.get_repr([mol], [PATH], 'LB', spin=[None], auxbasis='ccpvdzjkfit', rep_type='atom', with_symbols=True)
 
@@ -31,35 +31,35 @@ def test_water_alternate():
 
 def test_water_lowdinshortx():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    X = atom.get_repr(mol, ["H", "O"], None, dm=None,
                       guess='LB', model='lowdin-short-x', auxbasis='ccpvdzjkfit')
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-short-x.npy', X)
 
 def test_water_lowdinlong():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    X = atom.get_repr(mol, ["H", "O"], None, dm=None,
                       guess='LB', model='lowdin-long', auxbasis='ccpvdzjkfit')
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-long.npy', X)
 
 def test_water_lowdinshort():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
-    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    X = atom.get_repr(mol, ["H", "O"], None, dm=None,
                       guess='LB', model='lowdin-short', auxbasis='ccpvdzjkfit')
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_lowdin-short.npy', X)
 
 def test_water_SAD_guess_open_shell():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'sto3g', charge=1, spin=1) ## test breaks when effective open-shell caluclation is needed
-    Xsad = atom.get_repr(mol, ["H", "O"], 1, 1, dm=None,
+    Xsad = atom.get_repr(mol, ["H", "O"], 1, dm=None,
                       xc = 'hf', guess='sad', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O-RC_SAD.npy', Xsad)
 
 def test_water_SAD_guess_close_shell():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'sto3g', charge=0, spin=0) ## test breaks when effective open-shell caluclation is needed
-    Xsad = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    Xsad = atom.get_repr(mol, ["H", "O"], None, dm=None,
                       xc = 'hf', guess='sad', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
 
     underlying_test(mol, '/data/SPAHM_a_H2O/X_H2O_SAD.npy', Xsad)
@@ -67,7 +67,7 @@ def test_water_SAD_guess_close_shell():
 def test_water_single_element():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'minao', charge=0, spin=None)
 
-    X = atom.get_repr(mol, ["H", "O"], 0, None, dm=None,
+    X = atom.get_repr(mol, ["H", "O"], None, dm=None,
                       guess='LB', model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
 
     X_true = np.load(PATH+'/data/SPAHM_a_H2O/X_H2O.npy', allow_pickle=True)
