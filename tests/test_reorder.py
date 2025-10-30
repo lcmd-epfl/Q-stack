@@ -3,7 +3,6 @@
 import os
 import numpy as np
 from qstack import compound, tools
-from qstack.fields.decomposition import decompose
 from qstack.mathutils.matrix import from_tril
 
 

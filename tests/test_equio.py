@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import os
-import tempfile, filecmp
+import tempfile
+import filecmp
 import numpy as np
-from qstack import compound, fields, equio
+from qstack import compound, equio
 import metatensor
 
 
@@ -56,7 +57,7 @@ def test_equio_joinsplit():
     assert(filecmp.cmp(path+'/data/H2O_dist_CH3OH.ccpvdz.ccpvdzjkfit.mts', tmpfile))
 
     ctensors = equio.split(ctensor_big)
-    c11, c22 = [equio.tensormap_to_array(mol, t) for mol,t in zip([mol1,mol2], ctensors)]
+    c11, c22 = [equio.tensormap_to_array(mol, t) for mol,t in zip([mol1,mol2], ctensors, strict=True)]
     assert(np.linalg.norm(c11-c1)==0)
     assert(np.linalg.norm(c22-c2)==0)
 

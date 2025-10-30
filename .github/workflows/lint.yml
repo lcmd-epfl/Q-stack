@@ -17,5 +17,7 @@ jobs:
           python-version: '3.13'
       - name: Install Ruff
         run: pip install ruff
-      - name: Run Ruff
+      - name: Run Ruff on code
         run: ruff check qstack/
+      - name: Run Ruff on tests
+        run: ruff check tests/

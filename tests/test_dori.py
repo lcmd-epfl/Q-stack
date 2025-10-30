@@ -40,10 +40,10 @@ def test_dori_deriv():
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
 
     grid = np.array([[0.5,0.2,1.4], [0.9,0,0], [2,2,2], *[x[1] for x in mol._atom]])
-    dori_anal, rho, _ = dori_on_grid(mol, grid, dm=dm)
+    dori_anal, _rho, _ = dori_on_grid(mol, grid, dm=dm)
 
     def compute_k2(coords, mol=None, dm=None):
-        rho, drho_dr, d2rho_dr2 = compute_rho(mol, coords, dm=dm)
+        rho, drho_dr, _d2rho_dr2 = compute_rho(mol, coords, dm=dm)
         k = drho_dr / rho
         return np.einsum('xi,xi->i', k, k)
     k2 = compute_k2(grid, mol=mol, dm=dm)
@@ -78,11 +78,11 @@ def test_dori_df():
     path = os.path.dirname(os.path.realpath(__file__))
     mol  = compound.xyz_to_mol(path+'/data/dori/H6CN____monA_0012.xyz', 'cc-pvdz jkfit', charge=1, spin=0)
     c = np.load(path+'/data/dori/H6CN____monA_0012.hf.sto3g.ccpvdzjkfit.c.npy')
-    dori0, rho0, s2rho0 = np.load(path+'/data/dori/H6CN____monA_0012.hf.sto3g.ccpvdzjkfit.dori.npy')
-    dori1, rho1, s2rho1, _, _ = dori(mol, c=c, grid_type='cube', resolution=0.5)
+    dori0, _, s2rho0 = np.load(path+'/data/dori/H6CN____monA_0012.hf.sto3g.ccpvdzjkfit.dori.npy')
+    dori1, _, s2rho1, _, _ = dori(mol, c=c, grid_type='cube', resolution=0.5)
     assert np.allclose(dori0, dori1)
     assert np.allclose(s2rho0, s2rho1)
-    dori2, rho2, _, _, _ = dori(mol, c=c, grid_type='cube', resolution=0.5, alg='num')
+    dori2, _, _, _, _ = dori(mol, c=c, grid_type='cube', resolution=0.5, alg='num')
     assert np.allclose(dori0, dori2)
 
 if __name__ == '__main__':

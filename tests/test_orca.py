@@ -69,9 +69,9 @@ def test_orca_gbw_reader():
 def test_orca_gbw_reader_def2tzvp():
     path = os.path.dirname(os.path.realpath(__file__))
     mol = qstack.compound.xyz_to_mol(path+'/data/orca/CEHZOF/CEHZOF.xyz', 'def2tzvp', ecp='def2tzvp')
-    c504, e504, occ504 = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
+    c504, _e504, occ504 = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
     dm = np.zeros_like(c504)
-    for i, (ci, occi) in enumerate(zip(c504, occ504)):
+    for i, (ci, occi) in enumerate(zip(c504, occ504, strict=True)):
         dm[i,:,:] = (ci[:,occi>0] * occi[occi>0]) @ ci[:,occi>0].T
     mol_dip = _dipole_moment(mol, dm)
     mol_dip_true = np.array([-0.98591, -2.20093, 2.61135])
@@ -91,7 +91,7 @@ def test_orca_input_reader():
 def test_orca_density_reader_def2tzvp():
     path = os.path.dirname(os.path.realpath(__file__))
     mol = qstack.compound.xyz_to_mol(path+'/data/orca/CEHZOF/CEHZOF.xyz', 'def2tzvp', ecp='def2tzvp')
-    c, e, occ = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
+    c, _e, occ = qstack.orcaio.read_gbw(mol, path+'/data/orca/CEHZOF/CEHZOF_1_SPE.gbw')
     c = c.squeeze()
     occ = occ.squeeze()
     dm0 = (c[:,occ>0] * occ[occ>0]) @ c[:,occ>0].T

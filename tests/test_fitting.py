@@ -11,7 +11,7 @@ def test_fitting():
     mol  = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'cc-pvdz', charge=0, spin=0)
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
     c0 = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
-    auxmol, c = decomposition.decompose(mol, dm, 'cc-pvdz jkfit')
+    _auxmol, c = decomposition.decompose(mol, dm, 'cc-pvdz jkfit')
     assert(np.linalg.norm(c-c0)<1e-10)
 
 

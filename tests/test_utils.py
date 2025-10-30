@@ -42,7 +42,9 @@ def test_load_reps_singleatom():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, dm=None, guess="LB", only_z=['O'])
+    rep = atom.get_repr("atom", [mol], [xyzpath], 'LB',
+                        elements=["H", "O"], spin=[0], with_symbols=True,
+                        model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
     X, symbols = ut.load_reps(tmpfile, from_list=False, \
             with_labels=True, local=True, sum_local=False, printlevel=0, progress=True)
@@ -56,7 +58,9 @@ def test_load_reps_singleatom_sum_local():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, dm=None, guess="LB", only_z=['H'])
+    rep = atom.get_repr("atom", [mol], [xyzpath], 'LB',
+                        elements=["H", "O"], spin=[0], with_symbols=True,
+                        model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
     X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
@@ -68,7 +72,9 @@ def test_load_reps_singleatom_sum_local2():
 
     xyzpath = os.path.join(path, 'data/H2O.xyz')
     mol = compound.xyz_to_mol(xyzpath, basis="minao", charge=0, spin=0, ignore=False, unit='ANG', ecp=None)
-    rep = atom.get_repr(mol, ['H', 'O'], 0, dm=None, guess="LB", only_z=['O']) #since only one O checks if the sum is not run over the representations elements
+    rep = atom.get_repr("atom", [mol], [xyzpath], 'LB',
+                        elements=["H", "O"], spin=[0], with_symbols=True,
+                        model='lowdin-long-x', auxbasis='ccpvdzjkfit', only_z=['O']) #requesting reps for O-atom only
     np.save(tmpfile, rep)
     X = ut.load_reps(tmpfile, from_list=False, \
             with_labels=False, local=True, sum_local=True, printlevel=0, progress=True)
@@ -93,8 +99,29 @@ def test_check_data_structure():
         assert(ft['is_single'] == is_single)
         assert(ft['is_labeled'] == is_labeled)
 
+def test_regroup_symbols():
+    path = os.path.dirname(os.path.realpath(__file__))
+    filelist = os.path.join(path, "./data/list_water3.txt")
+    regrouped_species = ut.regroup_symbols(filelist)
+    rep_count = {"H":2, "O":1}
+    print(regrouped_species)
+    for z,v in regrouped_species.items():
+        assert(len(v) == rep_count[z])
 
-def main():
+def test_regroup_symbols_and_trim():
+    path = os.path.dirname(os.path.realpath(__file__))
+    filelist = os.path.join(path, "./data/list_water_lowdin-short-padded.txt")
+    regrouped_species = ut.regroup_symbols(filelist, trim_reps=True)
+    #trimedlist = os.path.join(path, "./data/list_water_lowdin-short.txt") ## this is not possible because of inhomogenous array
+    X_truth = np.load(path+"/data/SPAHM_a_H2O/X_H2O_lowdin-short.npy", allow_pickle=True)
+    regrouped_truth = {z:[] for z in regrouped_species}
+    for z,v in X_truth:
+        regrouped_truth[z].append(v)
+    for z in regrouped_species:
+        assert(np.allclose(regrouped_species[z], regrouped_truth[z]))
+
+
+if __name__ == '__main__':
     test_load_mols()
     test_load_reps()
     test_load_rep_from_list()
@@ -103,6 +130,4 @@ def main():
     test_load_reps_singleatom()
     test_load_reps_singleatom_sum_local()
     test_load_reps_singleatom_sum_local2()
-
-
-if __name__ == '__main__': main()
+    test_regroup_symbols()

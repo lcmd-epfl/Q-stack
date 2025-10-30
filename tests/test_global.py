@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+
 import os
 import numpy as np
-from qstack.regression import kernel, kernel_utils
+from qstack.regression import kernel
 
 
 def test_avg_kernel():

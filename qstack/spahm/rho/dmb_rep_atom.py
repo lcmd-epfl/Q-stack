@@ -83,6 +83,8 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
         n = ao_len[q]
         v.append(M[q] @ sym.vectorize_c_short(idx[q], ao[q], c[i0:i0+n]))
         i0 += n
+    maxlen = sum([len(v) for v in idx.values()])
+    v = np.array([np.pad(x, (0, maxlen-len(x)), constant_values=0) for x in v])
     return v
 
 
