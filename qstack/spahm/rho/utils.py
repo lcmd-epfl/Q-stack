@@ -27,6 +27,8 @@ def get_chsp(fname, n):
         else:
             chsp = int(chsp)
         return chsp
+    if fname is None:
+        return np.full(n, None, dtype=object)
     if os.path.isfile(fname):
         chsp = np.loadtxt(fname, dtype=object, converters=chsp_converter, encoding=None)
         if(len(chsp)!=n):
@@ -56,7 +58,7 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
     return mols
 
 
-def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, printlevel=0):
+def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, printlevel=0):
     dms = []
     guess = guesses.get_guess(guess)
     if spin is None:
@@ -64,7 +66,7 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=False, pr
     for xyzfile, mol, sp in zip(xyzlist, mols, spin, strict=True):
         if printlevel>0:
             print(xyzfile, flush=True)
-        if not readdm:
+        if readdm is None:
             _e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
             dm   = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None)
         else:

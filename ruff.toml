@@ -63,6 +63,7 @@ ignore = [
 "qstack/spahm/rho/Dmatrix.py"           = ["E702"]  # multiple statements on one line (semicolon)
 "qstack/spahm/rho/bond.py"              = ["E711"]  # comparison to `None` for np.array elements
 "qstack/spahm/rho/compute_rho_spahm.py" = ["E711"]  # comparison to `None` for np.array elements
+"qstack/spahm/rho/bond_selected.py"     = ["E711"]  # comparison to `None` for np.array elements
 "tests/*" = [
 "S101",  # use of assert
 "S306",  # use of mktemp
