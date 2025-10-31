@@ -8,8 +8,8 @@ from .parser import RegressionParser
 
 
 def cv_results(X, y,
-            sigmaarr=defaults.sigmaarr, etaarr=defaults.etaarr, gkernel=defaults.gkernel,
-            gdict=defaults.gdict, akernel=defaults.kernel, test_size=defaults.test_size,
+            sigmaarr=defaults.sigmaarr, etaarr=defaults.etaarr, akernel=defaults.kernel,
+            gkernel=defaults.gkernel, gdict=defaults.gdict, test_size=defaults.test_size,
             train_size=defaults.train_size, splits=defaults.splits, printlevel=0,
             adaptive=False, read_kernel=False, n_rep=defaults.n_rep, save=False,
             preffix='unknown', save_pred=False, progress=False, sparse=None,
@@ -17,13 +17,13 @@ def cv_results(X, y,
     """ Computes various learning curves (LC) ,with random sampling, and returns the average performance.
 
     Args:
-        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
+        X (numpy.ndarray[Nsamples,...]): array containing the representations of all Nsamples
         y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
-        sigmaar (list): list of kernel widths for the hyperparameter optimization
-        etaar (list): list of regularization strength for the hyperparameter optimization
-        gkernel (str): global kernel (REM, average)
-        gdit (dict): parameters of the global kernels
-        akernel (str): local kernel (Laplacian, Gaussian, linear)
+        sigmaarr (list): list of kernel width for the grid search
+        etaarr (list): list of regularization strength for the grid search
+        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
+        gkernel (str): global kernel (None, 'REM', 'avg')
+        gdict (dict): parameters of the global kernels
         test_size (float or int): test set fraction (or number of samples)
         train_size (list): list of training set size fractions used to evaluate the points on the LC
         splits (int): K number of splits for the Kfold cross-validation

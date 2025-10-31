@@ -11,13 +11,13 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
     """ Optimize a given basis set.
 
     Args:
-        elements_in (str):
-        basis_in (str or dict): Basis set
-        molecules_in (dict): which contains the cartesian coordinates of the molecule (string) with the key 'atom', the uncorrelated on-top pair density on a grid (numpy array) with the key 'rho', the grid coordinates (numpy array) with the key 'coords', and the grid weights (numpy array) with the key 'weight'.
+        elements_in (str): List of elements to optimize. If None, optimize all elements in the basis.
+        basis_in (list): List of files paths (str) or dicts containing basis set(s).
+        molecules_in (list): List of file paths (str) or dicts containing molecular data.
         gtol_in (float): Gradient norm must be less than gtol_in before successful termination (minimization).
         method_in (str): Type of solver. Check scipy.optimize.minimize for full documentation.
-        printlvl (int):
-        check (bool):
+        printlvl (int): Level of printing during optimization (0: none, 1: final basis, 2: detailed).
+        check (bool): If True, compute and return both analytical and numerical gradients without optimization.
 
     Returns:
         Dictionary containing the optimized basis.
@@ -26,13 +26,13 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
 
     def energy(x):
-        """Compute total energy for given exponents.
+        """Compute total loss function (fitting error) for given exponents.
 
         Args:
             x (numpy.ndarray): Log of exponents.
 
         Returns:
-            float: Total energy across all molecules.
+            float: Loss function value.
         """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
@@ -42,14 +42,14 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return E
 
     def gradient(x):
-        """Compute total energy and gradient for given exponents.
+        """Compute total loss function (fitting error) and gradient for given exponents.
 
         Args:
             x (numpy.ndarray): Log of exponents.
 
         Returns:
             tuple: A tuple containing:
-                - E (float): Total energy.
+                - E (float): Loss function value.
                 - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
         """
         exponents = np.exp(x)
@@ -73,8 +73,9 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         dE_dx = dE_da * exponents
         return E, dE_dx
 
+
     def gradient_only(x):
-        """Compute only the gradient (wrapper for optimization algorithms).
+        """Compute only the gradient of the loss function (wrapper for optimization algorithms).
 
         Args:
             x (numpy.ndarray): Log of exponents.
@@ -83,6 +84,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             numpy.ndarray: Gradient with respect to log(exponents).
         """
         return gradient(x)[1]
+
 
     def read_bases(basis_files):
         """Read basis set definitions from files or dicts.
@@ -112,6 +114,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
                 basis.update(i)
         return basis
 
+
     def make_bf_start():
         """Create basis function index bounds for each element.
 
@@ -125,14 +128,24 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             bf_bounds[q] = [start, start+nbf[i]]
         return bf_bounds
 
+
     def make_moldata(fname):
         """Create molecular data dictionary from file or dict.
 
         Args:
-            fname (str or dict): Path to .npz file or dictionary containing rho data.
+            fname (str or dict): Path to .npz file or dictionary containing molecular structure,
+                                 grid coordinates and weights, and reference density evaluated on it.
 
         Returns:
-            dict: Dictionary containing mol, rho, coords, weights, self, idx, centers, and distances.
+            dict: Dictionary containing:
+                        mol (pyscf Mole): pyscf Mole object.
+                        rho (numpy.ndarray): Reference density values on the grid.
+                        coords (numpy.ndarray): Grid coordinates.
+                        weights (numpy.ndarray): Grid weights.
+                        self (float): Integral of the squared reference density.
+                        idx (numpy.ndarray): Basis function indices for each AO.
+                        centers (list): Atomic center indices for each AO.
+                        distances (numpy.ndarray): Squared distances from each atom to each grid point.
         """
         if isinstance(fname, str):
             rho_data = np.load(fname)
@@ -215,6 +228,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         qbbt.printbasis(newbasis, sys.stdout)
 
     return newbasis
+
 
 def main():
     """Main function for basis set optimization command-line interface."""

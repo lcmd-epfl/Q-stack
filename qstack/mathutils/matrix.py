@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def from_tril(mat_tril):
     """Restore a symmetric matrix from its lower-triangular form.
 
@@ -16,15 +17,16 @@ def from_tril(mat_tril):
     mat = mat + mat.T - np.diag(np.diag(mat))
     return mat
 
+
 def sqrtm(m, eps=1e-13):
     """Compute the matrix square root of a symmetric matrix.
 
     Args:
-        m (numpy.ndarray): Symmetric matrix.
+        m (numpy.ndarray): 2D symmetric matrix.
         eps (float): Threshold for eigenvalues to be considered zero. Defaults to 1e-13.
 
     Returns:
-        numpy.ndarray: Symmetrized square root of the matrix.
+        numpy.ndarray: 2D symmetric matrix, the square root of the input matrix.
     """
     e, b = np.linalg.eigh(m)
     e[abs(e) < eps] = 0.0

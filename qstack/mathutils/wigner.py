@@ -14,10 +14,11 @@ xx,xy,xz = symbols('xx xy xz')
 yx,yy,yz = symbols('yx yy yz')
 zx,zy,zz = symbols('zx zy zz')
 
+
 def real_Y_correct_phase(l, m, theta, phi):
-    """Returns real spherical harmonic in Condon-Shortley phase convention.
-    
-    Note: sympy's Ynm uses a different convention.
+    """Returns real spherical harmonic in Condon--Shortley phase convention.
+
+    Note: sympy's Znm uses a different convention.
 
     Args:
         l (int): Orbital angular momentum quantum number.
@@ -36,6 +37,7 @@ def real_Y_correct_phase(l, m, theta, phi):
         return sp.I / sp.sqrt(2) * (ym1 - ym2)
     elif m>0:
         return 1 / sp.sqrt(2) * (ym1 + ym2)
+
 
 def get_polynom_Y(l, m):
     """Rewrites a real spherical harmonic as a polynomial of x, y, z.
@@ -62,8 +64,12 @@ def get_polynom_Y(l, m):
                      3*x*x+3*y*y : 3-3*z*z })
     return expr
 
+
 def xyzint_wrapper(knm, integrals_xyz_dict):
     """Wrapper for xyz integrals with caching.
+
+    Computes the integral of x^k * y^n * z^m over the unit sphere.
+    Integral is zero if any power is odd.
 
     Args:
         knm (tuple): Tuple of three integers (k, n, m) representing powers.
@@ -80,6 +86,7 @@ def xyzint_wrapper(knm, integrals_xyz_dict):
         if knm not in integrals_xyz_dict:
             integrals_xyz_dict[knm] = xyzint(*knm)
         return integrals_xyz_dict[knm]
+
 
 def product_Y(Y1,Y2):
     """Computes the product of two spherical harmonics.
@@ -111,8 +118,10 @@ def print_wigner(D):
                 print(f'D[{l}][{m1: d},{m2: d}] = {d[m1,m2]}')
         print()
 
+
 def compute_wigner(lmax):
-    """Compute Wigner D matrices up to a maximum angular momentum.
+    """Compute Wigner D matrices for real spherical harmonics
+       up to a maximum angular momentum.
 
     Args:
         lmax (int): Maximum angular momentum quantum number.
@@ -142,11 +151,11 @@ def compute_wigner(lmax):
 
 
 if __name__ == "__main__":
-  if len(sys.argv)<2:
-    lmax = 2
-  else:
-    lmax = int(sys.argv[1])
+    if len(sys.argv)<2:
+        lmax = 2
+    else:
+        lmax = int(sys.argv[1])
 
-  D = compute_wigner(lmax)
-  print_wigner(D)
+    D = compute_wigner(lmax)
+    print_wigner(D)
 

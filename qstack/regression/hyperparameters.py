@@ -9,23 +9,23 @@ from .parser import RegressionParser
 
 
 def hyperparameters(X, y,
-           sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel, gdict=defaults.gdict,
-           akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits, idx_test=None, idx_train=None,
+           sigma=defaults.sigmaarr, eta=defaults.etaarr, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
+           test_size=defaults.test_size, splits=defaults.splits, idx_test=None, idx_train=None,
            printlevel=0, adaptive=False, read_kernel=False, sparse=None, random_state=defaults.random_state):
     """ Performs a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
 
     Args:
-        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
+        X (numpy.ndarray[Nsamples,...]): array containing the representations of all Nsamples
         y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
         sigma (list): list of kernel width for the grid search
         eta (list): list of regularization strength for the grid search
-        gkernel (str): global kernel (REM, average)
-        gdit (dict): parameters of the global kernels
-        akernel (str): local kernel (Laplacian, Gaussian, linear)
+        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
+        gkernel (str): global kernel (None, 'REM', 'avg')
+        gdict (dict): parameters of the global kernels
         test_size (float or int): test set fraction (or number of samples)
         splits (int): K number of splits for the Kfold cross-validation
-        idx_test (list): list of indices for the test-set (based on the sequence in X
-        idx_train (list): list of indices for the training set (based on the sequence in X)
+        idx_test (numpy.1darray): list of indices for the test set (based on the sequence in X)
+        idx_train (numpy.1darray): list of indices for the training set (based on the sequence in X)
         printlevel (int): controls level of output printing
         adaptative (bool): to expand the grid search adaptatively
         read_kernel (bool): if 'X' is a kernel and not an array of representations

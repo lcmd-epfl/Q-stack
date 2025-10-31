@@ -123,8 +123,19 @@ def cosine_similarity_wrapper(x, y, *_kargs, **_kwargs):
 
 
 def local_laplacian_kernel_wrapper(X, Y, gamma):
-    """ Wrapper that acts as a generic laplacian kernel function
-    It simply decides which kernel implementation to call.
+    """ Wrapper that acts as a generic Laplacian kernel function.
+    It decides which kernel implementation to call.
+
+    Args:
+        X (numpy ndarray): First set of samples (can be multi-dimensional).
+        Y (numpy ndarray): Second set of samples.
+        gamma (float): Kernel width parameter.
+
+    Returns:
+        numpy ndarray: Laplacian kernel matrix of shape (len(X), len(Y)).
+
+    Raises:
+        RuntimeError: If X and Y have incompatible shapes.
     """
     X, Y = np.asarray(X), np.asarray(Y)
     if X.shape[1:] != Y.shape[1:]:

@@ -4,14 +4,14 @@ from pyscf import df, dft
 
 
 def energy_mol(newbasis, moldata):
-    """Computes energy for basis optimization.
+    """Computes loss function (fitting error) for one molecule.
 
     Args:
-        newbasis (dict): New basis set definition.
-        moldata (dict): Dictionary containing molecular data including mol, rho, coords, weights, and self.
+        newbasis (dict): Basis set.
+        moldata (dict): Dictionary containing molecular data.
 
     Returns:
-        float: Energy value for the given basis.
+        float: Loss function value for the given basis.
     """
     mol     = moldata['mol'    ]
     rho     = moldata['rho'    ]
@@ -30,18 +30,17 @@ def energy_mol(newbasis, moldata):
 
 
 def gradient_mol(nexp, newbasis, moldata):
-    """Computes energy and gradient for basis optimization.
+    """Computes loss function and gradient for one molecule.
 
     Args:
         nexp (int): Number of exponents.
-        newbasis (dict): New basis set definition.
-        moldata (dict): Dictionary containing molecular data including mol, rho, coords, weights, 
-            self, idx, centers, and distances.
+        newbasis (dict): Basis set.
+        moldata (dict): Dictionary containing molecular data.
 
     Returns:
         tuple: A tuple containing:
-            - E (float): Energy value.
-            - dE_da (numpy.ndarray): Gradient of energy with respect to exponents.
+            - E (float): Loss function value.
+            - dE_da (numpy.ndarray): Gradient of loss function with respect to exponents.
     """
 
     mol       = moldata['mol'      ]
@@ -96,7 +95,7 @@ def exp2basis(exponents, elements, basis):
 
     Args:
         exponents (numpy.ndarray): Array of basis function exponents.
-        elements (list): List of element symbols.
+        elements (list): List of elements for which change the basis.
         basis (dict): Template basis set definition.
 
     Returns:
@@ -117,10 +116,10 @@ def cut_myelements(x, myelements, bf_bounds):
     Args:
         x (numpy.ndarray): Input array.
         myelements (list): List of element symbols to extract.
-        bf_bounds (dict): Dictionary mapping elements to their index bounds.
+        bf_bounds (dict): Dictionary mapping elements to their basis set bound indices.
 
     Returns:
-        numpy.ndarray: Concatenated array containing only specified elements.
+        numpy.ndarray: Array containing x only for specified elements.
     """
     x1 = []
     for q in myelements:

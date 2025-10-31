@@ -9,12 +9,12 @@ def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=def
     """ Computes a kernel between sets A and B (or A and A) using their representations.
 
     Args:
-        X (list of arrays): Representation of A
-        Y (list of arrays): Representation of B.
-        sigma (): Sigma hyperparameter.
-        akernel (): Kernel type (G for Gaussian, L for Laplacian, and myL for Laplacian for open-shell systems).
-        gkernel (): Global kernel type (agv for average, rem for REMatch kernel, None for local kernels).
-        gdict (): Dictionary like input string to initialize global kernel parameters. Defaults to {'alpha':1.0, 'normalize':1}.
+        X (numpy.ndarray): Representation of A
+        Y (numpy.ndarray): Representation of B.
+        sigma (float): width of the kernel
+        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
+        gkernel (str): global kernel (None, 'REM', 'avg')
+        gdict (dict): parameters of the global kernels
 
     Returns:
         A numpy ndarray containing the kernel.

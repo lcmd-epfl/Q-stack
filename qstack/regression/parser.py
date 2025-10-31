@@ -6,9 +6,7 @@ from .kernel_utils import defaults, ParseKwargs, local_kernels_dict, global_kern
 class RegressionParser(FlexParser):
     """Custom argument parser for kernel ridge regression tasks.
 
-    Provides pre-configured argument sets for machine learning workflows with
-    molecular representations. Supports single hyperparameter evaluation and
-    hyperparameter optimization via grid search.
+    Provides pre-configured argument sets for KRR routines.
 
     Args:
         hyperparameters_set (str, optional): Hyperparameter mode. Options:
@@ -23,13 +21,14 @@ class RegressionParser(FlexParser):
             - x (--x): Path to molecular representations file
             - y (--y): Path to target properties file
             - akernel (--akernel): Local/atomic kernel type (Gaussian, Laplacian, etc.)
-            - gkernel (--gkernel): Global/molecular kernel type (avg, REMatch)
+            - gkernel (--gkernel): Global/molecular kernel type (average, REMatch)
             - gdict (--gdict): Global kernel parameters dictionary
             - test (--test): Test set fraction (0.0-1.0)
-            - train (--train): Training set size(s)
-            - ll (--ll): Thread correction flag
+            - train (--train): Training set fraction list for learning curvers
+                               (0.0-1.0 where 1.0 means full training set minus test set)
+            - ll (--ll): Thread correction flag for running on clusters
             - readkernel (--readkernel): Flag if input is pre-computed kernel
-            - sparse (--sparse): Sparse learning basis size
+            - sparse (--sparse): Sparse regression basis size
             - random_state (--random_state): Random seed for reproducibility
 
         Additional for 'single' mode:

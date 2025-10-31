@@ -22,10 +22,10 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
         readdm (str, optional): Directory to load pre-computed density matrices. Defaults to None.
         guess (str): Guess Hamiltonian method name. Defaults to defaults.guess.
         xc (str): Exchange-correlation functional. Defaults to defaults.xc.
-        spin (numpy ndarray, optional): Array of spin multiplicities per molecule. Defaults to None.
+        spin (numpy ndarray, optional): Array of numbers of unpaired electrons per molecule. Defaults to None.
         cutoff (float): Maximum bond distance in Angstrom. Defaults to defaults.cutoff.
         printlevel (int): Verbosity level. Defaults to 0.
-        omods (list): Open-shell modes ('alpha', 'beta'). Defaults to defaults.omod.
+        omods (list): Open-shell modes (e.g. 'alpha', 'beta'). Defaults to defaults.omod.
         bpath (str): Path to bond basis set directory. Defaults to defaults.bpath.
         only_m0 (bool): Use only m=0 basis functions. Defaults to False.
         same_basis (bool): Use generic CC.bas for all pairs. Defaults to False.

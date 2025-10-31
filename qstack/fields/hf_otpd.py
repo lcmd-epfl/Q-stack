@@ -2,7 +2,8 @@ from pyscf import dft
 import numpy as np
 from .dm import make_grid_for_rho
 
-def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
+
+def hf_otpd(mol, dm, grid_level=3, save_otpd=False, return_all=False):
     """Computes the Hartree-Fock uncorrelated on-top pair density (OTPD) on a grid.
 
     The on-top pair density is the probability density of finding two electrons
@@ -32,8 +33,8 @@ def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
 
     if return_all:
         return hf_otpd, grid
-
     return hf_otpd
+
 
 def save_OTPD(mol, otpd, grid):
     """Saves on-top pair density computation results to a NumPy compressed file.

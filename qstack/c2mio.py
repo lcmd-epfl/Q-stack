@@ -7,31 +7,37 @@ from qstack.compound import xyz_to_mol
 
 
 def get_cell2mol_xyz(mol):
-    """Extract XYZ coordinates, charge, and spin from a cell2mol molecule object.
+    """Extract XYZ coordinates, charge, and spin from a cell2mol object.
 
     Args:
-        mol: cell2mol molecule object.
+        mol: cell2mol molecule or ligand object.
 
     Returns:
         tuple: A tuple containing:
             - xyz (str): XYZ coordinate string.
             - charge (int): Total charge of the molecule.
-            - spin (int): Spin of the molecule (alpha electrons - beta electrons).
+            - spin (int): Number of unpaired electrons of the molecule (multiplicity - 1)
+                          for molecules and None for ligands.
     """
     f = io.StringIO()
     sys.stdout, stdout = f, sys.stdout
     mol.print_xyz()
     xyz, sys.stdout = f.getvalue(), stdout
     f.close()
-    return xyz, mol.totcharge, (mol.get_spin()-1 if hasattr(mol, 'get_spin') else 0)
+    return xyz, mol.totcharge, (mol.get_spin()-1 if hasattr(mol, 'get_spin') else None)
 
 
 def get_cell(fpath, workdir='.'):
     """Load a unit cell from a .cell or .cif file.
 
+    If a .cif file is provided, the function checks for a corresponding .cell file
+    in the working directory. If it exists, it loads the .cell file; otherwise, it
+    calls cell2mol to process the .cif file to generate the unit cell.
+
     Args:
         fpath (str): Path to the input file (.cell or .cif).
-        workdir (str): Working directory for temporary files. Defaults to '.'.
+        workdir (str): Directory to read / write .cell file and logs if a .cif file
+                       is provided. Defaults to '.'.
 
     Returns:
         cell2mol.unitcell: Unit cell object.
@@ -55,7 +61,7 @@ def get_cell(fpath, workdir='.'):
 
 
 def get_mol(cell, mol_idx=0, basis='minao', ecp=None):
-    """Extract a pyscf Mole object from a cell2mol unit cell.
+    """Convert a molecule in a cell2mol unit cell object to a pyscf Mole object.
 
     Args:
         cell: cell2mol unit cell object.
@@ -64,7 +70,7 @@ def get_mol(cell, mol_idx=0, basis='minao', ecp=None):
         ecp (str): Effective core potential. Defaults to None.
 
     Returns:
-        pyscf.gto.Mole: pyscf Mole object containing the molecule information.
+        pyscf.gto.Mole: pyscf Mole object for the molecule.
     """
     mol = cell.moleclist[mol_idx]
     xyz, charge, spin = get_cell2mol_xyz(mol)
@@ -72,17 +78,17 @@ def get_mol(cell, mol_idx=0, basis='minao', ecp=None):
 
 
 def get_ligand(cell, mol_idx=0, lig_idx=0, basis='minao', ecp=None):
-    """Extract a ligand as a pyscf Mole object from a cell2mol unit cell.
+    """Convert a ligand in a cell2mol unit cell object to a pyscf Mole object.
 
     Args:
         cell: cell2mol unit cell object.
         mol_idx (int): Index of the molecule in the cell. Defaults to 0.
-        lig_idx (int): Index of the ligand. Defaults to 0.
+        lig_idx (int): Index of the ligand in the molecule. Defaults to 0.
         basis (str or dict): Basis set. Defaults to 'minao'.
         ecp (str): Effective core potential. Defaults to None.
 
     Returns:
-        pyscf.gto.Mole: pyscf Mole object containing the ligand information.
+        pyscf.gto.Mole: pyscf Mole object for the ligand.
     """
     mol = cell.moleclist[mol_idx].ligands[lig_idx]
     xyz, charge, spin = get_cell2mol_xyz(mol)

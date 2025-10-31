@@ -2,7 +2,7 @@ import numpy as np
 
 
 def _Rz(a):
-    """Computes the rotation matrix around absolute z-axis.
+    """Computes the rotation matrix around laboratory z-axis.
 
     Args:
         a (float): Rotation angle in radians.
@@ -10,22 +10,16 @@ def _Rz(a):
     Returns:
         numpy.ndarray: 3x3 rotation matrix.
     """
-
-    A = np.zeros((3,3))
-    A[0,0] = np.cos(a)
-    A[0,1] = -np.sin(a)
-    A[0,2] = 0
-    A[1,0] = np.sin(a)
-    A[1,1] = np.cos(a)
-    A[1,2] = 0
-    A[2,0] = 0
-    A[2,1] = 0
-    A[2,2] = 1
-    return A
+    ca, sa = np.cos(a), np.sin(a)
+    return np.array([
+        [ca, -sa, 0],
+        [sa,  ca, 0],
+        [0,   0,  1]
+    ])
 
 
 def _Ry(b):
-    """Computes the rotation matrix around absolute y-axis.
+    """Computes the rotation matrix around laboratory y-axis.
 
     Args:
         b (float): Rotation angle in radians.
@@ -33,22 +27,16 @@ def _Ry(b):
     Returns:
         numpy.ndarray: 3x3 rotation matrix.
     """
-
-    A = np.zeros((3,3))
-    A[0,0] = np.cos(b)
-    A[0,1] = 0
-    A[0,2] = np.sin(b)
-    A[1,0] = 0
-    A[1,1] = 1
-    A[1,2] = 0
-    A[2,0] = -np.sin(b)
-    A[2,1] = 0
-    A[2,2] = np.cos(b)
-    return A
+    cb, sb = np.cos(b), np.sin(b)
+    return np.array([
+        [ cb, 0, sb],
+        [ 0,  1, 0 ],
+        [-sb, 0, cb]
+    ])
 
 
 def _Rx(g):
-    """Computes the rotation matrix around absolute x-axis.
+    """Computes the rotation matrix around laboratory x-axis.
 
     Args:
         g (float): Rotation angle in radians.
@@ -56,22 +44,16 @@ def _Rx(g):
     Returns:
         numpy.ndarray: 3x3 rotation matrix.
     """
-
-    A = np.zeros((3,3))
-    A[0,0] = 1
-    A[0,1] = 0
-    A[0,2] = 0
-    A[1,0] = 0
-    A[1,1] = np.cos(g)
-    A[1,2] = -np.sin(g)
-    A[2,0] = 0
-    A[2,1] = np.sin(g)
-    A[2,2] = np.cos(g)
-    return A
+    cg, sg = np.cos(g), np.sin(g)
+    return np.array([
+        [1, 0,  0 ],
+        [0, cg, -sg],
+        [0, sg,  cg]
+    ])
 
 
 def rotate_euler(a, b, g, rad=False):
-    """Computes the rotation matrix given Euler angles.
+    """Computes the rotation matrix given Cardan angles (x-y-z)
 
     Args:
         a (float): Alpha Euler angle.
@@ -84,9 +66,7 @@ def rotate_euler(a, b, g, rad=False):
     """
 
     if not rad:
-        a = a * np.pi / 180
-        b = b * np.pi / 180
-        g = g * np.pi / 180
+        a, b, g = np.radians([a, b, g])
 
     A = _Rz(a)
     B = _Ry(b)

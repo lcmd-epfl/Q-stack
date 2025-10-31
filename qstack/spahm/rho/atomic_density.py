@@ -4,10 +4,10 @@ from . import lowdin
 
 
 def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
-    """Fits atomic density matrices using Löwdin partitioning and density fitting.
+    """Creates atomic density representations using Löwdin partitioning and density fitting.
 
     Decomposes the molecular density matrix into atomic contributions using Löwdin
-    orthogonalization, then fits each atomic density with auxiliary basis functions.
+    orthogonalization, then fits each atomic density onto auxiliary basis set.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.

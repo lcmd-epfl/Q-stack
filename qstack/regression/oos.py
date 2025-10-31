@@ -13,13 +13,13 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
     """ Perform prediction on an out-of-sample (OOS) set.
 
     Args:
-        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
-        X_oos (numpy.2darray[Noos,Nfeat]): array of OOS representations.
-        alpha (numpy.1darray(Ntrain or sparse)): regression weights.
+        X (numpy.ndarray[Nsamples,...]): array containing the representations of all Nsamples
+        X_oos (numpy.ndarray[Noos,...]): array of OOS representations
+        alpha (numpy.1darray(Ntrain or sparse)): regression weights
         sigma (float): width of the kernel
-        akernel (str): local kernel (Laplacian, Gaussian, linear)
-        gkernel (str): global kernel (REM, average)
-        gdit (dict): parameters of the global kernels
+        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
+        gkernel (str): global kernel (None, 'REM', 'avg')
+        gdict (dict): parameters of the global kernels
         test_size (float or int): test set fraction (or number of samples)
         random_state (int): the seed used for random number generator (controls train/test splitting)
         idx_test (list): list of indices for the test set (based on the sequence in X)

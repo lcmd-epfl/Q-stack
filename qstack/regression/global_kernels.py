@@ -13,7 +13,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
         sigma (float): Kernel width parameter.
         local_kernel (callable): Local kernel function for atomic environments.
         global_kernel (callable): Global kernel function for combining local kernels.
-        options (dict): Dictionary of kernel options (normalize, verbose, etc.).
+        options (dict): Dictionary of global kernel options.
 
     Returns:
         numpy ndarray: Global kernel matrix of shape (len(X), len(Y)).
@@ -67,7 +67,7 @@ def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None)
     Args:
         mol1 (dict): First molecule represented as dictionary of atomic environments by species.
         mol2 (dict): Second molecule represented as dictionary of atomic environments by species.
-        species (numpy ndarray): Array of unique atomic species present.
+        species (numpy ndarray): Array of unique atomic species present in the dataset.
         max_atoms (dict): Maximum number of atoms per species across all molecules.
         max_size (int): Total size of the padded covariance matrix.
         kernel (callable): Local kernel function.

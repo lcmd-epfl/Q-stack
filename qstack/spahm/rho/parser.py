@@ -8,8 +8,7 @@ from ..guesses import guesses_dict
 class SpahmParser(FlexParser):
     """Custom argument parser for SPAHM command-line tools.
 
-    Provides pre-configured argument sets for atomic and bond SPAHM computations
-    with consistent interface across different entry points.
+    Provides pre-configured argument sets for atomic and bond SPAHM computations.
 
     Args:
         unified (bool): Enable unified file/list interface. Defaults to False.

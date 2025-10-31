@@ -4,11 +4,8 @@ from pyscf.tools.cubegen import Cube
 import pyscf.tools.molden
 from .decomposition import number_of_electrons_deco
 
-def coeffs_to_cube(mol, coeffs, cubename, nx = 80, ny = 80, nz = 80, resolution = 0.1, margin = 3.0):
-    """Saves the electron density to a cube file format.
-
-    Evaluates the density from expansion coefficients on a 3D grid and writes
-    it to a Gaussian cube file for visualization.
+def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, margin=3.0):
+    """Saves the electron density to a cube file.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -24,25 +21,16 @@ def coeffs_to_cube(mol, coeffs, cubename, nx = 80, ny = 80, nz = 80, resolution 
         None: Creates a file named <cubename>.cube on disk.
     """
 
-    # Make grid
     grid = Cube(mol, nx, ny, nz, resolution, margin)
-
-    # Compute density on the .cube grid
     coords = grid.get_coords()
-
     ao = eval_ao(mol, coords)
     orb_on_grid = np.dot(ao, coeffs)
-    orb_on_grid = orb_on_grid.reshape(grid.nx,grid.ny,grid.nz)
-
-    # Write out orbital to the .cube file
+    orb_on_grid = orb_on_grid.reshape(grid.nx, grid.ny, grid.nz)
     grid.write(orb_on_grid, cubename, comment='Electron Density')
 
 
 def coeffs_to_molden(mol, coeffs, moldenname):
-    """Saves the electron density to a MOLDEN file format.
-
-    Writes the density represented by expansion coefficients to a MOLDEN file
-    which can be visualized with various quantum chemistry visualization tools.
+    """Saves the electron density to a MOLDEN file.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
