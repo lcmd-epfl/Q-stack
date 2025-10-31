@@ -10,6 +10,29 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
                          readdm=None, guess=defaults.guess, xc=defaults.xc, spin=None,
                          cutoff=defaults.cutoff, printlevel=0, omods=defaults.omod,
                          bpath=defaults.bpath, only_m0=False, same_basis=False):
+    """Computes SPAHM(b) representations for specific bonds in molecules.
+
+    Generates bond-centered representations for user-specified atom pairs across
+    a dataset of molecules, useful for targeted bond analysis.
+
+    Args:
+        mols (list): List of pyscf Mole objects.
+        bondidx (numpy ndarray): 2D array (nmols, 2) of 0-indexed atom pairs defining bonds.
+        xyzlist (list): List of XYZ filenames corresponding to mols.
+        readdm (str, optional): Directory to load pre-computed density matrices. Defaults to None.
+        guess (str): Guess Hamiltonian method name. Defaults to defaults.guess.
+        xc (str): Exchange-correlation functional. Defaults to defaults.xc.
+        spin (numpy ndarray, optional): Array of spin multiplicities per molecule. Defaults to None.
+        cutoff (float): Maximum bond distance in Angstrom. Defaults to defaults.cutoff.
+        printlevel (int): Verbosity level. Defaults to 0.
+        omods (list): Open-shell modes ('alpha', 'beta'). Defaults to defaults.omod.
+        bpath (str): Path to bond basis set directory. Defaults to defaults.bpath.
+        only_m0 (bool): Use only m=0 basis functions. Defaults to False.
+        same_basis (bool): Use generic CC.bas for all pairs. Defaults to False.
+
+    Returns:
+        list: List of (filename, representation) tuples for each specified bond.
+    """
 
     if spin is None or (spin == None).all():
         omods = [None]
@@ -36,6 +59,18 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
 
 
 def main():
+    """Command-line interface for computing SPAHM(b) representations for specific bonds.
+
+    Reads a file listing XYZ structures and bond indices, computes representations
+    for each specified bond, and saves them to individual files. The input file format
+    is: XYZ_path atom1_index atom2_index (1-indexed).
+
+    Args:
+        None: Parses command-line arguments.
+
+    Returns:
+        None: Saves bond representations to numpy files in specified directory.
+    """
     parser = SpahmParser(description='This program computes the SPAHM(b) representation for a list of bonds', bond=True)
     parser.remove_argument('elements')
     parser.remove_argument('only_z')

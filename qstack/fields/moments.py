@@ -19,10 +19,14 @@ def first(mol, rho):
 
 
 def r_dm(mol, dm):
-    """
+    """Computes the electric dipole moment from a density matrix.
 
-    .. todo::
-        write docstring.
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        dm (numpy ndarray): 2D density matrix in AO basis.
+
+    Returns:
+        numpy ndarray: Electric dipole moment vector (3 components).
     """
     with mol.with_common_orig((0,0,0)):
         ao_dip = mol.intor_symmetric('int1e_r', comp=3)
@@ -30,9 +34,17 @@ def r_dm(mol, dm):
     return el_dip
 
 def r_c(mol, rho):
-    """
-    .. todo::
-        Write docstring, and include uncontracted basis in code and verify formulas
+    """Computes the electric dipole moment from fitting coefficients.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        rho (numpy ndarray): 1D array of density-fitting coefficients.
+
+    Returns:
+        numpy ndarray: Electric dipole moment vector (3 components).
+
+    Note:
+        Currently only supports contracted basis sets.
     """
     r  = np.zeros(3)
     i=0
@@ -69,13 +81,17 @@ def r2_c(rho, mol):
         <r^{2}> = \\int \\hat{r}^{2} \\rho d r
 
     Args:
-        mol (scipy Mole): scipy Mole object.
+        rho (numpy ndarray): 1D array of density-fitting coefficients.
+        mol (pyscf Mole): pyscf Mole object.
 
     Returns:
-        The zeroth, first, and second moments of electron density distribution.
+        tuple: Three values (N, r, r2) representing:
+            - N (float): Zeroth moment (integrated density).
+            - r (numpy ndarray): First moment (3-component dipole vector).
+            - r2 (float): Second moment (mean square radius).
 
-    .. todo::
-        Include uncontracted basis in code and verify formulas
+    Note:
+        Currently only supports contracted basis sets.
     """
 
     N  = 0.0           # <1> zeroth

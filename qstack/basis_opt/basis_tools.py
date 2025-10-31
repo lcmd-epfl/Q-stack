@@ -4,15 +4,14 @@ from pyscf import df, dft
 
 
 def energy_mol(newbasis, moldata):
-    """Computes overlap and 2-/3-centers ERI matrices.
+    """Computes energy for basis optimization.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
-        auxmol (pyscf Mole): pyscf Mole object holding molecular structure, composition and the auxiliary basis set.
+        newbasis (dict): New basis set definition.
+        moldata (dict): Dictionary containing molecular data including mol, rho, coords, weights, and self.
 
     Returns:
-        numpy ndarray: Overlap matrix, 2-centers and 3-centers ERI matrices.
-
+        float: Energy value for the given basis.
     """
     mol     = moldata['mol'    ]
     rho     = moldata['rho'    ]
@@ -31,14 +30,18 @@ def energy_mol(newbasis, moldata):
 
 
 def gradient_mol(nexp, newbasis, moldata):
-    """
+    """Computes energy and gradient for basis optimization.
 
     Args:
-        nexp():
-        newbasis():
-        moldata(pyscf Mole): pyscf Mole object holding molecular structure, composition and the auxiliary basis set
+        nexp (int): Number of exponents.
+        newbasis (dict): New basis set definition.
+        moldata (dict): Dictionary containing molecular data including mol, rho, coords, weights, 
+            self, idx, centers, and distances.
 
     Returns:
+        tuple: A tuple containing:
+            - E (float): Energy value.
+            - dE_da (numpy.ndarray): Gradient of energy with respect to exponents.
     """
 
     mol       = moldata['mol'      ]
@@ -89,15 +92,15 @@ def gradient_mol(nexp, newbasis, moldata):
 
 
 def exp2basis(exponents, elements, basis):
-    """
+    """Convert exponents array to basis set format.
 
-    Argas:
-        exponents():
-        elements():
-        basis():
+    Args:
+        exponents (numpy.ndarray): Array of basis function exponents.
+        elements (list): List of element symbols.
+        basis (dict): Template basis set definition.
 
     Returns:
-        newbasis():
+        dict: New basis set with updated exponents.
     """
     i = 0
     newbasis = copy.deepcopy(basis)
@@ -109,6 +112,16 @@ def exp2basis(exponents, elements, basis):
 
 
 def cut_myelements(x, myelements, bf_bounds):
+    """Extract subset of array corresponding to specified elements.
+
+    Args:
+        x (numpy.ndarray): Input array.
+        myelements (list): List of element symbols to extract.
+        bf_bounds (dict): Dictionary mapping elements to their index bounds.
+
+    Returns:
+        numpy.ndarray: Concatenated array containing only specified elements.
+    """
     x1 = []
     for q in myelements:
         bounds = bf_bounds[q]
@@ -118,6 +131,12 @@ def cut_myelements(x, myelements, bf_bounds):
 
 
 def printbasis(basis, f):
+    """Print basis set in JSON-like format to file.
+
+    Args:
+        basis (dict): Basis set definition.
+        f (file): File object to write to.
+    """
     print('{', file=f)
     for q, b in basis.items():
         print('  "'+q+'": [', file=f)

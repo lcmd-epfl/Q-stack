@@ -6,10 +6,20 @@ from qstack.regression import __path__ as REGMODULE_PATH
 
 
 def custom_laplacian_kernel(X, Y, gamma):
-  """ Compute Laplacian kernel between X and Y
+  """Computes Laplacian kernel between X and Y using Python implementation.
 
-  .. todo::
-      Write the docstring
+  K(x, y) = exp(-gamma * ||x - y||_1)
+
+  Args:
+      X (numpy ndarray): First set of samples (can be multi-dimensional).
+      Y (numpy ndarray): Second set of samples.
+      gamma (float): Kernel width parameter.
+
+  Returns:
+      numpy ndarray: Laplacian kernel matrix of shape (len(X), len(Y)).
+
+  Raises:
+      RuntimeError: If X and Y have incompatible shapes.
   """
   if X.shape[1:] != Y.shape[1:]:
       raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
@@ -27,10 +37,14 @@ def custom_laplacian_kernel(X, Y, gamma):
 
 
 def custom_C_kernels(kernel_function, return_distance_function=False):
-    """
+    """Creates kernel function wrappers using C implementation for speed.
 
-    .. todo::
-        Write the docstring
+    Args:
+        kernel_function (str): Kernel type ('L' for Laplacian, 'G' for Gaussian).
+        return_distance_function (bool): If True, returns distance function instead of kernel. Defaults to False.
+
+    Returns:
+        callable or None: Kernel or distance function, or None if C library cannot be loaded.
     """
     import ctypes
     import sysconfig
@@ -79,10 +93,32 @@ def custom_C_kernels(kernel_function, return_distance_function=False):
 
 
 def dot_kernel_wrapper(x, y, *_kargs, **_kwargs):
+    """Wrapper for linear (dot product) kernel.
+
+    Args:
+        x (numpy ndarray): First set of samples.
+        y (numpy ndarray): Second set of samples.
+        *_kargs: Unused positional arguments (for compatibility).
+        **_kwargs: Unused keyword arguments (for compatibility).
+
+    Returns:
+        numpy ndarray: Linear kernel matrix.
+    """
     return _SKLEARN_PAIRWISE.linear_kernel(x, y)
 
 
 def cosine_similarity_wrapper(x, y, *_kargs, **_kwargs):
+    """Wrapper for cosine similarity kernel.
+
+    Args:
+        x (numpy ndarray): First set of samples.
+        y (numpy ndarray): Second set of samples.
+        *_kargs: Unused positional arguments (for compatibility).
+        **_kwargs: Unused keyword arguments (for compatibility).
+
+    Returns:
+        numpy ndarray: Cosine similarity matrix.
+    """
     return _SKLEARN_PAIRWISE.cosine_similarity(x, y)
 
 

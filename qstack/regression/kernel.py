@@ -27,6 +27,7 @@ def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=def
 
 
 def main():
+    """Command-line entry point for computing kernel matrices."""
     parser = RegressionParser(description='This program computes kernel.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('test_size')

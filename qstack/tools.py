@@ -8,10 +8,10 @@ def _orca2gpr_idx(mol):
     """Given a molecule returns a list of reordered indices to tranform orca AO ordering into SA-GPR.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
+        mol (pyscf.gto.Mole): pyscf Mole object.
 
     Returns:
-        A numpy ndarray of re-arranged indices.
+        numpy.ndarray: Re-arranged indices array.
     """
     #def _M1(n):
     #    return (n+1)//2 if n%2 else -((n+1)//2)
@@ -38,10 +38,10 @@ def _orca2gpr_sign(mol):
     """Given a molecule returns a list of multipliers needed to tranform from orca AO.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
+        mol (pyscf.gto.Mole): pyscf Mole object.
 
     Returns:
-        A numpy ndarray of +1/-1 multipliers
+        numpy.ndarray: Array of +1/-1 multipliers.
     """
     signs = np.ones(mol.nao, dtype=int)
     i=0
@@ -64,10 +64,10 @@ def _pyscf2gpr_idx(mol):
     """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
+        mol (pyscf.gto.Mole): pyscf Mole object.
 
     Returns:
-        A numpy ndarray of re-arranged indices.
+        numpy.ndarray: Re-arranged indices array.
     """
 
     idx = np.arange(mol.nao, dtype=int)
@@ -89,16 +89,22 @@ def _pyscf2gpr_idx(mol):
 
 def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
     """Reorder the atomic orbitals from one convention to another.
-    For example, src=pyscf dest=gpr reorders p-orbitals from +1,-1,0 (pyscf convention) to -1,0,+1 (SA-GPR convention).
+    
+    For example, src=pyscf dest=gpr reorders p-orbitals from +1,-1,0 (pyscf convention) 
+    to -1,0,+1 (SA-GPR convention).
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        vector (numpy ndarray): vector or matrix
-        src (string): current convention
-        dest (string): convention to convert to (available: 'pyscf', 'gpr', ...
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        vector (numpy.ndarray): Vector or matrix to reorder.
+        src (str): Current convention. Defaults to 'pyscf'.
+        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca'). Defaults to 'gpr'.
 
     Returns:
-        A numpy ndarray with the reordered vector or matrix.
+        numpy.ndarray: Reordered vector or matrix.
+
+    Raises:
+        NotImplementedError: If the specified convention is not implemented.
+        ValueError: If vector dimension is not 1 or 2.
     """
 
     def get_idx(mol, convention):
@@ -145,10 +151,10 @@ def _Rz(a):
     """Computes the rotation matrix around absolute z-axis.
 
     Args:
-        a (float): Rotation angle.
+        a (float): Rotation angle in radians.
 
     Returns:
-        A 2D numpy ndarray containing the rotation matrix.
+        numpy.ndarray: 3x3 rotation matrix.
     """
 
     A = np.zeros((3,3))
@@ -168,10 +174,10 @@ def _Ry(b):
     """Computes the rotation matrix around absolute y-axis.
 
     Args:
-        b (float): Rotation angle.
+        b (float): Rotation angle in radians.
 
     Returns:
-        A 2D numpy ndarray containing the rotation matrix.
+        numpy.ndarray: 3x3 rotation matrix.
     """
 
     A = np.zeros((3,3))
@@ -190,10 +196,10 @@ def _Rx(g):
     """Computes the rotation matrix around absolute x-axis.
 
     Args:
-        g (float): Rotation angle.
+        g (float): Rotation angle in radians.
 
     Returns:
-        A 2D numpy ndarray containing the rotation matrix.
+        numpy.ndarray: 3x3 rotation matrix.
     """
 
     A = np.zeros((3,3))
@@ -216,10 +222,10 @@ def rotate_euler(a, b, g, rad=False):
         a (float): Alpha Euler angle.
         b (float): Beta Euler angle.
         g (float): Gamma Euler angle.
-        rad (bool) : Wheter the angles are in radians or not.
+        rad (bool): Whether the angles are in radians. Defaults to False (degrees).
 
     Returns:
-        A 2D numpy ndarray with the rotation matrix.
+        numpy.ndarray: 3x3 rotation matrix.
     """
 
     if not rad:
@@ -235,31 +241,56 @@ def rotate_euler(a, b, g, rad=False):
 
 
 def unix_time_decorator(func):
-# thanks to https://gist.github.com/turicas/5278558
-  def wrapper(*args, **kwargs):
-    start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
-    ret = func(*args, **kwargs)
-    end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
-    real = end_time - start_time
-    user = end_resources.ru_utime - start_resources.ru_utime
-    syst = end_resources.ru_stime - start_resources.ru_stime
-    print(f'{func.__name__} :  real: {real:.4f}  user: {user:.4f}  sys: {syst:.4f}')
-    return ret
-  return wrapper
+    """Decorator to measure and print execution time statistics for a function.
+
+    Measures real, user, and system time for the decorated function.
+    Thanks to https://gist.github.com/turicas/5278558
+
+    Args:
+        func (callable): Function to be decorated.
+
+    Returns:
+        callable: Wrapped function that prints timing information.
+    """
+    def wrapper(*args, **kwargs):
+        start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
+        ret = func(*args, **kwargs)
+        end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
+        real = end_time - start_time
+        user = end_resources.ru_utime - start_resources.ru_utime
+        syst = end_resources.ru_stime - start_resources.ru_stime
+        print(f'{func.__name__} :  real: {real:.4f}  user: {user:.4f}  sys: {syst:.4f}')
+        return ret
+    return wrapper
 
 def unix_time_decorator_with_tvalues(func):
-# thanks to https://gist.github.com/turicas/5278558
-  def wrapper(*args, **kwargs):
-    start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
-    ret = func(*args, **kwargs)
-    end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
-    timing = {'real' : end_time - start_time,
-              'user' : end_resources.ru_utime - start_resources.ru_utime,
-              'sys' : end_resources.ru_stime - start_resources.ru_stime}
-    return timing, ret
-  return wrapper
+    """Decorator to measure execution time statistics and return them along with function result.
+
+    Measures real, user, and system time for the decorated function and returns timing dict.
+    Thanks to https://gist.github.com/turicas/5278558
+
+    Args:
+        func (callable): Function to be decorated.
+
+    Returns:
+        callable: Wrapped function that returns (timing_dict, result).
+    """
+    def wrapper(*args, **kwargs):
+        start_time, start_resources = time.time(), resource.getrusage(resource.RUSAGE_SELF)
+        ret = func(*args, **kwargs)
+        end_resources, end_time = resource.getrusage(resource.RUSAGE_SELF), time.time()
+        timing = {'real' : end_time - start_time,
+                  'user' : end_resources.ru_utime - start_resources.ru_utime,
+                  'sys' : end_resources.ru_stime - start_resources.ru_stime}
+        return timing, ret
+    return wrapper
 
 def correct_num_threads():
+    """Set MKL and OpenBLAS thread counts based on SLURM environment.
+
+    If running under SLURM, sets MKL_NUM_THREADS and OPENBLAS_NUM_THREADS
+    to match SLURM_CPUS_PER_TASK.
+    """
     if "SLURM_CPUS_PER_TASK" in os.environ:
         os.environ["MKL_NUM_THREADS"] = os.environ["SLURM_CPUS_PER_TASK"]
         os.environ["OPENBLAS_NUM_THREADS"] = os.environ["SLURM_CPUS_PER_TASK"]

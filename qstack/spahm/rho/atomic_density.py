@@ -4,6 +4,27 @@ from . import lowdin
 
 
 def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
+    """Fits atomic density matrices using Löwdin partitioning and density fitting.
+
+    Decomposes the molecular density matrix into atomic contributions using Löwdin
+    orthogonalization, then fits each atomic density with auxiliary basis functions.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        dm (numpy ndarray): 2D density matrix in AO basis.
+        aux_basis (str or dict): Auxiliary basis set for density fitting.
+        short (bool): If True, returns only diagonal blocks (atom-centered coefficients).
+            Defaults to False.
+        w_slicing (bool): If True, uses block-diagonal Coulomb matrix (faster).
+            Defaults to True.
+        only_i (list or None): List of atom indices to compute. If None, computes all atoms.
+            Defaults to None.
+
+    Returns:
+        list or numpy ndarray: Density fitting coefficients for each atom.
+            - If short=False: list of 1D arrays (full aux basis per atom)
+            - If short=True: 1D array (concatenated atom-centered coefficients only)
+    """
     L = lowdin.Lowdin_split(mol, dm)
 
     if only_i is not None and len(only_i) > 0:

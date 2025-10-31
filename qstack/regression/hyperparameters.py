@@ -132,6 +132,7 @@ def hyperparameters(X, y,
 
 
 def main():
+    """Command-line entry point for hyperparameter optimization."""
     parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
     parser.remove_argument("random_state")
     parser.remove_argument("train_size")

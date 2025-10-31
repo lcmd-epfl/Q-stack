@@ -8,10 +8,34 @@ from .Dmatrix import Dmatrix_for_z, c_split, rotate_c
 
 
 def make_bname(q0, q1):
+    """Creates canonical bond name from two element symbols.
+
+    Orders elements alphabetically to ensure consistent naming (e.g., 'CH' not 'HC').
+
+    Args:
+        q0 (str): First element symbol.
+        q1 (str): Second element symbol.
+
+    Returns:
+        str: Concatenated element symbols in alphabetical order (e.g., 'CH', 'CC', 'NO').
+    """
     return operator.concat(*sorted((q0, q1)))
 
 
 def get_basis_info(qqs, mybasis, only_m0, printlevel):
+    """Computes basis indices and metric matrices for bond pairs.
+
+    Args:
+        qqs (list): List of bond pair names (e.g., ['CC', 'CH', 'OH']).
+        mybasis (dict): Dictionary mapping bond names to basis set dictionaries.
+        only_m0 (bool): If True, use only m=0 angular momentum components.
+        printlevel (int): Verbosity level.
+
+    Returns:
+        tuple: (idx, M) where:
+            - idx (dict): Pair indices for each bond type
+            - M (dict): Metric matrices for each bond type
+    """
     idx = {}
     M   = {}
     for qq in qqs:
@@ -27,6 +51,16 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
 
 
 def read_df_basis(bnames, bpath, same_basis=False):
+    """Loads bond-optimized basis sets from .bas files.
+
+    Args:
+        bnames (list): List of bond pair names (e.g., ['CC', 'CH']).
+        bpath (str): Directory path containing .bas files.
+        same_basis (bool): If True, uses generic CC.bas for all pairs. Defaults to False.
+
+    Returns:
+        dict: Dictionary mapping bond names to basis set dictionaries.
+    """
     mybasis = {}
     for bname in bnames:
         if bname in mybasis:
@@ -38,6 +72,18 @@ def read_df_basis(bnames, bpath, same_basis=False):
 
 
 def get_element_pairs(elements):
+    """Generates all possible element pair combinations.
+
+    Creates complete list of bond types assuming all elements can bond with each other.
+
+    Args:
+        elements (list): List of element symbols.
+
+    Returns:
+        tuple: (qqs, qqs4q) where:
+            - qqs (list): Sorted list of unique bond pair names
+            - qqs4q (dict): Maps each element to its list of possible bond partners
+    """
     qqs   = []
     qqs4q = {}
     for q1 in elements:
@@ -52,6 +98,23 @@ def get_element_pairs(elements):
 
 
 def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
+    """Determines element pairs based on actual distances in molecules.
+
+    Identifies which element pairs actually form bonds within the distance cutoff
+    by scanning molecular geometries.
+
+    Args:
+        elements (list): List of element symbols to consider.
+        mols (list): List of pyscf Mole objects.
+        cutoff (float): Maximum bond distance in Angstrom.
+        align (bool): If True, includes all element pairs regardless of distance.
+            Defaults to False.
+
+    Returns:
+        tuple: (qqs, qqs4q) where:
+            - qqs (list): Sorted list of bond pair names found within cutoff
+            - qqs4q (dict): Maps each element to its list of bond partners
+    """
     qqs4q = {q: [] for q in elements}
     qqs = []
     if align:
@@ -142,6 +205,28 @@ def vec_from_cs(z, cs, lmax, idx):
 
 
 def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
+    """Computes bond representation for a specific atom pair.
+
+    Extracts bond density, fits it with basis functions at the bond center,
+    and rotates coefficients to bond axis to create rotationally invariant representation.
+
+    Args:
+        i0 (int): Index of first atom.
+        i1 (int): Index of second atom.
+        L (Lowdin_split): Löwdin-split density matrix object.
+        mybasis (dict): Bond basis sets keyed by bond names.
+        idx (dict): Pair indices for symmetrization.
+        q (list): Element symbols for all atoms.
+        r (numpy ndarray): Atomic coordinates in Angstrom.
+        cutoff (float): Maximum bond distance.
+
+    Returns:
+        tuple: ([v0, v1], bname) where:
+            - v0: Representation from atom i0's perspective
+            - v1: Representation from atom i1's perspective  
+            - bname: Bond name (e.g., 'CH')
+            Returns (None, None) if distance exceeds cutoff.
+    """
     q0, q1 = q[i0], q[i1]
     r0, r1 = r[i0], r[i1]
     z = r1-r0

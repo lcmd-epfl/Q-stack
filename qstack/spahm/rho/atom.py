@@ -5,6 +5,17 @@ from .parser import SpahmParser
 
 
 def main(args=None):
+    """Command-line interface for computing SPAHM(a) atomic representations.
+
+    Computes atom-centered SPAHM representations for a single molecule from an XYZ file.
+    The representation is based on fitted atomic densities from a guess Hamiltonian.
+
+    Args:
+        args (list, optional): Command-line arguments. If None, uses sys.argv. Defaults to None.
+
+    Returns:
+        None: Saves representation to numpy file specified by --name argument.
+    """
     parser = SpahmParser(description='This program computes the SPAHM(a) representation for a given molecular system', atom=True)
     parser.add_argument('--mol',       dest='mol',           required=True,                        type=str, help="the path to the xyz file with the molecular structure")
     parser.add_argument('--charge',    dest='charge',        default=0,                            type=int, help='total charge of the system (default: 0)')

@@ -71,6 +71,7 @@ def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 
 def main():
+    """Command-line entry point for computing final prediction errors."""
     parser = RegressionParser(description='This program computes the full-training error for each molecule.', hyperparameters_set='single')
     parser.remove_argument('train_size')
     parser.add_argument('--save-alpha', type=str,   dest='save_alpha',  default=None,  help='file to write the regression coefficients to')

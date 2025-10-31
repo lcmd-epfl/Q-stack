@@ -5,15 +5,23 @@ import pyscf.tools.molden
 from .decomposition import number_of_electrons_deco
 
 def coeffs_to_cube(mol, coeffs, cubename, nx = 80, ny = 80, nz = 80, resolution = 0.1, margin = 3.0):
-    """Saves the density in a cube file.
+    """Saves the electron density to a cube file format.
+
+    Evaluates the density from expansion coefficients on a 3D grid and writes
+    it to a Gaussian cube file for visualization.
 
     Args:
-        mol (pyscf Mole): pyscf Mole.
-        coeffs (numpy ndarray): Expansion coefficients.
-        cubename (str): Name of the cubo file.
+        mol (pyscf Mole): pyscf Mole object.
+        coeffs (numpy ndarray): 1D array of density expansion coefficients.
+        cubename (str): Output filename (without .cube extension).
+        nx (int): Number of grid points in x direction. Defaults to 80.
+        ny (int): Number of grid points in y direction. Defaults to 80.
+        nz (int): Number of grid points in z direction. Defaults to 80.
+        resolution (float): Grid spacing in Bohr. Defaults to 0.1.
+        margin (float): Extra space around molecule in Bohr. Defaults to 3.0.
 
     Returns:
-        A new or overwrited file named <cubename>.cube
+        None: Creates a file named <cubename>.cube on disk.
     """
 
     # Make grid
@@ -31,15 +39,18 @@ def coeffs_to_cube(mol, coeffs, cubename, nx = 80, ny = 80, nz = 80, resolution 
 
 
 def coeffs_to_molden(mol, coeffs, moldenname):
-    """Saves the density in a molden file.
+    """Saves the electron density to a MOLDEN file format.
+
+    Writes the density represented by expansion coefficients to a MOLDEN file
+    which can be visualized with various quantum chemistry visualization tools.
 
     Args:
-        mol (pyscf Mole): pyscf Mole.
-        coeffs (numpy ndarray): Expansion coefficients.
-        moldenname (str): File name of the molden file.
+        mol (pyscf Mole): pyscf Mole object.
+        coeffs (numpy ndarray): 1D array of density expansion coefficients.
+        moldenname (str): Output filename for the MOLDEN file.
 
     Returns:
-        A new or overwrited file named <moldenname>.molden
+        None: Creates a file named <moldenname>.molden on disk.
     """
 
     with open(moldenname, 'w') as f:

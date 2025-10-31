@@ -7,6 +7,18 @@ defaults = SimpleNamespace(sigma2=0.05, r0=0.1, rcut=4.8, dgrid2=0.03, theta0=20
 
 
 def get_mbtypes(qs, qml=False):
+    """Generates many-body types (elements, pairs, triples) for SLATM representation.
+
+    Args:
+        qs (list): List of atomic number arrays for all molecules.
+        qml (bool): If True, uses set ordering (QML-compatible). If False, uses sorted ordering. Defaults to False.
+
+    Returns:
+        dict: Dictionary with keys 1, 2, 3 containing:
+            - 1: Array of unique elements
+            - 2: List of element pairs (including self-pairs)
+            - 3: List of valid element triples
+    """
 
     # all the elements
     elements = itertools.chain.from_iterable(list(i) for i in qs)
@@ -33,6 +45,14 @@ def get_mbtypes(qs, qml=False):
 
 
 def pad_zeros(slatm):
+    """Pads SLATM representations with zeros to have uniform size.
+
+    Args:
+        slatm (list): List of SLATM representation arrays with potentially different sizes.
+
+    Returns:
+        list: List of zero-padded SLATM arrays with uniform size.
+    """
     n_features = np.array([x.shape[-1] for x in slatm])
     pad_sizes = max(n_features)-n_features
     for i in range(len(slatm)):

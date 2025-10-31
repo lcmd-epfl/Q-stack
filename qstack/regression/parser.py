@@ -2,6 +2,46 @@ import argparse
 from .kernel_utils import defaults, ParseKwargs, local_kernels_dict, global_kernels_dict
 
 class RegressionParser(argparse.ArgumentParser):
+    """Custom argument parser for kernel ridge regression tasks.
+
+    Provides pre-configured argument sets for machine learning workflows with
+    molecular representations. Supports single hyperparameter evaluation and
+    hyperparameter optimization via grid search.
+
+    Args:
+        hyperparameters_set (str, optional): Hyperparameter mode. Options:
+            - None: No hyperparameter arguments added
+            - 'single': Single eta/sigma values for direct regression
+            - 'array': Multiple eta/sigma values for grid search/cross-validation
+            Defaults to None.
+        **kwargs: Additional arguments passed to ArgumentParser.
+
+    Attributes:
+        Standard arguments added for all modes:
+            - x (--x): Path to molecular representations file
+            - y (--y): Path to target properties file
+            - akernel (--akernel): Local/atomic kernel type (Gaussian, Laplacian, etc.)
+            - gkernel (--gkernel): Global/molecular kernel type (avg, REMatch)
+            - gdict (--gdict): Global kernel parameters dictionary
+            - test (--test): Test set fraction (0.0-1.0)
+            - train (--train): Training set size(s)
+            - ll (--ll): Thread correction flag
+            - readkernel (--readkernel): Flag if input is pre-computed kernel
+            - sparse (--sparse): Sparse learning basis size
+            - random_state (--random_state): Random seed for reproducibility
+
+        Additional for 'single' mode:
+            - eta (--eta): Single regularization parameter
+            - sigma (--sigma): Single kernel width parameter
+
+        Additional for 'array' mode:
+            - eta (--eta): Array of regularization parameters
+            - sigma (--sigma): Array of kernel width parameters
+            - splits (--splits): Number of k-fold cross-validation splits
+            - print (--print): Verbosity level
+            - ada (--ada): Adaptive sigma flag
+            - name (--name): Output filename
+    """
     def __init__(self, hyperparameters_set=None, **kwargs):
         super().__init__(
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -37,6 +77,23 @@ class RegressionParser(argparse.ArgumentParser):
 
 
     def remove_argument(parser, arg):
+        """Removes an argument from the parser.
+
+        Utility method for customizing parsers by removing unwanted arguments
+        from the pre-configured set. Useful when deriving specialized parsers.
+
+        Args:
+            arg (str): Argument name (with or without dashes, e.g., '--x' or 'x')
+                or destination name (e.g., 'repr').
+
+        Returns:
+            None: Modifies parser in place.
+
+        Example:
+            >>> parser = RegressionParser(hyperparameters_set='single')
+            >>> parser.remove_argument('--sparse')
+            >>> # sparse argument is now removed
+        """
         for action in parser._actions:
             opts = action.option_strings
             if (opts and opts[0] == arg) or action.dest == arg:

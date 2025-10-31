@@ -2,10 +2,14 @@ import numpy as np
 from . import moments
 
 def get_cis(mf, nstates):
-    """
+    """Performs CIS (Configuration Interaction Singles) calculation using TDA (Tamm-Dancoff Approximation).
 
-    .. todo::
-        Write the complete docstring.
+    Args:
+        mf: Mean-field object (RHF, UHF, RKS, or UKS).
+        nstates (int): Number of excited states to compute.
+
+    Returns:
+        TDA object: Converged TDA calculation object with excited state information.
     """
     td = mf.TDA()
     td.nstates = nstates
@@ -15,10 +19,13 @@ def get_cis(mf, nstates):
     return td
 
 def get_cis_tdm(td):
-    """
+    """Extracts transition density matrices from TDA/CIS calculation.
 
-    .. todo::
-        Write the complete docstring.
+    Args:
+        td: TDA or CIS calculation object containing excitation amplitudes.
+
+    Returns:
+        numpy ndarray: Array of transition density matrices for all computed states.
     """
     return np.sqrt(2.0) * np.array([ xy[0] for xy in td.xy ])
 

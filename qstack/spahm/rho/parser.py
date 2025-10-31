@@ -5,6 +5,17 @@ from ..guesses import guesses_dict
 
 
 class SpahmParser(argparse.ArgumentParser):
+    """Custom argument parser for SPAHM command-line tools.
+
+    Provides pre-configured argument sets for atomic and bond SPAHM computations
+    with consistent interface across different entry points.
+
+    Args:
+        unified (bool): Enable unified file/list interface. Defaults to False.
+        atom (bool): Add atom-specific arguments (auxbasis, model). Defaults to False.
+        bond (bool): Add bond-specific arguments (cutoff, bpath, etc.). Defaults to False.
+        **kwargs: Additional arguments passed to ArgumentParser.
+    """
     def __init__(self, unified=False, atom=False, bond=False, **kwargs):
         super().__init__(formatter_class=argparse.ArgumentDefaultsHelpFormatter, **kwargs)
         parser = self
@@ -40,6 +51,13 @@ class SpahmParser(argparse.ArgumentParser):
 
 
     def remove_argument(parser, arg):
+        """Removes an argument from the parser.
+
+        Utility method for customizing parsers by removing unwanted arguments.
+
+        Args:
+            arg (str): Argument name (with or without dashes) or destination name.
+        """
         for action in parser._actions:
             opts = action.option_strings
             if (opts and opts[0] == arg) or action.dest == arg:

@@ -13,30 +13,35 @@ def spahm_a_b(rep_type, mols, dms,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          auxbasis=defaults.auxbasis, model=defaults.model,
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=None):
-    """ Computes SPAHM(a,b) representations for a set of molecules.
+    """Computes SPAHM(a) or SPAHM(b) representations for a set of molecules.
+
+    Core computation function that generates atom-centered or bond-centered
+    molecular representations using density fitting on guess Hamiltonians.
 
     Args:
-        - rep_type (str) : the representation type ('atom' or 'bond' centered)
-        - mols (list): the list of molecules (pyscf.Mole objects)
-        - dms (list of numpy.ndarray): list of guess density matrices for each molecule
-        - bpath (str): path to the directory containing bond-optimized basis-functions (.bas)
-        - cutoff (float): the cutoff distance (angstrom) between atoms to be considered as bond
-        - omods (list of str): the selected mode for open-shell computations
-        - elements (list of str): list of all elements present in the set of molecules
-        - only_m0 (bool): use only basis functions with `m=0`
-        - zeros (bool): add zeros features for non-existing bond pairs
-        - printlevel (int): level of verbosity
-        - pairfile (str): path to the pairfile (if None, atom pairs are detected automatically)
-        - dump_and_exit (bool): to save pairfile for the set of molecules (without generating representaitons)
-        - same_basis (bool): to use the same bond-optimized basis function for all atomic pairs (ZZ.bas == CC.bas for any Z)
-        - only_z (list of str): restrict the atomic representations to atom types in this list
+        rep_type (str): Representation type: 'atom' for SPAHM(a) or 'bond' for SPAHM(b).
+        mols (list): List of pyscf Mole objects.
+        dms (list): List of density matrices (2D or 3D numpy arrays) for each molecule.
+        bpath (str): Directory path containing bond-optimized basis files (.bas). Defaults to defaults.bpath.
+        cutoff (float): Bond cutoff distance in Angstrom for SPAHM(b). Defaults to defaults.cutoff.
+        omods (list): Open-shell modes ('alpha', 'beta', 'sum', 'diff'). Defaults to defaults.omod.
+        elements (list, optional): Element symbols present in dataset. Auto-detected if None. Defaults to None.
+        only_m0 (bool): Use only m=0 angular momentum components. Defaults to False.
+        zeros (bool): Pad with zeros for non-existent bond pairs in SPAHM(b). Defaults to False.
+        printlevel (int): Verbosity level (0=silent, >0=verbose). Defaults to 0.
+        auxbasis (str): Auxiliary basis set for SPAHM(a). Defaults to defaults.auxbasis.
+        model (str): Atomic density fitting model for SPAHM(a). Defaults to defaults.model.
+        pairfile (str, optional): Path to atom pair file for SPAHM(b). Auto-detected if None. Defaults to None.
+        dump_and_exit (bool): Save pairfile and exit without computing. Defaults to False.
+        same_basis (bool): Use generic CC.bas for all atom pairs. Defaults to False.
+        only_z (list, optional): Restrict to specific atom types. Defaults to None.
 
     Returns:
-        A numpy.ndarray with the atomic spahm-b representations for each molecule (Nmods,Nmolecules,NatomMax,Nfeatures).
-        with:   - Nmods: the alpha and beta components of the representation
-                - Nmolecules: the number of molecules in the set
-                - NatomMax: the maximum number of atoms in one molecule
-                - Nfeatures: the number of features (for each omods)
+        numpy ndarray: 4D array (n_omods, n_mols, max_atoms, n_features) where:
+            - n_omods: Number of open-shell components (1 for closed-shell, 2 for UHF)
+            - n_mols: Number of molecules in dataset
+            - max_atoms: Maximum number of atoms/bonds across all molecules
+            - n_features: Representation dimension
     """
     maxlen = 0 # This needs fixing `UnboundLocalError`
     if only_z is None:
@@ -95,43 +100,43 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              auxbasis=defaults.auxbasis, model=defaults.model,
              with_symbols=False, only_z=None, merge=True):
-    """ Computes and reshapes an array of SPAHM(a,b) representations
+    """Computes and reshapes SPAHM(a) or SPAHM(b) representations with flexible output formats.
+
+    High-level interface that handles density matrix computation, representation generation,
+    and output formatting including splitting, symbol labeling, and merging options.
 
     Args:
-        - rep_type (str) : the representation type ('atom' or 'bond' centered)
-        - mols (list): the list of molecules (pyscf.Mole objects)
-        - xyzlist (list of str): list with the paths to the xyz files
-        - guess (str): the guess Hamiltonian
-        - xc (str): the exchange-correlation functionals
-        - dms (list of numpy.ndarray): list of guess density matrices for each molecule
-        - readdm (str): path to the .npy file containins density matrices
-        - bpath (str): path to the directory containing bond-optimized basis-functions (.bas)
-        - cutoff (float): the cutoff distance (angstrom) between atoms to be considered as bond
-        - omods (list of str): the selected mode for open-shell computations
-        - spin (list of int): list of spins for each molecule
-        - elements (list of str): list of all elements present in the set of molecules
-        - only_m0 (bool): use only basis functions with `m=0`
-        - zeros (bool): add zeros features for non-existing bond pairs
-        - printlevel (int): level of verbosity
-        - pairfile (str): path to the pairfile (if None, atom pairs are detected automatically)
-        - dump_and_exit (bool): to save pairfile for the set of molecules (without generating representaitons)
-        - same_basis (bool): to use the same bond-optimized basis function for all atomic pairs (ZZ.bas == CC.bas for any Z)
-        - only_z (list of str): restrict the atomic representations to atom types in this list
-        - split (bool): to split the final array into molecules
-        - with_symbols (bool): to associate atomic symbol to representations in final array
-        - merge (bool): to concatenate alpha and beta representations to a single feature vector
+        rep_type (str): Representation type ('atom' or 'bond').
+        mols (list): List of pyscf Mole objects.
+        xyzlist (list): List of XYZ file paths corresponding to mols.
+        guess (str): Guess Hamiltonian method name.
+        xc (str): Exchange-correlation functional. Defaults to defaults.xc.
+        spin (list, optional): List of spin multiplicities per molecule. Defaults to None.
+        readdm (str, optional): Directory path to load pre-computed density matrices. Defaults to None.
+        pairfile (str, optional): Path to atom pair file for SPAHM(b). Defaults to None.
+        dump_and_exit (bool): Save pairfile and exit without computing. Defaults to False.
+        same_basis (bool): Use generic CC.bas for all atom pairs. Defaults to True.
+        bpath (str): Directory with bond-optimized basis files. Defaults to defaults.bpath.
+        cutoff (float): Bond cutoff distance in Angstrom. Defaults to defaults.cutoff.
+        omods (list): Open-shell modes ('alpha', 'beta', 'sum', 'diff'). Defaults to defaults.omod.
+        elements (list, optional): Element symbols in dataset. Auto-detected if None. Defaults to None.
+        only_m0 (bool): Use only m=0 basis functions. Defaults to False.
+        zeros (bool): Pad with zeros for non-existent bonds. Defaults to False.
+        split (bool): Split output by molecule. Defaults to False.
+        printlevel (int): Verbosity level. Defaults to 0.
+        auxbasis (str): Auxiliary basis for SPAHM(a). Defaults to defaults.auxbasis.
+        model (str): Atomic density model. Defaults to defaults.model.
+        with_symbols (bool): Include atomic symbols with representations. Defaults to False.
+        only_z (list, optional): Restrict to specific atom types. Defaults to None.
+        merge (bool): Merge alpha/beta into single vector. Defaults to True.
 
     Returns:
-        A numpy.ndarray with all representations with shape (Nmods,Nmolecules,Natoms,Nfeatures)
-        with:
-          - Nmods: the alpha and beta components of the representation
-          - Nmolecules: the number of molecules in the set
-          - Natoms: the number of atoms in one molecule
-          - Nfeatures: the number of features (for each omod)
-        reshaped according to:
-            - if split==False: collapses Nmolecules and returns a single np.ndarray (Nmods,Natoms,Nfeatures) (where Natoms is the total number of atoms in the set of molecules)
-            - if merge==True: collapses the Nmods axis into the Nfeatures axis
-            - if with_symbols==True: returns (for each molecule (Natoms, 2) containging the atom symbols along 1st dim and one of the above arrays
+        numpy ndarray: Representation array with shape depending on options:
+            - Base: (n_omods, n_mols, max_atoms, n_features)
+            - If split=False: (n_omods, total_atoms, n_features) - all molecules concatenated
+            - If merge=True: Features concatenated, omods dimension removed
+            - If with_symbols=True: Object array with (symbol, vector) tuples per atom
+            - If split=True and with_symbols=True: List format per molecule
     """
     if not dump_and_exit:
         dms = utils.mols_guess(mols, xyzlist, guess, xc=xc, spin=spin, readdm=readdm, printlevel=printlevel)
@@ -212,6 +217,17 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
     return allvec
 
 def main(args=None):
+    """Command-line interface for computing SPAHM representations (atom or bond centered).
+
+    Unified CLI that supports both SPAHM(a) and SPAHM(b) computations with extensive
+    options for molecular datasets, splitting, and output formatting.
+
+    Args:
+        args (list, optional): Command-line arguments. If None, uses sys.argv. Defaults to None.
+
+    Returns:
+        None: Saves representations to numpy files based on --name argument and options.
+    """
     parser = SpahmParser(description='This program computes the SPAHM(a,b) representations for a given molecular system or a list thereof', unified=True, atom=True, bond=True)
     parser.add_argument('--rep',  dest='rep',  type=str, choices=['atom', 'bond'], required=True, help='the type of representation')
     args = parser.parse_args(args=args)

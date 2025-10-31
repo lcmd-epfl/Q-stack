@@ -86,6 +86,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 
 def main():
+    """Command-line entry point for computing learning curves."""
     parser = RegressionParser(description='This program computes the learning curve.', hyperparameters_set='single')
     parser.add_argument('--splits',  type=int,            dest='splits',    default=defaults.n_rep, help='number of splits')
     parser.add_argument('--name',    type=str,            dest='nameout',   default=None,           help='the name of the output file containting the LC data (.txt)')

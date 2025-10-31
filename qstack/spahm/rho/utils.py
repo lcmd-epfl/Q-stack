@@ -21,6 +21,20 @@ defaults = SimpleNamespace(
 
 
 def get_chsp(fname, n):
+    """Loads charge and spin information from file.
+
+    Reads a file containing charge/spin values, converting 'None' strings to None objects.
+
+    Args:
+        fname (str or None): Path to charge/spin file. If None, returns array of Nones.
+        n (int): Expected number of entries in the file.
+
+    Returns:
+        numpy ndarray: Array of charge/spin values (int or None) of length n.
+
+    Raises:
+        RuntimeError: If file is not found or has wrong length.
+    """
     def chsp_converter(chsp):
         if chsp == 'None':
             chsp = None
@@ -39,6 +53,22 @@ def get_chsp(fname, n):
 
 
 def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False, srcdir=None):
+    """Loads molecules from XYZ files and creates pyscf Mole objects.
+
+    Args:
+        xyzlist (list): List of XYZ filenames.
+        charge (list or None): List of molecular charges (or None for neutral).
+        spin (list or None): List of spin multiplicities (or None for default).
+        basis (str or dict): Basis set specification.
+        printlevel (int): Verbosity level (0=silent). Defaults to 0.
+        units (str): Coordinate units ('ANG' or 'BOHR'). Defaults to 'ANG'.
+        ecp (str or dict, optional): Effective core potential specification. Defaults to None.
+        progress (bool): If True, shows progress bar. Defaults to False.
+        srcdir (str, optional): Source directory prepended to XYZ filenames. Defaults to None.
+
+    Returns:
+        list: List of pyscf Mole objects.
+    """
     mols = []
     if spin is None:
         spin = [None] * len(xyzlist)
@@ -59,6 +89,20 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
 
 
 def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, printlevel=0):
+    """Computes or loads guess density matrices for a list of molecules.
+
+    Args:
+        mols (list): List of pyscf Mole objects.
+        xyzlist (list): List of XYZ filenames (for naming/loading).
+        guess (str or callable): Guess method name or function.
+        xc (str): Exchange-correlation functional for guess. Defaults to defaults.xc.
+        spin (list or None): List of spin multiplicities. Defaults to None.
+        readdm (str, optional): Directory path to load pre-computed density matrices. Defaults to None.
+        printlevel (int): Verbosity level. Defaults to 0.
+
+    Returns:
+        list: List of density matrices (2D or 3D numpy arrays).
+    """
     dms = []
     guess = guesses.get_guess(guess)
     if spin is None:
@@ -80,6 +124,18 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
 
 
 def dm_open_mod(dm, omod):
+    """Applies open-shell modification to density matrix.
+
+    Args:
+        dm (numpy ndarray): Density matrix (2D for closed-shell, 3D for open-shell).
+        omod (str or None): Open-shell modification type. Options in omod_fns_dict.
+
+    Returns:
+        numpy ndarray: Modified density matrix.
+
+    Raises:
+        ValueError: If omod is not a valid modification type.
+    """
     omod_fns_dict[None] = lambda dm: dm
     if omod in omod_fns_dict:
         return omod_fns_dict[omod](dm)

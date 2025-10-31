@@ -85,6 +85,7 @@ def cv_results(X, y,
 
 
 def main():
+    """Command-line entry point for full cross-validation with hyperparameter search."""
     parser = RegressionParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search included).', hyperparameters_set='array')
     parser.remove_argument('random_state')
     parser.add_argument('--n',          type=int,            dest='n_rep',     default=defaults.n_rep,  help='the number of repetition for each point')

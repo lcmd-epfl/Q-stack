@@ -52,6 +52,7 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 
 def main():
+    """Command-line entry point for computing kernel matrix condition numbers."""
     parser = RegressionParser(description='This program computes the condition number for the kernel matrix.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')

@@ -5,6 +5,22 @@ from . import sym, atomic_density, lowdin
 
 
 def get_basis_info(atom_types, auxbasis):
+    """Gathers auxiliary basis information for all atom types.
+
+    Computes overlap matrices, basis function indices, and metric matrices
+    needed for atomic density fitting.
+
+    Args:
+        atom_types (list): List of element symbols (e.g., ['C', 'H', 'O']).
+        auxbasis (str or dict): Auxiliary basis set specification.
+
+    Returns:
+        tuple: (ao, ao_len, idx, M) where:
+            - ao (dict): Angular momentum info per element
+            - ao_len (dict): Basis set size per element
+            - idx (dict): Pair indices for symmetrization per element
+            - M (dict): Metric matrices per element
+    """
     ao = {}
     idx = {}
     M = {}
@@ -61,6 +77,25 @@ def _make_models_dict():
 
 
 def get_model(arg):
+    """Returns density fitting and symmetrization functions for specified model.
+
+    Args:
+        arg (str): Model name. Available options:
+            - 'pure': Pure density fitting
+            - 'sad-diff': Superposition of Atomic Densities difference
+            - 'occup': Occupation-corrected
+            - 'lowdin-short': Short Löwdin partitioning
+            - 'lowdin-long': Long Löwdin partitioning
+            - 'lowdin-short-x': Short Löwdin without slicing
+            - 'lowdin-long-x': Long Löwdin without slicing
+            - 'mr2021': Method from Margraf & Reuter 2021
+
+    Returns:
+        tuple: (density_fitting_function, symmetrization_function) pair.
+
+    Raises:
+        RuntimeError: If model name is not recognized.
+    """
     arg = arg.lower()
     if arg not in models_dict:
         raise RuntimeError(f'Unknown model. Available models: {list(models_dict.keys())}')
@@ -68,6 +103,23 @@ def get_model(arg):
 
 
 def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, _M, _):
+    """Symmetrizes density fitting coefficients using MR2021 method.
+
+    Implementation of the method from J. T. Margraf and K. Reuter,
+    Nat. Commun. 12, 344 (2021).
+
+    Args:
+        c (numpy ndarray): Concatenated density fitting coefficients.
+        mol (pyscf Mole): pyscf Mole object.
+        idx (dict): Pair indices per element.
+        ao (dict): Angular momentum info per element.
+        ao_len (dict): Basis set sizes per element.
+        _M: Unused (for interface compatibility).
+        _: Unused (for interface compatibility).
+
+    Returns:
+        list: Symmetrized vectors for each atom.
+    """
     # J. T. Margraf and K. Reuter, Nat. Commun. 12, 344 (2021).
     v = []
     i0 = 0
@@ -79,6 +131,22 @@ def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, _M, _):
 
 
 def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
+    """Symmetrizes coefficients for short Löwdin and related models.
+
+    Applies metric matrix transformation and pads to consistent length.
+
+    Args:
+        c (numpy ndarray): Density fitting coefficients.
+        mol (pyscf Mole): pyscf Mole object.
+        idx (dict): Pair indices per element.
+        ao (dict): Angular momentum info per element.
+        ao_len (dict): Basis set sizes per element.
+        M (dict): Metric matrices per element.
+        _: Unused (for interface compatibility).
+
+    Returns:
+        numpy ndarray: 2D array (n_atoms, max_features) with zero-padding.
+    """
     # short lowdin / everything else
     v = []
     i0 = 0
@@ -92,6 +160,22 @@ def coefficients_symmetrize_short(c, mol, idx, ao, ao_len, M, _):
 
 
 def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
+    """Symmetrizes coefficients for long Löwdin partitioning.
+
+    Handles per-atom coefficient lists from Löwdin splitting.
+
+    Args:
+        c_df (list): List of coefficient arrays per atom.
+        mol (pyscf Mole): pyscf Mole object.
+        idx (dict): Pair indices per element.
+        ao (dict): Angular momentum info per element.
+        ao_len (dict): Basis set sizes per element.
+        M (dict): Metric matrices per element.
+        atom_types (list): All element types in dataset.
+
+    Returns:
+        list: Symmetrized vectors for each atom.
+    """
     # long lowdin
     vectors = []
     for c_a in c_df:

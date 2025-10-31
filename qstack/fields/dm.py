@@ -88,10 +88,17 @@ def sphericalize_density_matrix(mol, dm):
     return spherical_dm
 
 def get_converged_mf(mol, func, dm0=None):
-    """
+    """Performs SCF calculation and returns both the mean-field object and density matrix.
 
-    .. todo::
-        Write the complete docstring, and merge with get_converged_dm()
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        func (str): Exchange-correlation functional.
+        dm0 (numpy ndarray, optional): Initial guess for density matrix. Defaults to None.
+
+    Returns:
+        tuple: A tuple containing:
+            - mf (pyscf.dft.rks.RKS or pyscf.dft.uks.UKS): Converged mean-field object.
+            - dm (numpy ndarray): Converged density matrix in AO-basis.
     """
 
     if mol.multiplicity == 1:

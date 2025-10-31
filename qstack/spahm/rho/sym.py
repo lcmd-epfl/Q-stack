@@ -4,6 +4,18 @@ from qstack.mathutils.matrix import sqrtm
 
 
 def idxl0(i, l, ao):
+    """Returns index of basis function with same L and N quantum numbers but M=0.
+
+    Finds the m=0 component of the same angular momentum shell for normalization.
+
+    Args:
+        i (int): Basis function index.
+        l (int): Angular momentum quantum number.
+        ao (dict): Angular momentum info dict with 'l' and 'm' keys.
+
+    Returns:
+        int: Index of corresponding m=0 basis function.
+    """
     # return the index of the basis function with the same L and N but M=0
     if l != 1:
         return i - ao['m'][i]+l
@@ -11,6 +23,20 @@ def idxl0(i, l, ao):
         return i + [0, 2, 1][ao['m'][i]]
 
 def get_S(q, basis):
+    """Computes overlap matrix and angular momentum info for an atom.
+
+    Creates single-atom molecule and extracts basis function structure.
+
+    Args:
+        q (str): Element symbol.
+        basis (str or dict): Basis set specification.
+
+    Returns:
+        tuple: (S, ao, ao_start) where:
+            - S (numpy ndarray): Overlap matrix
+            - ao (dict): Angular momentum info with 'l' and 'm' lists
+            - ao_start (list): Starting indices for each angular momentum shell
+    """
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
 
@@ -29,6 +55,16 @@ def get_S(q, basis):
 
 
 def store_pair_indices(ao):
+    """Stores basis function pair indices with matching L and M quantum numbers.
+
+    Creates list of all (i,j) pairs where basis functions have identical angular momenta.
+
+    Args:
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+
+    Returns:
+        list: List of [i, j] index pairs with matching (l, m).
+    """
     idx = []
     for i, [li, mi] in enumerate(zip(ao['l'], ao['m'], strict=True)):
         for j, [lj, mj] in enumerate(zip(ao['l'], ao['m'], strict=True)):
@@ -68,6 +104,16 @@ def metric_matrix(q, idx, ao, S):
 
 
 def metric_matrix_short(idx, ao, S):
+    """Computes metric matrix for symmetrization of short-format coefficients.
+
+    Args:
+        idx (list): List of basis function pair indices.
+        ao (dict): Angular momentum info.
+        S (numpy ndarray): Overlap matrix.
+
+    Returns:
+        numpy ndarray: Square root of metric matrix for normalization.
+    """
     N = len(idx)
     A = np.zeros((N,N))
     for p in range(N):
@@ -83,6 +129,17 @@ def metric_matrix_short(idx, ao, S):
 
 
 def vectorize_c(idx, c):
+    """Vectorizes density fitting coefficients by forming products.
+
+    Creates rotationally invariant representation from coefficient products.
+
+    Args:
+        idx (list): List of [i, j] basis function pair indices.
+        c (numpy ndarray): 1D array of coefficients.
+
+    Returns:
+        numpy ndarray: 1D array of coefficient products c[i]*c[j].
+    """
     v = np.zeros(len(idx))
     for p, (i,j) in enumerate(idx):
         v[p] = c[i]*c[j]

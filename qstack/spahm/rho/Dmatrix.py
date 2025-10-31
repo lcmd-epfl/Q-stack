@@ -2,7 +2,22 @@ import numpy as np
 from numpy import sqrt
 
 def c_split(mol, c):
-# works for an uncontracted basis only
+  """Splits coefficient vector by angular momentum quantum number for each atom.
+
+  Organizes expansion coefficients into sublists grouped by angular momentum (l)
+  for each atomic basis function. Only supports uncontracted basis sets.
+
+  Args:
+      mol (pyscf Mole): pyscf Mole object.
+      c (numpy ndarray): 1D array of expansion coefficients.
+
+  Returns:
+      list: List of [l, coefficients] pairs where l is angular momentum and
+            coefficients is the subset of c for that angular momentum shell.
+
+  Note:
+      Works for uncontracted basis sets only.
+  """
   cs = []
   i0 = 0
   for at in mol.aoslice_by_atom():
@@ -14,6 +29,17 @@ def c_split(mol, c):
   return cs
 
 def rotate_c(D, cs):
+  """Rotates coefficient vector using Wigner D-matrices.
+
+  Applies angular momentum rotation to each angular momentum block separately.
+
+  Args:
+      D (list): List of Wigner D-matrices indexed by angular momentum l.
+      cs (list): List of [l, coefficients] pairs from c_split().
+
+  Returns:
+      numpy ndarray: 1D array of rotated coefficients.
+  """
   c_new = []
   for l,ci in cs:
     ci_new = D[l] @ ci
@@ -21,7 +47,19 @@ def rotate_c(D, cs):
   return np.hstack(c_new)
 
 def new_xy_axis(z):
-  # finds the "optimal" axes x' and y' from z'
+  """Constructs orthonormal coordinate system from a given z-axis.
+
+  Finds optimal x' and y' axes that form a right-handed orthonormal system
+  with the given z' direction. The algorithm chooses x' to have maximal
+  component along the original axis with minimal projection onto z'.
+
+  Args:
+      z (numpy ndarray): 3D vector defining the new z-axis direction.
+
+  Returns:
+      numpy ndarray: 3x3 rotation matrix with rows [x', y', z'] defining the
+                    new orthonormal coordinate system.
+  """
   z     = z/np.linalg.norm(z)    # don't use /= so a copy of z is created
   i     = np.argmin(abs(z))      # find the axis with the minimal projection of the vector z
   x     = -z[i] * z
@@ -32,9 +70,27 @@ def new_xy_axis(z):
 
 
 def Dmatrix(xyz, lmax, order='xyz'):
-  # generate Wigner D-matrices D[l][m1,m2] = D_{m1,m2}^l
-  # for a rotation encoded as x'=xyz[0], y'=xyz[1], z'=xyz[2]
-  # (m1 is rotated so D is transposed)
+  """Generates Wigner D-matrices for spatial rotation of spherical harmonics.
+
+  Computes rotation matrices D^l for angular momenta l = 0 to lmax, where
+  D^l[m1, m2] transforms spherical harmonics under the specified rotation.
+  The rotation is defined by new axes x' = xyz[0], y' = xyz[1], z' = xyz[2].
+
+  Args:
+      xyz (numpy ndarray): 3x3 rotation matrix with rows defining new [x', y', z'] axes.
+      lmax (int): Maximum angular momentum (supports lmax <= 4).
+      order (str): Ordering convention for spherical harmonics. Defaults to 'xyz'.
+
+  Returns:
+      list: List of numpy ndarrays D[l] where D[l] is the (2l+1) x (2l+1) Wigner
+            D-matrix for angular momentum l. Note: m1 index is rotated (D is transposed).
+
+  Raises:
+      NotImplementedError: If lmax > 4.
+
+  Note:
+      The matrices are computed using explicit algebraic expressions for each l.
+  """
 
   xx = xyz[0,0]; xy = xyz[0,1]; xz = xyz[0,2]
   yx = xyz[1,0]; yy = xyz[1,1]; yz = xyz[1,2]
@@ -248,5 +304,21 @@ def Dmatrix(xyz, lmax, order='xyz'):
 
 
 def Dmatrix_for_z(z, lmax, order='xyz'):
+    """Generates Wigner D-matrices for rotation that aligns z-axis with given vector.
+
+    Convenience function that combines new_xy_axis() and Dmatrix() to compute
+    rotation matrices for a rotation defined only by the target z-direction.
+
+    Args:
+        z (numpy ndarray): 3D vector defining the target z-axis direction.
+        lmax (int): Maximum angular momentum (supports lmax <= 4).
+        order (str): Ordering convention for spherical harmonics. Defaults to 'xyz'.
+
+    Returns:
+        list: List of Wigner D-matrices for l = 0 to lmax.
+
+    Raises:
+        NotImplementedError: If lmax > 4.
+    """
     return Dmatrix(new_xy_axis(z), lmax, order)
 

@@ -26,6 +26,14 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
 
     def energy(x):
+        """Compute total energy for given exponents.
+
+        Args:
+            x (numpy.ndarray): Log of exponents.
+
+        Returns:
+            float: Total energy across all molecules.
+        """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
         E = 0.0
@@ -34,6 +42,16 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return E
 
     def gradient(x):
+        """Compute total energy and gradient for given exponents.
+
+        Args:
+            x (numpy.ndarray): Log of exponents.
+
+        Returns:
+            tuple: A tuple containing:
+                - E (float): Total energy.
+                - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
+        """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
 
@@ -56,9 +74,28 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return E, dE_dx
 
     def gradient_only(x):
+        """Compute only the gradient (wrapper for optimization algorithms).
+
+        Args:
+            x (numpy.ndarray): Log of exponents.
+
+        Returns:
+            numpy.ndarray: Gradient with respect to log(exponents).
+        """
         return gradient(x)[1]
 
     def read_bases(basis_files):
+        """Read basis set definitions from files or dicts.
+
+        Args:
+            basis_files (list): List of file paths (str) or basis dicts.
+
+        Returns:
+            dict: Combined basis set definition.
+
+        Raises:
+            RuntimeError: If multiple sets for the same element are provided.
+        """
         basis = {}
         for i in basis_files:
             if isinstance(i, str):
@@ -76,6 +113,11 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return basis
 
     def make_bf_start():
+        """Create basis function index bounds for each element.
+
+        Returns:
+            dict: Dictionary mapping elements to their [start, end] indices.
+        """
         nbf = [len(basis[q]) for q in elements]
         bf_bounds = {}
         for i, q in enumerate(elements):
@@ -84,6 +126,14 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return bf_bounds
 
     def make_moldata(fname):
+        """Create molecular data dictionary from file or dict.
+
+        Args:
+            fname (str or dict): Path to .npz file or dictionary containing rho data.
+
+        Returns:
+            dict: Dictionary containing mol, rho, coords, weights, self, idx, centers, and distances.
+        """
         if isinstance(fname, str):
             rho_data = np.load(fname)
         else:
@@ -167,6 +217,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
     return newbasis
 
 def main():
+    """Main function for basis set optimization command-line interface."""
     import argparse
 
     parser = argparse.ArgumentParser(description='Optimize a density fitting basis set.')

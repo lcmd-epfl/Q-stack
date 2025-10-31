@@ -26,7 +26,14 @@ _re_int = re.compile(r'[+-]?(?P<basisprefix>0[obxOBX])?[1-9a-fA-F][0-9a-fA-F]*')
 _re_float = re.compile(r'[+-]?[0-9]*?([0-9]\.|\.[0-9]|[0-9])[0-9]*?([eEdD][+-]?[0-9]+)?')
 
 def xyz_comment_line_parser(line):
-    """reads the 'comment' line of a XYZ file, and tries to infer its meaning"""
+    """Reads the 'comment' line of a XYZ file and tries to infer its meaning.
+
+    Args:
+        line (str): Comment line from XYZ file.
+
+    Returns:
+        dict: Dictionary containing parsed properties (charge, spin, etc.).
+    """
     line = line.strip()
     if line == '':
         return {}
@@ -86,16 +93,21 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     """Reads a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
-        inp (str): path of the xyz file to read / xyz fine contents if read_string==True
-        basis (str or dict): Basis set.
-        charge (int): Provide/override charge of the molecule.
-        spin (int): Provide/override spin of the molecule (alpha electrons - beta electrons).
-        ignore (bool): If assume molecule closed-shell an assign charge either 0 or -1
-        unit (str): Provide/override units (Ang or Bohr)
-        ecp (str) : ECP to use
+        inp (str): Path of the xyz file to read, or xyz file contents if read_string==True.
+        basis (str or dict): Basis set. Defaults to "def2-svp".
+        charge (int): Provide/override charge of the molecule. Defaults to None.
+        spin (int): Provide/override spin of the molecule (alpha electrons - beta electrons). Defaults to None.
+        ignore (bool): If True, assume molecule is closed-shell and assign charge either 0 or -1. Defaults to False.
+        unit (str): Provide/override units (Ang or Bohr). Defaults to None.
+        ecp (str): ECP to use. Defaults to None.
+        parse_comment (bool): Whether to parse the comment line for properties. Defaults to False.
+        read_string (bool): Whether inp is a string containing xyz data rather than a file path. Defaults to False.
 
     Returns:
-        A pyscf Mole object containing the molecule information.
+        pyscf.gto.Mole: pyscf Mole object containing the molecule information.
+
+    Raises:
+        RuntimeError: If units are not recognized or if minao basis requires ECP for heavy atoms.
     """
 
     if read_string:
@@ -168,11 +180,15 @@ def mol_to_xyz(mol, fout, fmt="xyz"):
     """Converts a pyscf Mole object into a molecular file in xyz format.
 
     Args:
-        pyscf Mole: pyscf Mole object.
+        mol (pyscf.gto.Mole): pyscf Mole object.
         fout (str): Name (including path) of the xyz file to write.
+        fmt (str): Output format. Defaults to "xyz".
 
     Returns:
-        A file in xyz format containing the charge, total spin and molecular coordinates.
+        str: String containing the xyz formatted data.
+
+    Raises:
+        NotImplementedError: If fmt is not "xyz".
     """
 
     fmt = fmt.lower()
@@ -202,11 +218,12 @@ def make_auxmol(mol, basis, copy_ecp=False):
     """Builds an auxiliary Mole object given a basis set and a pyscf Mole object.
 
     Args:
-        mol (pyscf Mole): Original pyscf Mole object.
+        mol (pyscf.gto.Mole): Original pyscf Mole object.
         basis (str or dict): Basis set.
+        copy_ecp (bool): Whether to copy ECP from original molecule. Defaults to False.
 
     Returns:
-        An auxiliary pyscf Mole object.
+        pyscf.gto.Mole: Auxiliary pyscf Mole object.
     """
 
     # Define attributes to the auxiliary Mole object and build it
@@ -226,15 +243,14 @@ def rotate_molecule(mol, a, b, g, rad=False):
     """Rotate a molecule: transform nuclear coordinates given a set of Euler angles.
 
     Args:
-        mol (pyscf Mole): Original pyscf Mole object.
+        mol (pyscf.gto.Mole): Original pyscf Mole object.
         a (float): Alpha Euler angle.
         b (float): Beta Euler angle.
         g (float): Gamma Euler angle.
-        rad (bool) : Wheter the angles are in radians or not.
-
+        rad (bool): Whether the angles are in radians. Defaults to False (degrees).
 
     Returns:
-        A pyscf Mole object with transformed coordinates.
+        pyscf.gto.Mole: pyscf Mole object with transformed coordinates.
     """
 
     orig_coords = mol.atom_coords()
@@ -253,13 +269,13 @@ def rotate_molecule(mol, a, b, g, rad=False):
 
 
 def fragments_read(frag_file):
-    """Loads fragement definition from a frag file.
+    """Loads fragment definition from a frag file.
 
     Args:
         frag_file (str): Name (including path) of the frag file to read.
 
     Returns:
-        A list of arrays containing the fragments.
+        list: List of numpy arrays containing the fragment indices.
     """
     with open(frag_file) as f:
         fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f]
@@ -269,12 +285,12 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
     """Computes the contribution of each fragment.
 
     Args:
-        fragments (numpy ndarray): Fragment definition
-        prop_atom_inp (list of arrays or array): Coefficients densities.
-        normalize (bool): Normalized fragment partitioning. Defaults to True.
+        fragments (list): Fragment definition as list of numpy arrays.
+        prop_atom_inp (list or numpy.ndarray): Coefficients densities, either as list of arrays or single array.
+        normalize (bool): Whether to normalize fragment partitioning. Defaults to True.
 
     Returns:
-        A list of arrays or an array containing the contribution of each fragment.
+        list or numpy.ndarray: Contribution of each fragment. Returns list if input was list, array otherwise.
     """
 
     if type(prop_atom_inp) is list:
@@ -302,6 +318,15 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
 
 
 def make_atom(q, basis):
+    """Create a single-atom molecule at the origin.
+
+    Args:
+        q (str): Element symbol.
+        basis (str or dict): Basis set.
+
+    Returns:
+        pyscf.gto.Mole: Single-atom pyscf Mole object.
+    """
     mol = gto.Mole()
     mol.atom = q + " 0.0 0.0 0.0"
     mol.charge = 0
@@ -311,10 +336,18 @@ def make_atom(q, basis):
     return mol
 
 def singleatom_basis_enumerator(basis):
-    """Enumerates the different tensors of atomic orbitals within a 1-atom basis set
-    Each tensor is a $2l+2$-sized group of orbitals that share a radial function and $l$ value.
-    For each tensor, return the values of $l$, $n$ (an arbitrary radial-function counter that starts at 0),
-    as well as AO range
+    """Enumerates the different tensors of atomic orbitals within a 1-atom basis set.
+    
+    Each tensor is a 2l+1-sized group of orbitals that share a radial function and l value.
+
+    Args:
+        basis (list): Basis set definition in pyscf format.
+
+    Returns:
+        tuple: A tuple containing:
+            - l_per_bas (list): Angular momentum quantum number l for each basis function.
+            - n_per_bas (list): Radial function counter n (starting at 0) for each basis function.
+            - ao_starts (list): Starting index in AO array for each basis function.
     """
     ao_starts = []
     l_per_bas = []

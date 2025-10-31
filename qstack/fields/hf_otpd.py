@@ -3,17 +3,21 @@ import numpy as np
 from .dm import make_grid_for_rho
 
 def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
-    """Computes the uncorrelated on-top pair density on a grid.
+    """Computes the Hartree-Fock uncorrelated on-top pair density (OTPD) on a grid.
+
+    The on-top pair density is the probability density of finding two electrons
+    at the same position. For Hartree-Fock, this is computed as (rho/2)^2.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        dm (numpy ndarray): Density matrix in AO-basis.
-        grid_level (int): Controls the number of radial and angular points.
-        save_otpd (bool): If True, saves the input and output in a .npz file. Defaults to False
-        return_all (bool): If true, returns the uncorrelated on-top pair density on a grid, and the cooresponding pyscf Grid object; if False, returns only the uncorrelated on-top pair density. Defaults to False
+        dm (numpy ndarray): 2D density matrix in AO-basis.
+        grid_level (int): DFT grid level controlling number of radial and angular points. Defaults to 3.
+        save_otpd (bool): If True, saves results to a .npz file. Defaults to False.
+        return_all (bool): If True, returns both OTPD and grid object; if False, returns only OTPD. Defaults to False.
 
     Returns:
-        A numpy ndarray with the uncorrelated on-top pair density on a grid. If 'return_all' = True, then it also returns the corresponding pyscf Grid object.
+        numpy ndarray or tuple: If return_all is False, returns 1D array of OTPD values.
+            If return_all is True, returns tuple of (otpd, grid) where grid is the pyscf Grid object.
     """
 
     grid = make_grid_for_rho(mol, grid_level)
@@ -32,12 +36,18 @@ def hf_otpd(mol, dm, grid_level = 3, save_otpd = False, return_all = False):
     return hf_otpd
 
 def save_OTPD(mol, otpd, grid):
-    """ Saves the information about an OTPD computation into a .npz file.
+    """Saves on-top pair density computation results to a NumPy compressed file.
+
+    Creates a .npz file containing the molecular structure, OTPD values,
+    grid coordinates, and integration weights for later analysis.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
-        otpd (numpy ndarray): On-top pair density on a grid.
-        grid (pyscf Grid): Grid object
+        otpd (numpy ndarray): 1D array of on-top pair density values on the grid.
+        grid (pyscf Grid): Grid object containing coordinates and weights.
+
+    Returns:
+        None: Creates a file named <elements>_otpd_data.npz on disk.
     """
 
     output = ''.join(mol.elements)+"_otpd_data"

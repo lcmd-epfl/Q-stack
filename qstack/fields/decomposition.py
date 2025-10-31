@@ -62,10 +62,15 @@ def get_self_repulsion(mol, dm):
     return np.einsum('ij,ij', j, dm)
 
 def decomposition_error(self_repulsion, c, eri2c):
-    """Computes the decomposition error.
+    """Computes the decomposition error for density fitting.
 
-    .. todo::
-        Write the complete docstring
+    Args:
+        self_repulsion (float): Self-repulsion energy from the original density matrix.
+        c (numpy ndarray): 1D array of density expansion coefficients.
+        eri2c (numpy ndarray): 2D array of 2-center electron repulsion integrals.
+
+    Returns:
+        float: The decomposition error.
     """
     return self_repulsion - c @ eri2c @ c
 
@@ -100,12 +105,15 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
     return c
 
 def _get_inv_metric(mol, metric, v):
-  """
+  """Computes the inverse metric applied to a vector.
 
   Args:
     mol (pyscf Mole): pyscf Mole object.
-    metric (str): unit, overlap or coulomb.
-    v (numpy ndarray): Number of electrons decomposed into a vector.
+    metric (str or numpy ndarray): Metric type ('unit', 'overlap', 'coulomb') or a metric matrix.
+    v (numpy ndarray): Vector to apply the inverse metric to.
+
+  Returns:
+    numpy ndarray: Result of applying the inverse metric to the input vector.
   """
   if isinstance(metric, str):
       metric = metric.lower()
@@ -121,18 +129,19 @@ def _get_inv_metric(mol, metric, v):
 
 
 def correct_N_atomic(mol, N, c0, metric='u'):
-    """
+    """Corrects decomposition coefficients to match the target electron count per atom.
+
+    Uses Lagrange multipliers to enforce the correct number of electrons per atom
+    while minimizing changes to the decomposition coefficients.
 
     Args:
-        mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
-        N (int): Number of electrons. Defaults to None.
-        c0 (1D numpy array): Decomposition coefficients.
-        metric (str): .Defaults to 'u'.
+        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
+        N (numpy ndarray): Target number of electrons per atom.
+        c0 (numpy ndarray): 1D array of initial decomposition coefficients.
+        metric (str): Metric type for correction ('u' for unit, 's' for overlap, 'j' for coulomb). Defaults to 'u'.
 
     Returns:
-
-    .. todo::
-        Write the complete docstring.
+        numpy ndarray: Corrected decomposition coefficients (1D array).
     """
 
     Q   = number_of_electrons_deco_vec(mol, per_atom=True)
@@ -144,20 +153,17 @@ def correct_N_atomic(mol, N, c0, metric='u'):
 
 
 def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
-    """
+    """Corrects decomposition coefficients to match the target total electron count.
 
     Args:
-        mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
-        c0 (1D numpy array): Decomposition coefficients.
-        N (int): Number of electrons. Defaults to None.
-        mode (str): Defaults to Lagrange.
-        metric (str): Defaults to u.
+        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
+        c0 (numpy ndarray): 1D array of initial decomposition coefficients.
+        N (int, optional): Target number of electrons. If None, uses mol.nelectron. Defaults to None.
+        mode (str): Correction method ('scale' or 'lagrange'). Defaults to 'Lagrange'.
+        metric (str): Metric type for Lagrange correction ('u', 's', or 'j'). Defaults to 'u'.
 
     Returns:
-        A numpy ndarray containing a set of expansion coefficients taking into account the correct total number of electrons.
-
-    .. todo::
-        Write the complete docstring.
+        numpy ndarray: Corrected decomposition coefficients (1D array).
     """
 
     mode = mode.lower()
@@ -178,10 +184,20 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
 
 
 def number_of_electrons_deco_vec(mol, per_atom=False):
-    """
+    """Computes the electron number decomposition vector for basis functions.
 
-    .. todo::
-        Write the complete docstring.
+    For s-functions (l=0), computes the integral of the basis function which
+    corresponds to its contribution to the electron count.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        per_atom (bool): If True, returns a 2D array with per-atom contributions.
+                        If False, returns a 1D array. Defaults to False.
+
+    Returns:
+        numpy ndarray: If per_atom is False, 1D array of shape (nao,) with electron
+                      contributions for each basis function. If per_atom is True,
+                      2D array of shape (nao, natm) with per-atom contributions.
     """
     if per_atom:
         Q = np.zeros((mol.nao,mol.natm))

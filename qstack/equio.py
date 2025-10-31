@@ -25,7 +25,16 @@ _pyscf2gpr_l1_order = [1,2,0]
 
 
 def _get_mrange(l):
-    # for l=1, the pyscf order is x,y,z (1,-1,0)
+    """Get the m quantum number range for a given angular momentum l.
+    
+    For l=1, returns pyscf order: x,y,z which is (1,-1,0).
+
+    Args:
+        l (int): Angular momentum quantum number.
+
+    Returns:
+        tuple or range: Magnetic quantum numbers for the given l.
+    """
     if l==1:
         return (1,-1,0)
     else:
@@ -33,13 +42,14 @@ def _get_mrange(l):
 
 
 def _get_llist(q, mol):
-    """
+    """Get list of angular momentum quantum numbers for basis functions of an element.
+
     Args:
-        q (int): Atomic number.
-        mol (pyscf Mole): pyscf Mole object.
+        q (int or str): Atomic number or element symbol.
+        mol (pyscf.gto.Mole): pyscf Mole object.
 
     Returns:
-        A list
+        list: List of angular momentum quantum numbers for each basis function.
     """
 
     # TODO other basis formats?
@@ -59,21 +69,21 @@ def _get_tsize(tensor):
     """Computes the size of a tensor.
 
     Args:
-        tensor (metatensor TensorMap): Tensor.
+        tensor (metatensor.TensorMap): Tensor.
 
     Returns:
-        The size of the tensor as an integer.
+        int: Total size of the tensor (total number of elements).
     """
     return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
 
 def _labels_to_array(labels):
-    """Represents a set of metatensor labels as an array of the labels, using custom dtypes
+    """Represents a set of metatensor labels as an array of the labels, using custom dtypes.
 
     Args:
-        labels (metatensor Labels): Labels
+        labels (metatensor.Labels): Labels object.
 
     Returns:
-        labels (numpy ndarray[ndim=1, structured dtype]): the same labels
+        numpy.ndarray: 1D structured array containing the same labels.
     """
     values = labels.values
     dtype = [ (name,values.dtype) for name in labels.names]
@@ -83,11 +93,11 @@ def vector_to_tensormap(mol, c):
     """Transform a vector into a tensor map. Used by :py:func:`array_to_tensormap`.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        v (numpy ndarray): Vector.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        c (numpy.ndarray): Vector to transform.
 
     Returns:
-        A metatensor tensor map.
+        metatensor.TensorMap: Tensor map representation of the vector.
     """
 
     atom_charges = list(mol.atom_charges())
@@ -158,14 +168,17 @@ def vector_to_tensormap(mol, c):
 
 
 def tensormap_to_vector(mol, tensor):
-    """Transform a tensor map into a vector. :py:func:`Used by tensormap_to_array`.
+    """Transform a tensor map into a vector. Used by :py:func:`tensormap_to_array`.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        tensor (metatensor TensorMap): Tensor.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        tensor (metatensor.TensorMap): Tensor to transform.
 
     Returns:
-        A numpy ndarray (vector).
+        numpy.ndarray: 1D array (vector) representation.
+
+    Raises:
+        RuntimeError: If tensor size does not match mol.nao.
     """
 
     nao = _get_tsize(tensor)
@@ -191,17 +204,26 @@ def tensormap_to_vector(mol, tensor):
 
 
 def matrix_to_tensormap(mol, dm):
-    """ Transform a matrix into a tensor map. Used by :py:func:`array_to_tensormap`.
+    """Transform a matrix into a tensor map. Used by :py:func:`array_to_tensormap`.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        v (numpy ndarray): Matrix.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        dm (numpy.ndarray): Matrix to transform.
 
     Returns:
-        A metatensor tensor map.
+        metatensor.TensorMap: Tensor map representation of the matrix.
     """
 
     def pairs(list1, list2):
+        """Generate all pairs from two lists.
+
+        Args:
+            list1 (list): First list.
+            list2 (list): Second list.
+
+        Returns:
+            numpy.ndarray: Array of all (i,j) pairs.
+        """
         return np.array([(i,j) for i in list1 for j in list2])
 
     atom_charges = list(mol.atom_charges())
@@ -316,11 +338,14 @@ def tensormap_to_matrix(mol, tensor):
     """Transform a tensor map into a matrix. Used by :py:func:`tensormap_to_array`.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        tensor (metatensor TensorMap): Tensor.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        tensor (metatensor.TensorMap): Tensor to transform.
 
     Returns:
-        A numpy ndarray (matrix).
+        numpy.ndarray: 2D array (matrix) representation.
+
+    Raises:
+        RuntimeError: If tensor size does not match mol.nao * mol.nao.
     """
 
     nao2 = _get_tsize(tensor)
@@ -358,14 +383,17 @@ def tensormap_to_matrix(mol, tensor):
     return dm
 
 def array_to_tensormap(mol, v):
-    """ Transform an array into a tensor map.
+    """Transform an array into a tensor map.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        v (numpy ndarray): Array. It can be a vector or a matrix.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        v (numpy.ndarray): Array to transform. Can be a vector (1D) or matrix (2D).
 
     Returns:
-        A metatensor tensor map.
+        metatensor.TensorMap: Tensor map representation of the array.
+
+    Raises:
+        ValueError: If array dimension is not 1 or 2.
     """
     if v.ndim==1:
         return vector_to_tensormap(mol, v)
@@ -379,11 +407,14 @@ def tensormap_to_array(mol, tensor):
     """Transform a tensor map into an array.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        tensor (metatensor TensorMap): Tensor.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        tensor (metatensor.TensorMap): Tensor to transform.
 
     Returns:
-        A numpy ndarray. Matrix or vector, depending on the key names of the tensor.
+        numpy.ndarray: Array representation (1D vector or 2D matrix).
+
+    Raises:
+        RuntimeError: If tensor key names don't match expected format.
     """
 
     if tensor.keys.names==vector_label_names.tm:
@@ -395,13 +426,16 @@ def tensormap_to_array(mol, tensor):
 
 
 def join(tensors):
-    """Merge two or more tensors with the same label names avoiding information duplictaion.
+    """Merge two or more tensors with the same label names avoiding information duplication.
 
     Args:
-        tensors (list): List of metatensor TensorMap.
+        tensors (list): List of metatensor.TensorMap objects.
 
     Returns:
-        A metatensor TensorMap containing the information of all the input tensors.
+        metatensor.TensorMap: Merged tensor containing information from all input tensors.
+
+    Raises:
+        RuntimeError: If tensors have different label names.
     """
 
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
@@ -446,10 +480,14 @@ def split(tensor):
     """Split a tensor based on the molecule information stored within the input TensorMap.
 
     Args:
-        tensor (metatensor TensorMap): Tensor containing several molecules.
+        tensor (metatensor.TensorMap): Tensor containing several molecules.
 
     Returns:
-        N metatensor TensorMap, where N is equal to the total number of diferent molecules stored within the input TensorMap.
+        list or dict: Collection of metatensor.TensorMap objects, one per molecule.
+            Returns list if molecule indices are continuous, dict otherwise.
+
+    Raises:
+        RuntimeError: If tensor does not contain multiple molecules.
     """
 
     if tensor.sample_names[0]!=_molid_name:

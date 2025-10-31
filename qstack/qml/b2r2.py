@@ -8,6 +8,14 @@ defaults = SimpleNamespace(rcut=3.5, gridspace=0.03)
 
 
 def get_bags(unique_ncharges):
+    """Generates all unique element pair combinations including self-interactions.
+
+    Args:
+        unique_ncharges (array-like): Array of unique atomic charges/numbers.
+
+    Returns:
+        list: List of all unique element pairs [Z_i, Z_j] including self-interactions.
+    """
     combs = list(itertools.combinations(unique_ncharges, r=2))
     combs = [list(x) for x in combs]
     # add self interaction
@@ -17,12 +25,29 @@ def get_bags(unique_ncharges):
 
 
 def get_mu_sigma(R):
+    """Computes Gaussian distribution parameters from interatomic distance.
+
+    Args:
+        R (float): Interatomic distance.
+
+    Returns:
+        tuple: Mean (mu) and standard deviation (sigma) for the Gaussian distribution.
+    """
     mu = R * 0.5
     sigma = R * 0.125
     return mu, sigma
 
 
 def get_gaussian(x, R):
+    """Computes Gaussian function values for a given interatomic distance.
+
+    Args:
+        x (numpy ndarray): Grid points to evaluate the Gaussian.
+        R (float): Interatomic distance determining the Gaussian parameters.
+
+    Returns:
+        numpy ndarray: Gaussian function values at the grid points.
+    """
     mu, sigma = get_mu_sigma(R)
     X = (x-mu) / (sigma*np.sqrt(2))
     g = np.exp(-X**2) / (np.sqrt(2*np.pi) * sigma)
@@ -30,6 +55,17 @@ def get_gaussian(x, R):
 
 
 def get_skew_gaussian_l_both(x, R, Z_I, Z_J):
+    """Computes skewed Gaussian distributions for local B2R2 representation.
+
+    Args:
+        x (numpy ndarray): Grid points to evaluate the functions.
+        R (float): Interatomic distance.
+        Z_I (int): Atomic number of atom I.
+        Z_J (int): Atomic number of atom J.
+
+    Returns:
+        tuple: Two skewed Gaussian distributions (a, b) for the atom pair.
+    """
     mu, sigma = get_mu_sigma(R)
     # a = Z_J * scipy.stats.skewnorm.pdf(x, Z_J, mu, sigma)
     # b = Z_I * scipy.stats.skewnorm.pdf(x, Z_I, mu, sigma)
@@ -45,6 +81,17 @@ def get_skew_gaussian_l_both(x, R, Z_I, Z_J):
 
 
 def get_skew_gaussian_n_both(x, R, Z_I, Z_J):
+    """Computes combined skewed Gaussian distribution for nuclear B2R2 representation.
+
+    Args:
+        x (numpy ndarray): Grid points to evaluate the function.
+        R (float): Interatomic distance.
+        Z_I (int): Atomic number of atom I.
+        Z_J (int): Atomic number of atom J.
+
+    Returns:
+        numpy ndarray: Combined skewed Gaussian distribution for the atom pair.
+    """
     mu, sigma = get_mu_sigma(R)
     # a = Z_I * scipy.stats.skewnorm.pdf(x, Z_J, mu, sigma)
     # b = Z_J * scipy.stats.skewnorm.pdf(x, Z_I, mu, sigma)

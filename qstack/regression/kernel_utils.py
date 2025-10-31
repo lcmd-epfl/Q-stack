@@ -41,16 +41,22 @@ defaults = SimpleNamespace(
 
 
 def get_local_kernel(arg):
-    """ Obtains a local-envronment kernel by name.
+    """Obtains a local-environment kernel function by name.
 
     Args:
-        arg (str): the name of the kernel, in ['']  # TODO
+        arg (str): Kernel name. Available options include:
+            - 'G': Gaussian (RBF) kernel
+            - 'L': Laplacian kernel
+            - 'dot': Linear (dot product) kernel
+            - 'cosine': Cosine similarity kernel
+            - Implementation-specific variants: 'G_sklearn', 'G_custom_c', 'L_sklearn', 'L_custom_c', 'L_custom_py'
 
     Returns:
-        kernel (Callable[np.ndarray,np.ndarray,float -> np.ndarray]): the actual kernel function, to call as ``K = kernel(X,Y,gamma)``
+        callable: Kernel function with signature kernel(X, Y, gamma) -> numpy.ndarray.
 
-    .. todo::
-        Write the docstring
+    Raises:
+        NotImplementedError: If the specified kernel is not implemented.
+        RuntimeError: If the kernel implementation is not available (e.g., C library missing).
     """
     if arg not in local_kernels_dict:
         raise NotImplementedError(f'{arg} kernel is not implemented')
@@ -62,10 +68,17 @@ def get_local_kernel(arg):
 
 
 def get_global_kernel(arg, local_kernel):
-    """
+    """Creates a global kernel function from a local kernel.
 
-    .. todo::
-        Write the docstring
+    Args:
+        arg (tuple): Tuple of (gkernel_name, options_dict).
+        local_kernel (callable): Local kernel function.
+
+    Returns:
+        callable: Global kernel function that combines local kernels.
+
+    Raises:
+        NotImplementedError: If the specified global kernel is not implemented.
     """
     gkernel, options = arg
 
@@ -76,10 +89,14 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-  """ Returns the kernel function depending on the cli argument
+  """Returns the appropriate kernel function based on arguments.
 
-  .. todo::
-      Write the docstring
+  Args:
+      arg (str): Local kernel name.
+      arg2 (tuple, optional): If provided, tuple of (global_kernel_name, options) for global kernel. Defaults to None.
+
+  Returns:
+      callable: Kernel function (local or global).
   """
 
   local_kernel = get_local_kernel(arg)

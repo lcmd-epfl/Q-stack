@@ -43,6 +43,7 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
 
 
 def main():
+    """Command-line entry point for out-of-sample predictions."""
     parser = RegressionParser(description='This program makes prediction for OOS.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')

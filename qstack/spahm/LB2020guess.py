@@ -12,6 +12,14 @@ class LB2020guess:
     self.get_basis(fname, parameters)
 
   def renormalize(self, a):
+    """Computes renormalization factor for Gaussian basis functions.
+
+    Args:
+        a (float): Gaussian exponent.
+
+    Returns:
+        float: Renormalization factor (0.5*a/pi)^(3/4).
+    """
     # 1/norm1 = \int \exp(-a*r^2) d^3 r       => norm1 = (a/pi)^(3/2)
     # 1/norm2^2 = \int (\exp(-a*r^2))^2 d^3 r => norm2 = (2.0*a/pi)^(3/4)
     # coefficient = norm1 / norm2 = (0.5*a/pi)^(3/4)
@@ -19,6 +27,14 @@ class LB2020guess:
     return x*x*x
 
   def read_ac(self, fname):
+    """Reads auxiliary basis parameters from file.
+
+    Args:
+        fname (str, optional): Path to parameter file. If None, uses default.
+
+    Returns:
+        dict: Dictionary mapping element symbols to basis function parameters.
+    """
     if fname is None:
       fname = self.acfile_default
     with open(fname) as f:
@@ -37,6 +53,14 @@ class LB2020guess:
     return basis
 
   def add_caps(self, basis):
+    """Adds cap (diffuse) functions to the auxiliary basis.
+
+    Args:
+        basis (dict): Basis set dictionary to modify.
+
+    Returns:
+        dict: Modified basis set with cap functions added.
+    """
     caps_array = np.zeros(103)
     caps_array  [  1 :   2 +1] = 1.0 /  3.0
     caps_array  [  3 :   4 +1] = 1.0 / 16.0
@@ -60,6 +84,12 @@ class LB2020guess:
     return basis
 
   def get_basis(self, fname, parameters):
+    """Initializes auxiliary basis set from file or predefined parameters.
+
+    Args:
+        fname (str, optional): Path to custom parameter file.
+        parameters (str): Parameter set to use ('HF', 'HFS', or None for custom file).
+    """
     if not parameters:
       acbasis = self.read_ac(fname)
       self.add_caps(acbasis)
@@ -279,6 +309,14 @@ class LB2020guess:
 
 
   def use_charge(self, mol):
+      """Adjusts basis coefficients based on molecular charge.
+
+      Args:
+          mol (pyscf Mole): pyscf Mole object.
+
+      Returns:
+          dict: Adjusted auxiliary basis set.
+      """
       if self.parameters == 'HF':
           acbasis = copy.deepcopy(self.acbasis)
           factor = 1.0-mol.charge/mol.natm
@@ -289,6 +327,15 @@ class LB2020guess:
       return acbasis
 
   def use_ecp(self, mol, acbasis):
+      """Adjusts basis set to account for effective core potentials (ECP).
+
+      Args:
+          mol (pyscf Mole): pyscf Mole object with ECP.
+          acbasis (dict): Auxiliary basis set dictionary.
+
+      Returns:
+          dict: Adjusted auxiliary basis set accounting for ECP.
+      """
       acbasis = copy.deepcopy(acbasis)
       q_cleaned = set()
       for iat, z in enumerate(mol.atom_charges()):
@@ -318,6 +365,14 @@ class LB2020guess:
       return acbasis
 
   def get_auxweights(self, auxmol):
+      """Extracts auxiliary basis weights from auxiliary molecule object.
+
+      Args:
+          auxmol (pyscf Mole): Auxiliary molecule object.
+
+      Returns:
+          numpy ndarray: Array of auxiliary basis function weights.
+      """
       w = np.zeros(auxmol.nao)
       iao = 0
       for iat in range(auxmol.natm):
@@ -328,9 +383,27 @@ class LB2020guess:
       return w
 
   def merge_caps(self, w, eri3c):
+      """Contracts 3-center integrals with auxiliary basis weights.
+
+      Args:
+          w (numpy ndarray): Auxiliary basis weights.
+          eri3c (numpy ndarray): 3-center electron repulsion integrals.
+
+      Returns:
+          numpy ndarray: Contracted integrals.
+      """
       return np.einsum('...i,i->...', eri3c, w)
 
   def get_eri3c(self, mol, auxmol):
+      """Computes 3-center electron repulsion integrals.
+
+      Args:
+          mol (pyscf Mole): Main molecule object.
+          auxmol (pyscf Mole): Auxiliary molecule object.
+
+      Returns:
+          numpy ndarray: 3-center ERIs (ij|P) where i,j are AO indices and P is aux basis index.
+      """
       pmol       = mol + auxmol
       shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
       eri3c      = pmol.intor('int3c2e_sph', shls_slice=shls_slice)

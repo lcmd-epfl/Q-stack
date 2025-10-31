@@ -1,7 +1,19 @@
 import numpy as np
 
 def do_fps(x, d=0):
-    # Code from Giulio Imbalzano
+    """Perform Farthest Point Sampling on a set of points.
+
+    Code from Giulio Imbalzano.
+
+    Args:
+        x (numpy.ndarray): 2D array of points, shape (n_points, n_features).
+        d (int): Number of points to sample. If 0, samples all points. Defaults to 0.
+
+    Returns:
+        tuple: A tuple containing:
+            - iy (numpy.ndarray): Indices of sampled points.
+            - measure (numpy.ndarray): Distances to nearest selected point for each iteration.
+    """
     n = len(x)
     if d==0:
         d = n
