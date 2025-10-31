@@ -1,0 +1,78 @@
+qstack.qml.b2r2
+===============
+
+Functions
+---------
+
+get\_bags (unique\_ncharges)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_mu\_sigma (R)
+~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_gaussian (x, R)
+~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_skew\_gaussian\_l\_both (x, R, Z\_I, Z\_J)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_skew\_gaussian\_n\_both (x, R, Z\_I, Z\_J)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_b2r2\_n\_molecular (ncharges, coords, elements, rcut=defaults.rcut, gridspace=defaults.gridspace)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_b2r2\_a\_molecular (ncharges, coords, elements, rcut=defaults.rcut, gridspace=defaults.gridspace)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_b2r2\_l\_molecular (ncharges, coords, elements, rcut=defaults.rcut, gridspace=defaults.gridspace)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_b2r2 (reactions, variant='l', progress=False, rcut=defaults.rcut, gridspace=defaults.gridspace)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(No docstring.)
+
+get\_b2r2\_inner (reactions, progress=False, rcut=defaults.rcut, gridspace=defaults.gridspace, get\_b2r2\_molecular=None, combine=None)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+    Computes the B2R2 representations for a list of reactions.
+
+    Reference:
+        P. van Gerwen, A. Fabrizio, M. D. Wodrich, C. Corminboeuf,
+        "Physics-based representations for machine learning properties of chemical reactions",
+        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a.
+
+    Args:
+        reactions (List[rxn]): a list of rxn objects containing reaction information.
+            rxn.reactants (List[ase.Atoms]) is a list of reactants (ASE molecules),
+            rxn.products (List[ase.Atoms]) is a list of products.
+        rcut (float): cutoff radius (Å)
+        gridspace (float): grid spacing (Å)
+        get_b2r2_molecular (func): function to compute the molecular representations,
+                                   i.e. one of `get_b2r2_{l,n,a}_molecular`
+        combine (func(r: ndarray, p: ndarray)): function to combine the reactants and products representations,
+                                   e.g. difference or concatenation
+    Returns:
+        ndrarray containing the B2R2 representation for each reaction
+
+.. note::
+   Generated statically from source by gen_rst.py; no imports performed.
