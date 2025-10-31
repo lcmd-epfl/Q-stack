@@ -33,9 +33,9 @@ defaults = SimpleNamespace(
   n_rep=5,
   splits=5,
   train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
-  etaarr=list(np.logspace(-10, 0, 5)),
-  sigmaarr=list(np.logspace(0,6, 13)),
-  sigmaarr_mult=list(np.logspace(0,2, 5)),
+  etaarr=np.logspace(-10, 0, 5).tolist(),
+  sigmaarr=np.logspace(0,6, 13).tolist(),
+  sigmaarr_mult=np.logspace(0,2, 5).tolist(),
   random_state=0,
   )
 

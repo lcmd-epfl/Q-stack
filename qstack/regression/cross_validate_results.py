@@ -1,8 +1,10 @@
 import numpy as np
 from tqdm import tqdm
-from .kernel_utils import defaults, ParseKwargs
+from qstack.tools import correct_num_threads
+from .kernel_utils import defaults
 from .hyperparameters import hyperparameters
 from .regression import regression
+from .parser import RegressionParser
 
 
 def cv_results(X, y,
@@ -83,30 +85,12 @@ def cv_results(X, y,
 
 
 def main():
-    import argparse
-    from qstack.tools import correct_num_threads
-    parser = argparse.ArgumentParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search inbcluded).')
-    parser.add_argument('--x',      type=str,   dest='repr',       required=True, help='path to the representations file')
-    parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
-    parser.add_argument('--test',   type=float, dest='test_size',  default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
-    parser.add_argument('--train',      type=float, dest='train_size', default=defaults.train_size, nargs='+', help='training set fractions')
-    parser.add_argument('--akernel',     type=str,   dest='akernel',     default=defaults.kernel,
-        help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity, "G_sklearn","L_sklearn","G_customc","L_customc","L_custompy" for specific implementations. '
-             '("L_custompy" is suited to open-shell systems) (default '+defaults.kernel+')')
-    parser.add_argument('--gkernel',     type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default )')
-    parser.add_argument('--gdict',     nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
-    parser.add_argument('--splits', type=int,   dest='splits',     default=defaults.splits,    help='k in k-fold cross validation (default='+str(defaults.n_rep)+')')
-    parser.add_argument('--n', type=int,   dest='n_rep',     default=defaults.n_rep,    help='k in k-fold cross validation (default='+str(defaults.n_rep)+')')
-    parser.add_argument('--print',  type=int,   dest='printlevel', default=0,                  help='printlevel')
-    parser.add_argument('--eta',    type=float, dest='eta',   default=defaults.etaarr,   nargs='+', help='eta array')
-    parser.add_argument('--sigma',  type=float, dest='sigma', default=defaults.sigmaarr, nargs='+', help='sigma array')
-    parser.add_argument('--ll',   action='store_true', dest='ll',       default=False,  help='if correct for the numper of threads')
-    parser.add_argument('--save',   action='store_true', dest='save_all',       default=False,  help='if saving intermediate results in .npy file')
-    parser.add_argument('--ada',  action='store_true', dest='adaptive', default=False,  help='if adapt sigma')
-    parser.add_argument('--save-pred',  action='store_true', dest='save_pred', default=False,  help='if save test-set prediction')
-    parser.add_argument('--readkernel', action='store_true', dest='readk', default=False,  help='if X is kernel')
-    parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
-    parser.add_argument('--name',      type=str,   dest='nameout',       required=True, help='the name of the output file')
+    parser = RegressionParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search inbcluded).', hyperparameters_set='array')
+    parser.remove_argument('random_state')
+    parser.add_argument('--n',          type=int,            dest='n_rep',     default=defaults.n_rep,  help='the number of repetition for each point')
+    parser.add_argument('--save',       action='store_true', dest='save_all',  default=False,           help='if saving intermediate results in .npy file')
+    parser.add_argument('--save-pred',  action='store_true', dest='save_pred', default=False,           help='if save test-set prediction')
+
     args = parser.parse_args()
     if(args.readk):
         args.sigma = [np.nan]

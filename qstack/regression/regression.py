@@ -1,7 +1,9 @@
 import numpy as np
 import scipy
-from .kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
+from qstack.tools import correct_num_threads
+from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
+from .parser import RegressionParser
 
 
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
@@ -84,27 +86,10 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 
 def main():
-    import argparse
-    from qstack.tools import correct_num_threads
-    parser = argparse.ArgumentParser(description='This program computes the learning curve.')
-    parser.add_argument('--x',             type=str,   dest='repr',       required=True, help='path to the representations file')
-    parser.add_argument('--y',             type=str,   dest='prop',       required=True, help='path to the properties file')
-    parser.add_argument('--test',          type=float, dest='test_size',  default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
-    parser.add_argument('--eta',           type=float, dest='eta',        default=defaults.eta,       help='eta hyperparameter (default='+str(defaults.eta)+')')
-    parser.add_argument('--sigma',         type=float, dest='sigma',      default=defaults.sigma,     help='sigma hyperparameter (default='+str(defaults.sigma)+')')
-    parser.add_argument('--akernel',       type=str,   dest='akernel',     default=defaults.kernel,
-        help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity, "G_sklearn","L_sklearn","G_customc","L_customc","L_custompy" for specific implementations. '
-             '("L_custompy" is suited to open-shell systems) (default '+defaults.kernel+')')
-    parser.add_argument('--gkernel',       type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default '+str(defaults.gkernel)+')')
-    parser.add_argument('--gdict',         nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
-    parser.add_argument('--splits',        type=int,   dest='splits',     default=defaults.n_rep,     help='number of splits (default='+str(defaults.n_rep)+')')
-    parser.add_argument('--train',         type=float, dest='train_size', default=defaults.train_size, nargs='+', help='training set fractions')
-    parser.add_argument('--debug',         action='store_true', dest='debug', default=False,  help='enable debug')
-    parser.add_argument('--ll',            action='store_true', dest='ll',    default=False,  help='if correct for the numper of threads')
-    parser.add_argument('--readkernel',    action='store_true', dest='readk', default=False,  help='if X is kernel')
-    parser.add_argument('--sparse',        type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
-    parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='seed for the numpy.random.RandomState for test / train split generator')
-    parser.add_argument('--name',          type=str,   dest='nameout',     required=False, default=None, help='the name of the output file containting the LC data (.txt).')
+    parser = RegressionParser(description='This program computes the learning curve.', hyperparameters_set='single')
+    parser.add_argument('--splits',  type=int,            dest='splits',    default=defaults.n_rep, help='number of splits')
+    parser.add_argument('--name',    type=str,            dest='nameout',   default=None,           help='the name of the output file containting the LC data (.txt)')
+    parser.add_argument('--debug',   action='store_true', dest='debug',     default=False,          help='enable debug')
     args = parser.parse_args()
     print(vars(args))
     if(args.ll):

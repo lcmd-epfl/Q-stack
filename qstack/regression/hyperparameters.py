@@ -2,8 +2,10 @@ import sys
 import numpy as np
 import scipy
 from sklearn.model_selection import KFold
-from .kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
+from qstack.tools import correct_num_threads
+from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
+from .parser import RegressionParser
 
 
 def hyperparameters(X, y,
@@ -130,26 +132,9 @@ def hyperparameters(X, y,
 
 
 def main():
-    import argparse
-    from qstack.tools import correct_num_threads
-    parser = argparse.ArgumentParser(description='This program finds the optimal hyperparameters.')
-    parser.add_argument('--x',      type=str,   dest='repr',       required=True, help='path to the representations file')
-    parser.add_argument('--y',      type=str,   dest='prop',       required=True, help='path to the properties file')
-    parser.add_argument('--test',   type=float, dest='test_size',  default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
-    parser.add_argument('--akernel',     type=str,   dest='akernel',     default=defaults.kernel,
-        help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity, "G_sklearn","L_sklearn","G_customc","L_customc","L_custompy" for specific implementations. '
-             '("L_custompy" is suited to open-shell systems) (default '+defaults.kernel+')')
-    parser.add_argument('--gkernel',     type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default )')
-    parser.add_argument('--gdict',     nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
-    parser.add_argument('--splits', type=int,   dest='splits',     default=defaults.splits,    help='k in k-fold cross validation (default='+str(defaults.n_rep)+')')
-    parser.add_argument('--print',  type=int,   dest='printlevel', default=0,                  help='printlevel')
-    parser.add_argument('--eta',    type=float, dest='eta',   default=defaults.etaarr,   nargs='+', help='eta array')
-    parser.add_argument('--sigma',  type=float, dest='sigma', default=defaults.sigmaarr, nargs='+', help='sigma array')
-    parser.add_argument('--ll',   action='store_true', dest='ll',       default=False,  help='if correct for the numper of threads')
-    parser.add_argument('--ada',  action='store_true', dest='adaptive', default=False,  help='if adapt sigma')
-    parser.add_argument('--readkernel', action='store_true', dest='readk', default=False,  help='if X is kernel')
-    parser.add_argument('--sparse',     type=int, dest='sparse', default=None,  help='regression basis size for sparse learning')
-    parser.add_argument('--name',      type=str,   dest='nameout',       required=False, default=None,  help='the name of the output file')
+    parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
+    parser.remove_argument("random_state")
+    parser.remove_argument("train_size")
     args = parser.parse_args()
     if(args.readk):
         args.sigma = [np.nan]
