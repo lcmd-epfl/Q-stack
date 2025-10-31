@@ -1,6 +1,9 @@
+import sys
 import numpy as np
-from .kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx
 from qstack.mathutils.fps import do_fps
+from qstack.tools import correct_num_threads
+from .kernel_utils import get_kernel, defaults, train_test_split_idx
+from .parser import RegressionParser
 
 
 def oos(X, X_oos, alpha, sigma=defaults.sigma,
@@ -40,23 +43,13 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
 
 
 def main():
-    import sys
-    import argparse
-    from qstack.tools import correct_num_threads
-    parser = argparse.ArgumentParser(description='This program makes prediction for OOS.')
-    parser.add_argument('--x',      type=str,       dest='repr',      required=True,              help='path to the representations file')
-    parser.add_argument('--x-oos',  type=str,       dest='x_oos',     required=True,              help='path to the OOS representations file')
-    parser.add_argument('--alpha',  type=str,       dest='alpha',     required=True,              help='path to the regression weights file')
-    parser.add_argument('--test',   type=float,     dest='test_size', default=defaults.test_size, help='test set fraction (default='+str(defaults.test_size)+')')
-    parser.add_argument('--sigma',  type=float,     dest='sigma',     default=defaults.sigma,     help='sigma hyperparameter (default='+str(defaults.sigma)+')')
-    parser.add_argument('--akernel',       type=str,   dest='akernel',     default=defaults.kernel,
-        help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity, "G_sklearn","L_sklearn","G_customc","L_customc","L_custompy" for specific implementations. '
-             '("L_custompy" is suited to open-shell systems) (default '+defaults.kernel+')')
-    parser.add_argument('--gkernel',       type=str,   dest='gkernel',     default=defaults.gkernel,    help='global kernel type (avg for average kernel, rem for REMatch kernel) (default '+str(defaults.gkernel)+')')
-    parser.add_argument('--gdict',         nargs='*',   action=ParseKwargs, dest='gdict',     default=defaults.gdict,    help='dictionary like input string to initialize global kernel parameters')
-    parser.add_argument('--ll',     action='store_true', dest='ll',   default=False,              help='if correct for the numper of threads')
-    parser.add_argument('--sparse',           type=int,            dest='sparse',       default=None,                  help='regression basis size for sparse learning')
-    parser.add_argument('--random_state',  type=int, dest='random_state', default=defaults.random_state,  help='random state for test / train splitting')
+    parser = RegressionParser(description='This program makes prediction for OOS.', hyperparameters_set='single')
+    parser.remove_argument('prop')
+    parser.remove_argument('train_size')
+    parser.remove_argument('readk')
+    parser.remove_argument('eta')
+    parser.add_argument('--x-oos',  type=str, dest='x_oos',  required=True,  help='path to the OOS representations file')
+    parser.add_argument('--alpha',  type=str, dest='alpha',  required=True,  help='path to the regression weights file')
     args = parser.parse_args()
     print(vars(args))
     if(args.ll):

@@ -109,16 +109,17 @@ def local_laplacian_kernel_wrapper(X, Y, gamma):
 
 local_kernels_dict = {
         'G'          : _SKLEARN_PAIRWISE.rbf_kernel,
-        'G_sklearn'  : _SKLEARN_PAIRWISE.rbf_kernel,
-        'G_custom_c' : custom_C_kernels('G'),
-
         'L'          : local_laplacian_kernel_wrapper,
-        'L_sklearn'  : _SKLEARN_PAIRWISE.laplacian_kernel,
-        'L_custom_c' : custom_C_kernels('L'),
-        'L_custom_py': custom_laplacian_kernel,
 
         'dot'        : dot_kernel_wrapper,
         'cosine'     : cosine_similarity_wrapper,
+
+        'G_sklearn'  : _SKLEARN_PAIRWISE.rbf_kernel,
+        'G_custom_c' : custom_C_kernels('G'),
+
+        'L_sklearn'  : _SKLEARN_PAIRWISE.laplacian_kernel,
+        'L_custom_c' : custom_C_kernels('L'),
+        'L_custom_py': custom_laplacian_kernel,
         }
 # legacy kernel names
 local_kernels_dict['myG']     = local_kernels_dict['G_custom_c']

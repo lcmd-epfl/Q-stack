@@ -4,6 +4,7 @@ import scipy
 from pyscf import dft, scf
 from .LB2020guess import LB2020guess as LB20
 
+
 def hcore(mol, *_):
   """Uses the core potential (kin + nuc + ecp) to compute the guess Hamiltonian.
 
@@ -107,6 +108,7 @@ def solveF(mol, fock):
   s1e = mol.intor_symmetric('int1e_ovlp')
   return scipy.linalg.eigh(fock, s1e)
 
+
 def get_guess(arg):
   """Returns the function of the method selected to compute the approximate hamiltoninan
 
@@ -117,10 +119,9 @@ def get_guess(arg):
     The function of the selected method.
   """
   arg = arg.lower()
-  guesses = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}
-  if arg not in guesses:
-      raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses.keys())}')
-  return guesses[arg]
+  if arg not in guesses_dict:
+      raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses_dict.keys())}')
+  return guesses_dict[arg]
 
 
 def check_nelec(nelec, nao):
@@ -222,3 +223,6 @@ def eigenvalue_grad(mol, e, c, s1, h1):
         Scomp = 2.0 * np.einsum('pi,aqp,qi->ia', c, s1[:,p0:p1], c[p0:p1])
         de_dr[:,iat,:] = Hcomp - Scomp * e[:,None]
     return de_dr
+
+
+guesses_dict = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}

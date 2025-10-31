@@ -1,40 +1,13 @@
 import os
-import argparse
 import numpy as np
 from qstack.tools import correct_num_threads
 from . import utils
-from .utils import defaults
 from .compute_rho_spahm import get_repr
+from .parser import SpahmParser
 
 
 def main(args=None):
-    parser = argparse.ArgumentParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof')
-    parser.add_argument('--mol',           dest='filename',      type=str,            required=True,                    help='path to an xyz file / to a list of molecular structures in xyz format')
-    parser.add_argument('--name',          dest='name_out',      type=str,            required=True,                    help='name of the output file')
-    parser.add_argument('--guess',         dest='guess',         type=str,            default=defaults.guess,           help='initial guess')
-    parser.add_argument('--units',         dest='units',         type=str,            default='Angstrom',               help='the units of the input coordinates (default: Angstrom)')
-    parser.add_argument('--basis',         dest='basis'  ,       type=str,            default=defaults.basis,           help='AO basis set (default=MINAO)')
-    parser.add_argument('--ecp',           dest='ecp',           type=str,            default=None,                     help='effective core potential to use (default: None)')
-    parser.add_argument('--charge',        dest='charge',        type=str,            default="None",                   help='charge / path to a file with a list of thereof')
-    parser.add_argument('--spin',          dest='spin',          type=str,            default="None",                   help='number of unpaired electrons / path to a file with a list of thereof')
-    parser.add_argument('--xc',            dest='xc',            type=str,            default=defaults.xc,              help=f'DFT functional for the SAD guess (default={defaults.xc})')
-    parser.add_argument('--dir',           dest='dir',           type=str,            default='./',                     help='directory to save the output in (default=current dir)')
-    parser.add_argument('--cutoff',        dest='cutoff',        type=float,          default=defaults.cutoff,          help=f'bond length cutoff in Å (default={defaults.cutoff})')
-    parser.add_argument('--bpath',         dest='bpath',         type=str,            default=defaults.bpath,           help=f'directory with basis sets (default={defaults.bpath})')
-    parser.add_argument('--omod',          dest='omod',          type=str, nargs='+', default=defaults.omod,            help=f'model for open-shell systems (alpha, beta, sum, diff, default={defaults.omod})')
-    parser.add_argument('--print',         dest='print',         type=int,            default=0,                        help='printing level')
-    parser.add_argument('--zeros',         dest='zeros',         action='store_true', default=False,                    help='use a version with more padding zeros')
-    parser.add_argument('--split',         dest='split',         action='count',      default=0,                        help='split into molecules (use twice to also split the output in one file per molecule)')
-    parser.add_argument('--merge',         dest='merge',         action='store_true', default=True,                     help='merge different omods')
-    parser.add_argument('--symbols',       dest='with_symbols',  action='store_true', default=False,                    help='if save tuples with (symbol, vec) for all atoms')
-    parser.add_argument('--onlym0',        dest='only_m0',       action='store_true', default=False,                    help='use only functions with m=0')
-    parser.add_argument('--savedm',        dest='savedm',        action='store_true', default=False,                    help='save density matrices')
-    parser.add_argument('--readdm',        dest='readdm',        type=str,            default=None,                     help='directory to read density matrices from')
-    parser.add_argument('--elements',      dest='elements',      type=str, nargs='+', default=None,                     help='the elements to limit the representation for')
-    parser.add_argument('--pairfile',      dest='pairfile',      type=str,            default=None,                     help='path to the atom pair file')
-    parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true', default=False,                    help='write the atom pair file and exit if --pairfile is set')
-    parser.add_argument('--same_basis',    dest='same_basis',    action='store_true', default=False,                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
-    parser.add_argument('--only-z',        dest='only_z',        type=str, nargs='+', default=None,                     help="restrict the representation to one or several atom types")
+    parser = SpahmParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof', unified=True, bond=True)
     args = parser.parse_args(args=args)
     if args.print>0:
         print(vars(args))

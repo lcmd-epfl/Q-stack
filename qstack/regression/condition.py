@@ -1,6 +1,8 @@
 import numpy as np
-from .kernel_utils import get_kernel, defaults, ParseKwargs, train_test_split_idx, sparse_regression_kernel
 from qstack.mathutils.fps import do_fps
+from qstack.tools import correct_num_threads
+from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
+from .parser import RegressionParser
 
 
 def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
@@ -50,20 +52,9 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 
 def main():
-    import argparse
-    from qstack.tools import correct_num_threads
-    parser = argparse.ArgumentParser(description='This program computes the condition number for the kernel matrix.')
-    parser.add_argument('--x',                type=str,            dest='repr',         required=True,                 help='path to the representations file')
-    parser.add_argument('--eta',              type=float,          dest='eta',          default=defaults.eta,          help='eta hyperparameter (default='+str(defaults.eta)+')')
-    parser.add_argument('--sigma',            type=float,          dest='sigma',        default=defaults.sigma,        help='sigma hyperparameter (default='+str(defaults.sigma)+')')
-    parser.add_argument('--kernel',           type=str,            dest='kernel',       default=defaults.kernel,       help='kernel type (G for Gaussian, L for Laplacian, myL for Laplacian for open-shell systems) (default '+defaults.kernel+')')
-    parser.add_argument('--gkernel',          type=str,            dest='gkernel',      default=defaults.gkernel,      help='global kernel type (avg for average kernel, rem for REMatch kernel) (default '+str(defaults.gkernel)+')')
-    parser.add_argument('--gdict', nargs='*', action=ParseKwargs,  dest='gdict',        default=defaults.gdict,        help='dictionary like input string to initialize global kernel parameters')
-    parser.add_argument('--test',             type=float,          dest='test_size',    default=defaults.test_size,    help='test set fraction (default='+str(defaults.test_size)+')')
-    parser.add_argument('--ll',               action='store_true', dest='ll',           default=False,                 help='if correct for the numper of threads')
-    parser.add_argument('--readkernel',       action='store_true', dest='readk',        default=False,                 help='if X is kernel')
-    parser.add_argument('--sparse',           type=int,            dest='sparse',       default=None,                  help='regression basis size for sparse learning')
-    parser.add_argument('--random_state',     type=int,            dest='random_state', default=defaults.random_state, help='seed for the numpy.random.RandomState for test / train split generator')
+    parser = RegressionParser(description='This program computes the condition number for the kernel matrix.', hyperparameters_set='single')
+    parser.remove_argument('prop')
+    parser.remove_argument('train_size')
     args = parser.parse_args()
     print(vars(args))
     if(args.ll):

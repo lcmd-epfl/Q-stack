@@ -80,17 +80,11 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
 
 
 def dm_open_mod(dm, omod):
-    omod_fns = {
-            'sum':   lambda dm: dm[0]+dm[1],
-            'diff':  lambda dm: dm[0]-dm[1],
-            'alpha': lambda dm: dm[0],
-            'beta':  lambda dm: dm[1],
-            None:    lambda dm: dm,
-            }
-    if omod in omod_fns:
-        return omod_fns[omod](dm)
+    omod_fns_dict[None] = lambda dm: dm
+    if omod in omod_fns_dict:
+        return omod_fns_dict[omod](dm)
     else:
-        raise ValueError(f'unknown open-shell mod: must be in {list(omod_fns.keys())}, None if the system is closed-shell')
+        raise ValueError(f'unknown open-shell mod: must be in {list(omod_fns_dict.keys())}, None if the system is closed-shell')
 
 
 def get_xyzlist(xyzlistfile):
@@ -209,3 +203,11 @@ def regroup_symbols(file_list, print_level=0, trim_reps=False):
     if print_level > 0:
         print([(k, len(v)) for k, v in atoms_set.items()])
     return atoms_set
+
+
+omod_fns_dict = {
+        'sum':   lambda dm: dm[0]+dm[1],
+        'diff':  lambda dm: dm[0]-dm[1],
+        'alpha': lambda dm: dm[0],
+        'beta':  lambda dm: dm[1],
+        }

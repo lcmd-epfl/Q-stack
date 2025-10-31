@@ -17,8 +17,7 @@ def get_basis_info(atom_types, auxbasis):
     return ao, ao_len, idx, M
 
 
-def get_model(arg):
-
+def _make_models_dict():
     def df_pure(mol, dm, auxbasis):
         return fields.decomposition.decompose(mol, dm, auxbasis)[1]
 
@@ -50,18 +49,22 @@ def get_model(arg):
         c  = fields.decomposition.correct_N_atomic(auxmol, Q, c0, metric=eri2c)
         return c
 
+    models_dict = {'pure'          : [df_pure,            coefficients_symmetrize_short ],
+                   'sad-diff'      : [df_sad_diff,        coefficients_symmetrize_short ],
+                   'occup'         : [df_occup,           coefficients_symmetrize_short ],
+                   'lowdin-short'  : [df_lowdin_short,    coefficients_symmetrize_short ],
+                   'lowdin-long'   : [df_lowdin_long,     coefficients_symmetrize_long  ],
+                   'lowdin-short-x': [df_lowdin_short_x,  coefficients_symmetrize_short ],
+                   'lowdin-long-x' : [df_lowdin_long_x,   coefficients_symmetrize_long  ],
+                   'mr2021'        : [df_pure,            coefficients_symmetrize_MR2021]}
+    return models_dict
+
+
+def get_model(arg):
     arg = arg.lower()
-    models = {'pure'          : [df_pure,            coefficients_symmetrize_short ],
-              'sad-diff'      : [df_sad_diff,        coefficients_symmetrize_short ],
-              'occup'         : [df_occup,           coefficients_symmetrize_short ],
-              'lowdin-short'  : [df_lowdin_short,    coefficients_symmetrize_short ],
-              'lowdin-long'   : [df_lowdin_long,     coefficients_symmetrize_long  ],
-              'lowdin-short-x': [df_lowdin_short_x,  coefficients_symmetrize_short ],
-              'lowdin-long-x' : [df_lowdin_long_x,   coefficients_symmetrize_long  ],
-              'mr2021'        : [df_pure,            coefficients_symmetrize_MR2021]}
-    if arg not in models:
-        raise RuntimeError(f'Unknown model. Available models: {list(models.keys())}')
-    return models[arg]
+    if arg not in models_dict:
+        raise RuntimeError(f'Unknown model. Available models: {list(models_dict.keys())}')
+    return models_dict[arg]
 
 
 def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, _M, _):
@@ -101,3 +104,6 @@ def coefficients_symmetrize_long(c_df, mol, idx, ao, ao_len, M, atom_types):
         v_a = np.hstack([v_atom[q] for q in atom_types])
         vectors.append(v_a)
     return vectors
+
+
+models_dict = _make_models_dict()
