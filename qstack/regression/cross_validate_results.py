@@ -85,7 +85,7 @@ def cv_results(X, y,
 
 
 def main():
-    parser = RegressionParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search inbcluded).', hyperparameters_set='array')
+    parser = RegressionParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search included).', hyperparameters_set='array')
     parser.remove_argument('random_state')
     parser.add_argument('--n',          type=int,            dest='n_rep',     default=defaults.n_rep,  help='the number of repetition for each point')
     parser.add_argument('--save',       action='store_true', dest='save_all',  default=False,           help='if saving intermediate results in .npy file')
