@@ -8,7 +8,8 @@ import warnings
 import numpy as np
 from pyscf import gto, data
 from qstack import constants
-from qstack.tools import rotate_euler
+from qstack.mathutils.rotation_matrix import rotate_euler
+
 
 
 # detects a charge-spin line, containing only two ints (one positive or negative, the other positive and nonzero)
@@ -337,7 +338,7 @@ def make_atom(q, basis):
 
 def singleatom_basis_enumerator(basis):
     """Enumerates the different tensors of atomic orbitals within a 1-atom basis set.
-    
+
     Each tensor is a 2l+1-sized group of orbitals that share a radial function and l value.
 
     Args:

@@ -3,7 +3,7 @@ import struct
 import numpy as np
 import pyscf
 from qstack.mathutils.matrix import from_tril
-from qstack.tools import reorder_ao
+from qstack.reorder import reorder_ao
 
 
 def read_input(fname, basis, ecp=None):
@@ -59,7 +59,7 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
         reorder_dest (str): Which AO ordering convention to use. Defaults to 'pyscf'.
 
     Returns:
-        numpy.ndarray: 2D array containing density matrix (openshell=False) or 
+        numpy.ndarray: 2D array containing density matrix (openshell=False) or
             3D array containing density and spin density matrices (openshell=True).
 
     Raises:

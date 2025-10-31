@@ -1,7 +1,9 @@
 import argparse
+from qstack.tools import FlexParser
 from .kernel_utils import defaults, ParseKwargs, local_kernels_dict, global_kernels_dict
 
-class RegressionParser(argparse.ArgumentParser):
+
+class RegressionParser(FlexParser):
     """Custom argument parser for kernel ridge regression tasks.
 
     Provides pre-configured argument sets for machine learning workflows with
@@ -74,35 +76,3 @@ class RegressionParser(argparse.ArgumentParser):
             parser.add_argument('--print',     type=int,            dest='printlevel',   default=0,                              help='printlevel')
             parser.add_argument('--ada',       action='store_true', dest='adaptive',     default=False,                          help='if adapt sigma')
             parser.add_argument('--name',      type=str,            dest='nameout',      default=None,                           help='the name of the output file')
-
-
-    def remove_argument(parser, arg):
-        """Removes an argument from the parser.
-
-        Utility method for customizing parsers by removing unwanted arguments
-        from the pre-configured set. Useful when deriving specialized parsers.
-
-        Args:
-            arg (str): Argument name (with or without dashes, e.g., '--x' or 'x')
-                or destination name (e.g., 'repr').
-
-        Returns:
-            None: Modifies parser in place.
-
-        Example:
-            >>> parser = RegressionParser(hyperparameters_set='single')
-            >>> parser.remove_argument('--sparse')
-            >>> # sparse argument is now removed
-        """
-        for action in parser._actions:
-            opts = action.option_strings
-            if (opts and opts[0] == arg) or action.dest == arg:
-                parser._remove_action(action)
-                break
-
-        for action in parser._action_groups:
-            for group_action in action._group_actions:
-                opts = group_action.option_strings
-                if (opts and opts[0] == arg) or group_action.dest == arg:
-                    action._group_actions.remove(group_action)
-                    return

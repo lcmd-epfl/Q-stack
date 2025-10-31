@@ -6,7 +6,7 @@ from pyscf.data import elements
 import qstack.orcaio
 import qstack.compound
 import qstack.fields
-from qstack.tools import reorder_ao
+from qstack.reorder import reorder_ao
 
 
 def _dipole_moment(mol, dm):
