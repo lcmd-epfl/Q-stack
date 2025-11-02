@@ -74,7 +74,7 @@ def get_mol(cell, mol_idx=0, basis='minao', ecp=None):
     """
     mol = cell.moleclist[mol_idx]
     xyz, charge, spin = get_cell2mol_xyz(mol)
-    return xyz_to_mol(xyz, charge=charge, spin=spin, basis=basis, ecp=ecp, read_string=True)
+    return xyz_to_mol(xyz, charge=charge, spin=spin, basis=basis, ecp=ecp)
 
 
 def get_ligand(cell, mol_idx=0, lig_idx=0, basis='minao', ecp=None):
@@ -92,4 +92,4 @@ def get_ligand(cell, mol_idx=0, lig_idx=0, basis='minao', ecp=None):
     """
     mol = cell.moleclist[mol_idx].ligands[lig_idx]
     xyz, charge, spin = get_cell2mol_xyz(mol)
-    return xyz_to_mol(xyz, charge=charge, spin=spin, basis=basis, ecp=ecp, read_string=True)
+    return xyz_to_mol(xyz, charge=charge, spin=spin, basis=basis, ecp=ecp)
