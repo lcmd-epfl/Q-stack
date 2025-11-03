@@ -2,6 +2,7 @@ import numpy as np
 import scipy
 from pyscf import scf
 from qstack import compound
+from . import moments
 
 def decompose(mol, dm, auxbasis):
     """Fit molecular density onto an atom-centered basis.
@@ -144,7 +145,7 @@ def correct_N_atomic(mol, N, c0, metric='u'):
         numpy ndarray: Corrected decomposition coefficients (1D array).
     """
 
-    Q   = number_of_electrons_deco_vec(mol, per_atom=True)
+    Q   = moments.r2_c(mol, None, moments=[0], per_atom=True)[0]
     N0  = c0 @ Q
     O1q = _get_inv_metric(mol, metric, Q)
     la  = scipy.linalg.solve(Q.T @ O1q, N-N0)
@@ -167,7 +168,7 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
     """
 
     mode = mode.lower()
-    q = number_of_electrons_deco_vec(mol)
+    q = moments.r2_c(mol, None, moments=[0])
     N0 = c0 @ q
 
     if N is None:
@@ -181,54 +182,3 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
         la  = (N - N0) / (q @ O1q)
         c   = c0 + la * O1q
     return c
-
-
-def number_of_electrons_deco_vec(mol, per_atom=False):
-    """Computes the electron number decomposition vector for basis functions.
-
-    For s-functions (l=0), computes the integral of the basis function which
-    corresponds to its contribution to the electron count.
-
-    Args:
-        mol (pyscf Mole): pyscf Mole object.
-        per_atom (bool): If True, returns a 2D array with per-atom contributions.
-                        If False, returns a 1D array. Defaults to False.
-
-    Returns:
-        numpy ndarray: If per_atom is False, 1D array of shape (nao,) with electron
-                      contributions for each basis function. If per_atom is True,
-                      2D array of shape (nao, natm) with per-atom contributions.
-    """
-    if per_atom:
-        Q = np.zeros((mol.nao,mol.natm))
-    else:
-        Q = np.zeros(mol.nao)
-    i = 0
-    for iat in range(mol.natm):
-        for bas_id in mol.atom_shell_ids(iat):
-            l = mol.bas_angular(bas_id)
-            n = mol.bas_nctr(bas_id)
-            if l==0:
-                w = mol.bas_ctr_coeff(bas_id)
-                a = mol.bas_exp(bas_id)
-                q = np.pow(2.0*np.pi/a, 0.75) @ w
-                if per_atom:
-                    Q[i:i+n,iat] = q
-                else:
-                    Q[i:i+n] = q
-            i += (2*l+1)*n
-    return Q
-
-def number_of_electrons_deco(auxmol, c):
-    """Computes the number of electrons of a molecule given a set of expansion coefficients and a Mole object.
-
-    Args:
-        auxmol (pyscf Mole): pyscf mol object holding molecular structure, composition and the auxiliary basis set.
-        c (numpy ndarray): expansion coefficients of the density onto the auxiliary basis.
-
-    Returns:
-        The number of electrons as an integer value.
-    """
-
-    q = number_of_electrons_deco_vec(auxmol)
-    return q @ c

@@ -1,6 +1,23 @@
 import numpy as np
 
 
+def get_mrange(l):
+    """Get the m quantum number range for a given angular momentum l.
+
+    For l=1, returns pyscf order: x,y,z which is (1,-1,0).
+
+    Args:
+        l (int): Angular momentum quantum number.
+
+    Returns:
+        tuple or range: Magnetic quantum numbers for the given l.
+    """
+    if l==1:
+        return (1,-1,0)
+    else:
+        return range(-l,l+1)
+
+
 def _orca2gpr_idx(mol):
     """Given a molecule returns a list of reordered indices to tranform orca AO ordering into SA-GPR.
 

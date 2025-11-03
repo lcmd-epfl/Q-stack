@@ -4,6 +4,8 @@ import warnings
 import numpy as np
 from pyscf import gto, data
 from qstack import constants
+from qstack.reorder import get_mrange
+from qstack.mathutils.array import vstack_padding
 from qstack.mathutils.rotation_matrix import rotate_euler
 
 
@@ -338,3 +340,39 @@ def singleatom_basis_enumerator(basis):
         cursor += msize*n_count
     return l_per_bas, n_per_bas, ao_starts
 
+
+def basis_flatten(mol):
+    """Flattens a basis set definition for AOs.
+
+    Args:
+        mol (pyscf.gto.Mole): pyscf Mole object.
+
+    Returns:
+        tuple: A tuple containing:
+            - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
+                - 0: atom index
+                - 1: angular momentum quantum number l
+                - 2: magnetic quantum number m
+            - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
+                - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
+                - j: AO index
+                - k: radial function index (padded with zeros if necessary)
+    """
+
+    x = []
+    y = np.zeros((3, mol.nao), dtype=int)
+    i = 0
+    a = mol.bas_exps()
+    for iat in range(mol.natm):
+        for bas_id in mol.atom_shell_ids(iat):
+            l = mol.bas_angular(bas_id)
+            cs = mol.bas_ctr_coeff(bas_id)
+            msize = 2*l+1
+            for c in cs.T:
+                ac = np.array([a[bas_id], c])
+                x.extend([ac]*msize)
+                y[:2,i:i+msize] = np.array([[iat, l]]*msize).T
+                y[2,i:i+msize] = get_mrange(l)
+                i += msize
+    x = vstack_padding(x).transpose((1,0,2))
+    return y, x

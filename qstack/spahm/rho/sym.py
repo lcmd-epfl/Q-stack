@@ -1,6 +1,7 @@
 import numpy as np
 from qstack import compound
 from qstack.mathutils.matrix import sqrtm
+from qstack.reorder import get_mrange
 
 
 def idxl0(i, l, ao):
@@ -44,12 +45,8 @@ def get_S(q, basis):
 
     ao = {'l': [], 'm': []}
     for l in l_per_bas:
-        msize = 2*l+1
-        ao['l'].extend([l]*msize)
-        if l != 1:
-            ao['m'].extend(np.arange(msize)-l)
-        else:
-            ao['m'].extend([1, -1, 0])  # x, y, z
+        ao['l'].extend([l]*(2*l+1))
+        ao['m'].extend(get_mrange(l))
 
     return S, ao, ao_start
 

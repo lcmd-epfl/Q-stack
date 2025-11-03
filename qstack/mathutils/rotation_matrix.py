@@ -14,7 +14,7 @@ def _Rz(a):
     return np.array([
         [ca, -sa, 0],
         [sa,  ca, 0],
-        [0,   0,  1]
+        [0,   0,  1],
     ])
 
 
@@ -31,7 +31,7 @@ def _Ry(b):
     return np.array([
         [ cb, 0, sb],
         [ 0,  1, 0 ],
-        [-sb, 0, cb]
+        [-sb, 0, cb],
     ])
 
 
@@ -48,7 +48,7 @@ def _Rx(g):
     return np.array([
         [1, 0,  0 ],
         [0, cg, -sg],
-        [0, sg,  cg]
+        [0, sg,  cg],
     ])
 
 

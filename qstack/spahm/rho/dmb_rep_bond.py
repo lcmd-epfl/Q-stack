@@ -223,7 +223,7 @@ def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
     Returns:
         tuple: ([v0, v1], bname) where:
             - v0: Representation from atom i0's perspective
-            - v1: Representation from atom i1's perspective  
+            - v1: Representation from atom i1's perspective
             - bname: Bond name (e.g., 'CH')
             Returns (None, None) if distance exceeds cutoff.
     """

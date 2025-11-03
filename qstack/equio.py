@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from pyscf import data
 import metatensor
 import numbers
+from qstack.reorder import get_mrange
 
 vector_label_names = SimpleNamespace(
     tm = ['spherical_harmonics_l', 'species_center'],
@@ -24,21 +25,6 @@ _molid_name = 'mol_id'
 _pyscf2gpr_l1_order = [1,2,0]
 
 
-def _get_mrange(l):
-    """Get the m quantum number range for a given angular momentum l.
-    
-    For l=1, returns pyscf order: x,y,z which is (1,-1,0).
-
-    Args:
-        l (int): Angular momentum quantum number.
-
-    Returns:
-        tuple or range: Magnetic quantum numbers for the given l.
-    """
-    if l==1:
-        return (1,-1,0)
-    else:
-        return range(-l,l+1)
 
 
 def _get_llist(q, mol):
@@ -195,7 +181,7 @@ def tensormap_to_vector(mol, tensor):
             block = tensor.block(spherical_harmonics_l=l, species_center=q)
             id_samp = block.samples.position((iat,))
             id_prop = block.properties.position((il[l],))
-            for m in _get_mrange(l):
+            for m in get_mrange(l):
                 id_comp = block.components[0].position((m,))
                 c[i] = block.values[id_samp,id_comp,id_prop]
                 i += 1
@@ -359,7 +345,7 @@ def tensormap_to_matrix(mol, tensor):
         llist1 = _get_llist(q1, mol)
         il1 = dict.fromkeys(range(max(llist1) + 1), 0)
         for l1 in llist1:
-            for m1 in _get_mrange(l1):
+            for m1 in get_mrange(l1):
 
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
@@ -371,7 +357,7 @@ def tensormap_to_matrix(mol, tensor):
                         id_samp = block.samples.position((iat1, iat2))
                         id_prop = block.properties.position((il1[l1], il2[l2]))
 
-                        for m2 in _get_mrange(l2):
+                        for m2 in get_mrange(l2):
                             id_comp1 = block.components[0].position((m1,))
                             id_comp2 = block.components[1].position((m2,))
                             dm[i1, i2] = block.values[id_samp, id_comp1, id_comp2, id_prop]

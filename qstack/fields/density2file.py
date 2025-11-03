@@ -2,7 +2,7 @@ import numpy as np
 from pyscf.dft.numint import eval_ao
 from pyscf.tools.cubegen import Cube
 import pyscf.tools.molden
-from .decomposition import number_of_electrons_deco
+from . import moments
 
 def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, margin=3.0):
     """Saves the electron density to a cube file.
@@ -42,6 +42,6 @@ def coeffs_to_molden(mol, coeffs, moldenname):
     """
 
     with open(moldenname, 'w') as f:
-        N = number_of_electrons_deco(mol, coeffs)
+        N = moments.r2_c(mol, coeffs, moments=[0])[0]
         pyscf.tools.molden.header(mol, f, True)
         pyscf.tools.molden.orbital_coeff(mol, f, np.array([coeffs]).T, ene=[0.0], occ=[N], ignore_h=True)
