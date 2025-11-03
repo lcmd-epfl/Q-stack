@@ -3,8 +3,8 @@ import numpy as np
 from types import SimpleNamespace
 from pyscf import data
 import metatensor
-import numbers
 from qstack.reorder import get_mrange
+from qstack.compound import singleatom_basis_enumerator
 
 vector_label_names = SimpleNamespace(
     tm = ['spherical_harmonics_l', 'species_center'],
@@ -25,30 +25,16 @@ _molid_name = 'mol_id'
 _pyscf2gpr_l1_order = [1,2,0]
 
 
-
-
-def _get_llist(q, mol):
-    """Get list of angular momentum quantum numbers for basis functions of an element.
+def _get_llist(mol):
+    """Get list of angular momentum quantum numbers for basis functions of each element of a molecule.
 
     Args:
-        q (int or str): Atomic number or element symbol.
         mol (pyscf.gto.Mole): pyscf Mole object.
 
     Returns:
-        list: List of angular momentum quantum numbers for each basis function.
+        dict: Dictionary with atom numbers as keys and List of angular momentum quantum numbers for each basis function as values.
     """
-
-    # TODO other basis formats?
-#        for bas_id in mol.atom_shell_ids(iat):
-#            l  = mol.bas_angular(bas_id)
-#            nc = mol.bas_nctr(bas_id)
-#            for n in range(nc):
-    if isinstance(q, numbers.Integral):
-        q = data.elements.ELEMENTS[q]
-    llist = []
-    for l, *prim in mol._basis[q]:
-        llist.extend([l]*(len(prim[0])-1))
-    return llist
+    return {int(q): singleatom_basis_enumerator(mol._basis[data.elements.ELEMENTS[q]])[0] for q in np.unique(mol.atom_charges())}
 
 
 def _get_tsize(tensor):
@@ -99,9 +85,10 @@ def vector_to_tensormap(mol, c):
 
     # Create labels for TensorMap, lables for blocks, and empty blocks
 
+    llists = _get_llist(mol)
+
     for q in elements:
-        llist = _get_llist(q, mol)
-        llists[q] = llist
+        llist = llists[q]
         for l in sorted(set(llist)):
             label = (l, q)
             tm_label_vals.append(label)
@@ -173,9 +160,10 @@ def tensormap_to_vector(mol, tensor):
 
     c = np.zeros(mol.nao)
     atom_charges = mol.atom_charges()
+    llists = _get_llist(mol)
     i = 0
     for iat, q in enumerate(atom_charges):
-        llist = _get_llist(q, mol)
+        llist = llists[q]
         il = dict.fromkeys(range(max(llist) + 1), 0)
         for l in llist:
             block = tensor.block(spherical_harmonics_l=l, species_center=q)
@@ -221,7 +209,7 @@ def matrix_to_tensormap(mol, dm):
     block_comp_label_vals = {}
 
     blocks = {}
-    llists = {q: _get_llist(q, mol) for q in elements}
+    llists = _get_llist(mol)
 
     # Create labels for TensorMap, lables for blocks, and empty blocks
 
@@ -340,16 +328,17 @@ def tensormap_to_matrix(mol, tensor):
 
     dm = np.zeros((mol.nao, mol.nao))
     atom_charges = mol.atom_charges()
+    llists = _get_llist(mol)
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):
-        llist1 = _get_llist(q1, mol)
+        llist1 = llists[q1]
         il1 = dict.fromkeys(range(max(llist1) + 1), 0)
         for l1 in llist1:
             for m1 in get_mrange(l1):
 
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
-                    llist2 = _get_llist(q2, mol)
+                    llist2 = llists[q2]
                     il2 = dict.fromkeys(range(max(llist2) + 1), 0)
                     for l2 in llist2:
 

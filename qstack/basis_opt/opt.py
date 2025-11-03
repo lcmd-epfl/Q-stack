@@ -4,6 +4,7 @@ import numpy as np
 import scipy.optimize
 from pyscf import gto
 import pyscf.data
+from ..compound import basis_flatten
 from . import basis_tools as qbbt
 
 
@@ -159,16 +160,15 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         self = np.einsum('p,p,p->', weights, rho, rho)
         mol = gto.M(atom=str(molecule), basis=basis)
 
-        idx = []
-        centers = []
-        for iat in range(mol.natm):
-            q = mol._atom[iat][0]
-            ib0 = bf_bounds[q][0]
-            for ib, b in enumerate(mol._basis[q]):
-                l = b[0]
-                idx += [ib+ib0] * (2*l+1)
-                centers += [iat] * (2*l+1)
-        idx = np.array(idx)
+        centers, l, _ = basis_flatten(mol, return_both=False)
+        idx = np.zeros_like(centers)
+        i = 0
+        while i < mol.nao:
+            q = mol.atom_symbol(centers[i])
+            for ib in range(*bf_bounds[q]):
+                msize = 2*l[i]+1
+                idx[i:i+msize] = [ib] * msize
+                i += msize
 
         distances = np.zeros((mol.natm, len(rho)))
         for iat in range(mol.natm):

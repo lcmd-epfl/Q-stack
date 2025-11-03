@@ -18,7 +18,7 @@ def get_mrange(l):
         return range(-l,l+1)
 
 
-def _orca2gpr_idx(mol):
+def _orca2gpr_idx(l, m):
     """Given a molecule returns a list of reordered indices to tranform orca AO ordering into SA-GPR.
 
     Args:
@@ -27,54 +27,20 @@ def _orca2gpr_idx(mol):
     Returns:
         numpy.ndarray: Re-arranged indices array.
     """
-    #def _M1(n):
-    #    return (n+1)//2 if n%2 else -((n+1)//2)
-    idx = np.arange(mol.nao, dtype=int)
+    idx = np.arange(len(l))
     i=0
-    for iat in range(mol.natm):
-        q = mol._atom[iat][0]
-        for gto in mol._basis[q]:
-            l = gto[0]
-            msize = 2*l+1
-            nf = max([len(prim)-1 for prim in gto[1:]])
-            for _n in range(nf):
-                #for m in range(-l, l+1):
-                #    m1 = _M1(m+l)
-                #    idx[(i+(m1-m))] = i
-                #    i+=1
-                I = np.s_[i:i+msize]
-                idx[I] = np.concatenate((idx[I][::-2], idx[I][1::2]))
-                i += msize
-    return idx
+    while(i < len(idx)):
+        msize = 2*l[i]+1
+        j = np.s_[i:i+msize]
+        idx[j] = np.concatenate((idx[j][::-2], idx[j][1::2]))
+        i += msize
+    signs = np.ones_like(idx)
+    signs[np.where(np.abs(m)>=3)] = -1  # in pyscf order
+    signs[idx] = signs # in orca order
+    return idx, signs
 
 
-def _orca2gpr_sign(mol):
-    """Given a molecule returns a list of multipliers needed to tranform from orca AO.
-
-    Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
-
-    Returns:
-        numpy.ndarray: Array of +1/-1 multipliers.
-    """
-    signs = np.ones(mol.nao, dtype=int)
-    i=0
-    for iat in range(mol.natm):
-        q = mol._atom[iat][0]
-        for gto in mol._basis[q]:
-            l = gto[0]
-            msize = 2*l+1
-            nf = max([len(prim)-1 for prim in gto[1:]])
-            if l<3:
-                i += msize*nf
-            else:
-                for _n in range(nf):
-                    signs[i+5:i+msize] = -1  # |m| >= 3
-                    i+= msize
-    return signs
-
-
-def _pyscf2gpr_idx(mol):
+def _pyscf2gpr_idx(l):
     """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
 
     Args:
@@ -84,21 +50,14 @@ def _pyscf2gpr_idx(mol):
         numpy.ndarray: Re-arranged indices array.
     """
 
-    idx = np.arange(mol.nao, dtype=int)
+    idx = np.arange(len(l))
     i=0
-    for iat in range(mol.natm):
-        q = mol._atom[iat][0]
-        for gto in mol._basis[q]:
-            l = gto[0]
-            msize = 2*l+1
-            nf = max([len(prim)-1 for prim in gto[1:]])
-            if l==1:
-                for _n in range(nf):
-                    idx[i:i+3] = [i+1,i+2,i]
-                    i += 3
-            else:
-                i += msize * nf
-    return idx
+    while(i < len(idx)):
+        msize = 2*l[i]+1
+        if l[i]==1:
+            idx[i:i+3] = [i+1,i+2,i]
+        i += msize
+    return idx, np.ones_like(idx)
 
 
 def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
@@ -121,29 +80,22 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         ValueError: If vector dimension is not 1 or 2.
     """
 
-    def get_idx(mol, convention):
+    def get_idx(l, m, convention):
         convention = convention.lower()
         if convention == 'gpr':
-            return np.arange(mol.nao)
+            return np.arange(len(l)), np.ones_like(l)
         elif convention == 'pyscf':
-            return _pyscf2gpr_idx(mol)
+            return _pyscf2gpr_idx(l)
         elif convention == 'orca':
-            return _orca2gpr_idx(mol)
+            return _orca2gpr_idx(l, m)
         else:
             errstr = f'Conversion to/from the {convention} convention is not implemented'
             raise NotImplementedError(errstr)
 
-    def get_sign(mol, convention):
-        convention = convention.lower()
-        if convention in ['gpr', 'pyscf']:
-            return np.ones(mol.nao, dtype=int)
-        elif convention == 'orca':
-            return _orca2gpr_sign(mol)
-
-    idx_src  = get_idx(mol, src)
-    idx_dest = get_idx(mol, dest)
-    sign_src  = get_sign(mol, src)
-    sign_dest = get_sign(mol, dest)
+    from .compound import basis_flatten
+    _, l, m = basis_flatten(mol, return_both=False)
+    idx_src, sign_src  = get_idx(l, m, src)
+    idx_dest, sign_dest = get_idx(l, m, dest)
 
     if vector.ndim == 2:
         sign_src  = np.einsum('i,j->ij', sign_src, sign_src)

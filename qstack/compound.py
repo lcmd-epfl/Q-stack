@@ -341,24 +341,24 @@ def singleatom_basis_enumerator(basis):
     return l_per_bas, n_per_bas, ao_starts
 
 
-def basis_flatten(mol):
+def basis_flatten(mol, return_both=True):
     """Flattens a basis set definition for AOs.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
+        return_both (bool): Whether to return both AO info and primitive Gaussian info. Defaults to True.
 
     Returns:
-        tuple: A tuple containing:
-            - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
+        - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
                 - 0: atom index
                 - 1: angular momentum quantum number l
                 - 2: magnetic quantum number m
-            - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
-                - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
-                - j: AO index
-                - k: radial function index (padded with zeros if necessary)
+        If return_both is True, also returns:
+        - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
+            - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
+            - j: AO index
+            - k: radial function index (padded with zeros if necessary)
     """
-
     x = []
     y = np.zeros((3, mol.nao), dtype=int)
     i = 0
@@ -366,13 +366,18 @@ def basis_flatten(mol):
     for iat in range(mol.natm):
         for bas_id in mol.atom_shell_ids(iat):
             l = mol.bas_angular(bas_id)
+            n = mol.bas_nctr(bas_id)
             cs = mol.bas_ctr_coeff(bas_id)
             msize = 2*l+1
-            for c in cs.T:
-                ac = np.array([a[bas_id], c])
-                x.extend([ac]*msize)
-                y[:2,i:i+msize] = np.array([[iat, l]]*msize).T
-                y[2,i:i+msize] = get_mrange(l)
-                i += msize
-    x = vstack_padding(x).transpose((1,0,2))
-    return y, x
+            if return_both:
+                for c in cs.T:
+                    ac = np.array([a[bas_id], c])
+                    x.extend([ac]*msize)
+            y[:2,i:i+msize*n] = np.array([[iat, l]]*msize*n).T
+            y[2,i:i+msize*n] = [*get_mrange(l)]*n
+            i += msize*n
+    if return_both:
+        x = vstack_padding(x).transpose((1,0,2))
+        return y, x
+    else:
+        return y
