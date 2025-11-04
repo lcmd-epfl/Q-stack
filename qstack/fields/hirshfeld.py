@@ -23,7 +23,8 @@ def spherical_atoms(elements, atm_bas):
         dm_atoms[q] = pyscf.scf.hf.init_guess_by_atom(mol_atm)
     return dm_atoms
 
-def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
+
+def _hirshfeld_weights(mol, grid_coord, atm_dm, atm_bas, dominant):
     """Computes Hirshfeld partitioning weights for each atom at grid points.
 
     Hirshfeld partitioning divides the molecular density among atoms based on
@@ -31,7 +32,7 @@ def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
     each grid point exclusively to the atom with the highest weight.
 
     Args:
-        mol_full (pyscf Mole): Complete molecular pyscf Mole object.
+        mol (pyscf Mole): molecular pyscf Mole object.
         grid_coord (numpy ndarray): 2D array (ngrids, 3) of grid point coordinates in Bohr.
         atm_dm (dict): Dictionary mapping element symbols to atomic density matrices from `spherical_atoms`.
         atm_bas (str or dict): Basis set name or dictionary used for atomic density matrices.
@@ -43,10 +44,10 @@ def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
 
     # promolecular density
     grid_n = len(grid_coord)
-    rho_atm = np.zeros((mol_full.natm, grid_n), dtype=float)
-    for i in range(mol_full.natm):
-        q = mol_full._atom[i][0]
-        mol_atm    = pyscf.gto.M(atom=mol_full._atom[i:i+1], basis=atm_bas, spin=pyscf.data.elements.ELEMENTS_PROTON[q]%2, unit='Bohr')
+    rho_atm = np.zeros((mol.natm, grid_n), dtype=float)
+    for i in range(mol.natm):
+        q = mol._atom[i][0]
+        mol_atm    = pyscf.gto.M(atom=mol._atom[i:i+1], basis=atm_bas, spin=pyscf.data.elements.ELEMENTS_PROTON[q]%2, unit='Bohr')
         ao_atm     = pyscf.dft.numint.eval_ao(mol_atm, grid_coord)
         rho_atm[i] = pyscf.dft.numint.eval_rho(mol_atm, ao_atm, atm_dm[q])
 
@@ -54,14 +55,13 @@ def _hirshfeld_weights(mol_full, grid_coord, atm_dm, atm_bas, dominant):
     rho = rho_atm.sum(axis=0)
     idx = np.where(rho > 0)[0]
     h_weights = np.zeros_like(rho_atm)
-    for i in range(mol_full.natm):
+    for i in range(mol.natm):
         h_weights[i,idx] = rho_atm[i,idx] /rho[idx]
 
     if dominant:
-        # get dominant hirshfeld weights
         for point in range(grid_n):
             i = np.argmax(h_weights[:,point])
-            h_weights[:,point] = np.zeros(mol_full.natm)
+            h_weights[:,point] = np.zeros(mol.natm)
             h_weights[i,point] = 1.0
     return h_weights
 
@@ -73,7 +73,7 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
 
     Partitions the molecular electron density among atoms using Hirshfeld weights
     based on free atom densities. Can work with either density-fitting coefficients
-    or full density matrices, and supports both standard and dominant partitioning.
+    or density matrices, and supports both standard and dominant partitioning.
 
     Args:
         mol (pyscf Mole): pyscf Mole object for the molecule.
@@ -105,10 +105,7 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
         return np.einsum('x,ax->a', tmp, tot_weights)
 
     # check input
-    if type(cd) is list:
-        cd_list = cd
-    else:
-        cd_list = [cd]
+    cd_list = cd if type(cd) is list else [cd]
 
     # spherical atoms
     if atm_bas is None:
@@ -129,7 +126,4 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
     if not occupations:
         charges_list = [mol.atom_charges()-charges for charges in charges_list]
 
-    if type(cd) is list:
-        return charges_list
-    else:
-        return charges_list[0]
+    return charges_list if type(cd) is list else charges_list[0]

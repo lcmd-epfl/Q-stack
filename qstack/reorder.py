@@ -5,6 +5,7 @@ def get_mrange(l):
     """Get the m quantum number range for a given angular momentum l.
 
     For l=1, returns pyscf order: x,y,z which is (1,-1,0).
+    For other l, returns the standard range from -l to +l.
 
     Args:
         l (int): Angular momentum quantum number.
@@ -19,13 +20,20 @@ def get_mrange(l):
 
 
 def _orca2gpr_idx(l, m):
-    """Given a molecule returns a list of reordered indices to tranform orca AO ordering into SA-GPR.
+    """Given a molecule returns a list of reordered indices to tranform Orca AO ordering into SA-GPR.
+
+    In Orca, orbital ordering corresponds to:
+        m=0, +1, +2, ..., l, -1, -2, ..., -l
+    while in SA-GPR it is:
+        m=-l, -l+1, ..., -1, 0, +1, ..., l-1, l
+    Additionally, Orca uses a different sign convention for |m|>=3.
 
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
+        l (np.ndarray): Array of angular momentum quantum numbers.
+        m (np.ndarray): Array of magnetic quantum numbers.
 
     Returns:
-        numpy.ndarray: Re-arranged indices array.
+        tuple: Re-arranged indices array and sign array.
     """
     idx = np.arange(len(l))
     i=0
@@ -43,11 +51,17 @@ def _orca2gpr_idx(l, m):
 def _pyscf2gpr_idx(l):
     """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
 
+    In SA-GPR, orbital ordering corresponds to:
+        m=-l, -l+1, ..., -1, 0, +1, ..., l-1, l
+    In PySCF, it is the same except for p-orbitals which are ordered as:
+        m=+1, -1, 0 (i.e., x,y,z).
+    Signs are the same in both conventions, so they are returned for compatibility.
+
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
+        l (np.ndarray): Array of angular momentum quantum numbers.
 
     Returns:
-        numpy.ndarray: Re-arranged indices array.
+        tuple: Re-arranged indices array and sign array.
     """
 
     idx = np.arange(len(l))
@@ -68,7 +82,7 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
-        vector (numpy.ndarray): Vector or matrix to reorder.
+        vector (numpy.ndarray): Vector (nao,) or matrix (mol.nao,mol.nao) to reorder.
         src (str): Current convention. Defaults to 'pyscf'.
         dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca'). Defaults to 'gpr'.
 
