@@ -8,16 +8,16 @@ from qstack.spahm import guesses
 from qstack import compound
 
 defaults = SimpleNamespace(
-    guess='LB',
-    model='Lowdin-long-x',
-    basis='minao',
-    auxbasis='ccpvdzjkfit',
-    omod=['alpha', 'beta'],
-    elements=["H", "C", "N", "O", "S"],
-    cutoff=5.0,
-    xc='hf',
-    bpath=os.path.dirname(__file__)+'/basis_opt',
-  )
+        guess='LB',
+        model='Lowdin-long-x',
+        basis='minao',
+        auxbasis='ccpvdzjkfit',
+        omod=['alpha', 'beta'],
+        elements=["H", "C", "N", "O", "S"],
+        cutoff=5.0,
+        xc='hf',
+        bpath=os.path.dirname(__file__)+'/basis_opt',
+        )
 
 
 def get_chsp(fname, n):

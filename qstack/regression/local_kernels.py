@@ -6,34 +6,34 @@ from qstack.regression import __path__ as REGMODULE_PATH
 
 
 def custom_laplacian_kernel(X, Y, gamma):
-  """Computes Laplacian kernel between X and Y using Python implementation.
+    """Computes Laplacian kernel between X and Y using Python implementation.
 
-  K(x, y) = exp(-gamma * ||x - y||_1)
+    K(x, y) = exp(-gamma * ||x - y||_1)
 
-  Args:
-      X (numpy ndarray): First set of samples (can be multi-dimensional).
-      Y (numpy ndarray): Second set of samples.
-      gamma (float): Kernel width parameter.
+    Args:
+        X (numpy ndarray): First set of samples (can be multi-dimensional).
+        Y (numpy ndarray): Second set of samples.
+        gamma (float): Kernel width parameter.
 
-  Returns:
-      numpy ndarray: Laplacian kernel matrix of shape (len(X), len(Y)).
+    Returns:
+        numpy ndarray: Laplacian kernel matrix of shape (len(X), len(Y)).
 
-  Raises:
-      RuntimeError: If X and Y have incompatible shapes.
-  """
-  if X.shape[1:] != Y.shape[1:]:
-      raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
-  def cdist(X, Y):
-      K = np.zeros((len(X),len(Y)))
-      for i,x in enumerate(X):
-          x = np.array([x] * len(Y))
-          d = np.abs(x-Y)
-          d = np.sum(d, axis=tuple(range(1, len(d.shape))))
-          K[i,:] = d
-      return K
-  K = -gamma * cdist(X, Y)
-  np.exp(K, out=K)
-  return K
+    Raises:
+        RuntimeError: If X and Y have incompatible shapes.
+    """
+    if X.shape[1:] != Y.shape[1:]:
+        raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
+    def cdist(X, Y):
+        K = np.zeros((len(X),len(Y)))
+        for i,x in enumerate(X):
+            x = np.array([x] * len(Y))
+            d = np.abs(x-Y)
+            d = np.sum(d, axis=tuple(range(1, len(d.shape))))
+            K[i,:] = d
+        return K
+    K = -gamma * cdist(X, Y)
+    np.exp(K, out=K)
+    return K
 
 
 def custom_C_kernels(kernel_function, return_distance_function=False):

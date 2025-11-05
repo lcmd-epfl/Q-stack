@@ -24,20 +24,20 @@ class ParseKwargs(argparse.Action):
 
 
 defaults = SimpleNamespace(
-  sigma=32.0,
-  eta=1e-5,
-  kernel='L',
-  gkernel=None,
-  gdict={'alpha':1.0, 'normalize':1, 'verbose':0},
-  test_size=0.2,
-  n_rep=5,
-  splits=5,
-  train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
-  etaarr=np.logspace(-10, 0, 5).tolist(),
-  sigmaarr=np.logspace(0,6, 13).tolist(),
-  sigmaarr_mult=np.logspace(0,2, 5).tolist(),
-  random_state=0,
-  )
+        sigma=32.0,
+        eta=1e-5,
+        kernel='L',
+        gkernel=None,
+        gdict={'alpha':1.0, 'normalize':1, 'verbose':0},
+        test_size=0.2,
+        n_rep=5,
+        splits=5,
+        train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
+        etaarr=np.logspace(-10, 0, 5).tolist(),
+        sigmaarr=np.logspace(0,6, 13).tolist(),
+        sigmaarr_mult=np.logspace(0,2, 5).tolist(),
+        random_state=0,
+        )
 
 
 def get_local_kernel(arg):
@@ -89,22 +89,22 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-  """Returns the appropriate kernel function based on arguments.
+    """Returns the appropriate kernel function based on arguments.
 
-  Args:
-      arg (str): Local kernel name.
-      arg2 (tuple, optional): If provided, tuple of (global_kernel_name, options) for global kernel. Defaults to None.
+    Args:
+        arg (str): Local kernel name.
+        arg2 (tuple, optional): If provided, tuple of (global_kernel_name, options) for global kernel. Defaults to None.
 
-  Returns:
-      callable: Kernel function (local or global).
-  """
+    Returns:
+        callable: Kernel function (local or global).
+    """
 
-  local_kernel = get_local_kernel(arg)
+    local_kernel = get_local_kernel(arg)
 
-  if arg2 is None or arg2[0] is None:
-      return local_kernel
-  else:
-      return get_global_kernel(arg2, local_kernel)
+    if arg2 is None or arg2[0] is None:
+        return local_kernel
+    else:
+        return get_global_kernel(arg2, local_kernel)
 
 
 def train_test_split_idx(y, idx_test=None, idx_train=None,

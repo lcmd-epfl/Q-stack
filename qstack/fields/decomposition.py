@@ -106,27 +106,27 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
     return c
 
 def _get_inv_metric(mol, metric, v):
-  """Computes the inverse metric applied to a vector.
+    """Computes the inverse metric applied to a vector.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    metric (str or numpy ndarray): Metric type ('unit', 'overlap', 'coulomb') or a metric matrix.
-    v (numpy ndarray): Vector to apply the inverse metric to.
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      metric (str or numpy ndarray): Metric type ('unit', 'overlap', 'coulomb') or a metric matrix.
+      v (numpy ndarray): Vector to apply the inverse metric to.
 
-  Returns:
-    numpy ndarray: Result of applying the inverse metric to the input vector.
-  """
-  if isinstance(metric, str):
-      metric = metric.lower()
-      if metric in ['u', 'unit', '1']:
-          return v
-      elif metric in ['s', 'overlap', 'ovlp']:
-          O = mol.intor('int1e_ovlp_sph')
-      elif metric in ['j', 'coulomb']:
-          O = mol.intor('int2c2e_sph')
-  else:
-      O = metric
-  return scipy.linalg.solve(O, v, assume_a='pos')
+    Returns:
+      numpy ndarray: Result of applying the inverse metric to the input vector.
+    """
+    if isinstance(metric, str):
+        metric = metric.lower()
+        if metric in ['u', 'unit', '1']:
+            return v
+        elif metric in ['s', 'overlap', 'ovlp']:
+            O = mol.intor('int1e_ovlp_sph')
+        elif metric in ['j', 'coulomb']:
+            O = mol.intor('int2c2e_sph')
+    else:
+        O = metric
+    return scipy.linalg.solve(O, v, assume_a='pos')
 
 
 def correct_N_atomic(mol, N, c0, metric='u'):

@@ -1,6 +1,6 @@
 import numpy as np
 from pyscf import scf, grad
-from .guesses import solveF, get_guess, get_occ, get_dm, eigenvalue_grad, get_guess_g
+from .guesses import solveF, get_guess, get_occ, eigenvalue_grad, get_guess_g
 
 
 def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
