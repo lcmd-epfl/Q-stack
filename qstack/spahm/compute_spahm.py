@@ -4,10 +4,7 @@ from .guesses import solveF, get_guess, get_occ, get_dm, eigenvalue_grad, get_gu
 
 
 def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
-    """Computes molecular orbitals from a guess Hamiltonian with optional electric field.
-
-    Solves the generalized eigenvalue problem for the guess Hamiltonian, optionally
-    including an external uniform electric field perturbation.
+    """Computes MO energies and vectors using an initial guess Hamiltonian.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -20,9 +17,10 @@ def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
     Returns:
         tuple: Depending on return_ao_dip:
             - If False: (e, v) where:
-                - e (numpy ndarray): 1D array of orbital eigenvalues
+                - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues
                 - v (numpy ndarray): 2D array (nao, nao) of MO coefficients
             - If True: (e, v, ao_dip) where ao_dip is 3D array (3, nao, nao) of AO dipole integrals
+                                      if field is not None, else None
 
     Raises:
         NotImplementedError: If field is specified with Hückel guess.
@@ -72,8 +70,8 @@ def ext_field_generator(mol, field):
     def field_deriv(iat):
         p0, p1 = aoslices[iat]
         dmu_dr = np.zeros_like(int1e_irp)  # dim(mu)×dim(r)×nao×nao
-        dmu_dr[:,:,p0:p1,:] -= int1e_irp[:,:,:,p0:p1].transpose((0,1,3,2))  # TODO not sure why minus
-        dmu_dr[:,:,:,p0:p1] -= int1e_irp[:,:,:,p0:p1]  # TODO check/fix E definition
+        dmu_dr[:,:,p0:p1,:] -= int1e_irp[:,:,:,p0:p1].transpose((0,1,3,2))
+        dmu_dr[:,:,:,p0:p1] -= int1e_irp[:,:,:,p0:p1]
         dhext_dr = np.einsum('x,xypq->ypq', field, dmu_dr)
         return dhext_dr
     return field_deriv
@@ -115,35 +113,13 @@ def get_guess_orbitals_grad(mol, guess, field=None):
     return e, eigenvalue_grad(mol, e, c, s1, h1), de_dfield
 
 
-def get_guess_dm(mol, guess, xc="pbe", openshell=None, field=None):
-    """Computes density matrix from guess Hamiltonian orbitals.
-
-    Constructs the density matrix by occupying the lowest energy orbitals from
-    the guess Hamiltonian according to the aufbau principle.
-
-    Args:
-        mol (pyscf Mole): pyscf Mole object.
-        guess (callable): Guess Hamiltonian method function from get_guess().
-        xc (str): Exchange-correlation functional name. Defaults to 'pbe'.
-        openshell (bool, optional): If True, forces open-shell treatment even for closed-shell systems.
-            Defaults to None.
-        field (numpy ndarray, optional): 3-component uniform electric field (∇φ) in atomic units.
-            Defaults to None.
-
-    Returns:
-        numpy ndarray: Density matrix in AO basis.
-            - Closed-shell: 2D array (nao, nao)
-            - Open-shell: 3D array (2, nao, nao) for alpha and beta separately
-    """
-    _e, v = get_guess_orbitals(mol, guess, xc, field=field)
-    return get_dm(v, mol.nelec, mol.spin if mol.spin>0 or openshell is not None else None)
-
-
 def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
-    """Computes the SPAHM (Single-Point Approximate Hamiltonian Method) molecular representation.
+    """Computes the ε-SPAHM molecular representation.
 
-    The SPAHM representation consists of the occupied orbital energies from a guess
-    Hamiltonian, providing a fast quantum-mechanical descriptor for machine learning.
+    Reference:
+        A. Fabrizio, K. R. Briling, C. Corminboeuf,
+        "SPAHM: the spectrum of approximated Hamiltonian matrices representations",
+        Digital Discovery 1 286-294 (2022), doi:10.1039/d1dd00050k.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -155,7 +131,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
     Returns:
         numpy ndarray: SPAHM representation consisting of occupied orbital eigenvalues.
             - Closed-shell: 1D array of shape (n_occupied,) in Eh
-            - Open-shell: 2D array of shape (2, n_alpha/n_beta) for alpha and beta orbitals
+            - Open-shell: 2D array of shape (2, n_alpha) for alpha and beta orbitals (padded by zeros)
     """
     guess = get_guess(guess_in)
     e, _v = get_guess_orbitals(mol, guess, xc, field=field)
@@ -178,11 +154,11 @@ def get_spahm_representation_grad(mol, guess_in, field=None):
     Returns:
         tuple: (spahm, spahm_grad, spahm_field_grad) where:
             - spahm (numpy ndarray): SPAHM representation - occupied orbital energies in Eh.
-              Shape: (n_occ,) for closed-shell or (2, n_alpha/n_beta) for open-shell
+              Shape: (n_occ,) for closed-shell or (2, n_alpha) for open-shell
             - spahm_grad (numpy ndarray): Nuclear gradients of SPAHM in Eh/bohr.
-              Shape: (n_occ, natm, 3) or (2, n_alpha/n_beta, natm, 3)
+              Shape: (n_occ, natm, 3) or (2, n_alpha, natm, 3)
             - spahm_field_grad (numpy ndarray or None): Electric field gradients in Eh/a.u.
-              Shape: (n_occ, 3) or (2, n_alpha/n_beta, 3), or None if field is None
+              Shape: (n_occ, 3) or (2, n_alpha, 3), or None if field is None
     """
     guess = get_guess_g(guess_in)
     e, agrad, fgrad = get_guess_orbitals_grad(mol, guess, field=field)

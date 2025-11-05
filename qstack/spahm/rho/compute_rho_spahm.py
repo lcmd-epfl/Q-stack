@@ -15,6 +15,11 @@ def spahm_a_b(rep_type, mols, dms,
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=None):
     """Computes SPAHM(a) or SPAHM(b) representations for a set of molecules.
 
+    Reference:
+        K. R. Briling, Y. Calvino Alonso, A. Fabrizio, C. Corminboeuf,
+        "SPAHM(a,b): Encoding the density information from guess Hamiltonian in quantum machine learning representations",
+        J. Chem. Theory Comput. 20 1108–1117 (2024), doi:10.1021/acs.jctc.3c01040.
+
     Args:
         rep_type (str): Representation type: 'atom' for SPAHM(a) or 'bond' for SPAHM(b).
         mols (list): List of pyscf Mole objects.

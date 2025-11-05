@@ -4,9 +4,18 @@ import numpy as np
 def do_fps(x, d=0):
     """Perform Farthest Point Sampling on a set of points.
 
-    Dral P O, Owens A, Yurchenko S N and Thiel W 2017 J. Chem. Phys. 146 244108 doi:10.1063/1.4989536
-    Imbalzano G, Anelli A, Giofré D, Klees S, Behler J and Ceriotti M 2018 J. Chem. Phys. 148 241730 doi:10.1063/1.5024611
-    Rossi K, Jurásková V, Wischert R, Garel L, Corminboeuf C and Ceriotti M 2020 J. Chem. Theory Comput. 16 5139–49 doi:10.1021/acs.jctc.0c00362
+    References:
+        P. O. Dral, A. Owens, S. N. Yurchenko, W. Thiel,
+        "Structure-based sampling and self-correcting machine learning for accurate calculations of potential energy surfaces and vibrational levels",
+        J. Chem. Phys. 146 244108 (2017), doi:10.1063/1.4989536.
+
+        G. Imbalzano, A. Anelli, D. Giofré, S. Klees, J. Behler, M. Ceriotti
+        "Automatic selection of atomic fingerprints and reference configurations for machine-learning potentials",
+        J. Chem. Phys. 148 241730 (2018), doi:10.1063/1.5024611.
+
+        K. Rossi, V. Jurásková, R. Wischert, L. Garel, C. Corminboeuf, M. Ceriotti
+        "Simulating solvation and acidity in complex mixtures with first-principles accuracy: the case of CH3SO3H and H2O2 in phenol",
+        J. Chem. Theory Comput. 16 5139–5149 (2020), doi:10.1021/acs.jctc.0c00362.
 
     Code from Giulio Imbalzano.
 
