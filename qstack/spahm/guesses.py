@@ -6,157 +6,163 @@ from .LB2020guess import LB2020guess as LB20
 
 
 def hcore(mol, *_):
-  """Computes guess Hamiltonian from core contributions (kinetic + nuclear + ECP).
+    """Computes guess Hamiltonian from core contributions (kinetic + nuclear + ECP).
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    *_: Unused positional arguments (for interface compatibility).
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      *_: Unused positional arguments (for interface compatibility).
 
-  Returns:
-    numpy ndarray: 2D array containing the core Hamiltonian matrix in AO basis.
-  """
-  return scf.hf.get_hcore(mol)
+    Returns:
+      numpy ndarray: 2D array containing the core Hamiltonian matrix in AO basis.
+    """
+    return scf.hf.get_hcore(mol)
+
 
 def GWH(mol, *_):
-  """Computes guess Hamiltonian using Generalized Wolfsberg-Helmholtz (GWH) method.
+    """Computes guess Hamiltonian using Generalized Wolfsberg-Helmholtz (GWH) method.
 
-  Uses the empirical formula: H_ij = 0.5 * K * (H_ii + H_jj) * S_ij
-  where K = 1.75 (from J. Chem. Phys. 1952, 20, 837).
+    Uses the empirical formula: H_ij = 0.5 * K * (H_ii + H_jj) * S_ij with K = 1.75.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    *_: Unused positional arguments (for interface compatibility).
+    Reference:
+        M. Wolfsberg, L. Helmholtz,
+        "The spectra and electronic structure of the tetrahedral ions MnO4-, CrO4--, and ClO4-",
+        J. Chem. Phys. 20 837-843 (1952), doi:10.1063/1.1700580.
 
-  Returns:
-    numpy ndarray: 2D GWH Hamiltonian matrix in AO basis.
-  """
-  h = hcore(mol)
-  S = mol.intor_symmetric('int1e_ovlp')
-  K = 1.75 # See J. Chem. Phys. 1952, 20, 837
-  h_gwh = np.zeros_like(h)
-  for i in range(h.shape[0]):
-    for j in range(h.shape[1]):
-      if i != j:
-        h_gwh[i,j] = 0.5 * K * (h[i,i] + h[j,j]) * S[i,j]
-      else:
-        h_gwh[i,j] = h[i,i]
-  return h_gwh
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      *_: Unused positional arguments (for interface compatibility).
+
+    Returns:
+      numpy ndarray: 2D GWH Hamiltonian matrix in AO basis.
+    """
+
+    h = hcore(mol).diagonal()
+    S = mol.intor_symmetric('int1e_ovlp')
+    K = 1.75
+    h_gwh = 0.5 * K * (h[:,None] + h[None,:]) * S
+    h_gwh[np.diag_indices_from(h_gwh)] = h
+    return h_gwh
+
 
 def SAD(mol, func):
-  """Computes guess Hamiltonian using Superposition of Atomic Densities (SAD).
+    """Computes guess Hamiltonian using Superposition of Atomic Densities (SAD).
 
-  Constructs the Fock matrix from atomic Hartree-Fock density matrices
-  summed together as an initial guess for molecular calculations.
+    Constructs the Fock matrix from atomic Hartree-Fock density matrices
+    summed together as an initial guess for molecular calculations.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    func (str): Exchange-correlation functional name (e.g., 'pbe', 'b3lyp').
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      func (str): Exchange-correlation functional name (e.g., 'pbe', 'b3lyp').
 
-  Returns:
-    numpy ndarray: 2D Fock matrix in AO basis computed from SAD.
+    Returns:
+      numpy ndarray: 2D Fock matrix in AO basis computed from SAD.
 
-  Warns:
-    RuntimeWarning: If alpha and beta effective potentials differ for the functional.
-  """
-  hc = hcore(mol)
-  dm = scf.hf.init_guess_by_atom(mol)
-  mf = dft.RKS(mol)
-  mf.xc = func
-  vhf = mf.get_veff(dm=dm)
-  if vhf.ndim == 2:
-      fock = hc + vhf
-  else:
-      fock = hc + vhf[0]
-      if not np.array_equal(vhf[0], vhf[1]):
-        msg = f'The effective potential ({func}) return different alpha and beta matrix components from atomicHF DM'
-        warnings.warn(msg, RuntimeWarning, stacklevel=2)
-  return fock
+    Warns:
+      RuntimeWarning: If alpha and beta effective potentials differ for the functional.
+    """
+    hc = hcore(mol)
+    dm = scf.hf.init_guess_by_atom(mol)
+    mf = dft.RKS(mol)
+    mf.xc = func
+    vhf = mf.get_veff(dm=dm)
+    if vhf.ndim == 2:
+        fock = hc + vhf
+    else:
+        fock = hc + vhf[0]
+        if not np.array_equal(vhf[0], vhf[1]):
+          msg = f'The effective potential ({func}) returned different alpha and beta matrix components from atomicHF DM'
+          warnings.warn(msg, RuntimeWarning, stacklevel=2)
+    return fock
+
 
 def SAP(mol, *_):
-  """Computes guess Hamiltonian using Superposition of Atomic Potentials (SAP).
+    """Computes guess Hamiltonian using Superposition of Atomic Potentials (SAP).
 
-  Constructs initial Hamiltonian from kinetic energy plus summed atomic potentials.
+    Constructs initial Hamiltonian from kinetic energy plus summed atomic potentials.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    *_: Unused positional arguments (for interface compatibility).
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      *_: Unused positional arguments (for interface compatibility).
 
-  Returns:
-    numpy ndarray: 2D Hamiltonian matrix (T + V_SAP) in AO basis.
-  """
-  mf = dft.RKS(mol)
-  vsap = mf.get_vsap()
-  t = mol.intor_symmetric('int1e_kin')
-  fock = t + vsap
-  return fock
+    Returns:
+      numpy ndarray: 2D Hamiltonian matrix (T + V_SAP) in AO basis.
+    """
+    mf = dft.RKS(mol)
+    vsap = mf.get_vsap()
+    t = mol.intor_symmetric('int1e_kin')
+    fock = t + vsap
+    return fock
+
 
 def LB(mol, *_):
-  """Computes guess Hamiltonian using Laikov-Briling 2020 model with HF parameters.
+    """Computes guess Hamiltonian using Laikov-Briling 2020 model with HF parameters.
 
-  Uses auxiliary basis representation optimized for Hartree-Fock calculations.
+    Uses auxiliary basis representation optimized for Hartree-Fock calculations.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    *_: Unused positional arguments (for interface compatibility).
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      *_: Unused positional arguments (for interface compatibility).
 
-  Returns:
-    numpy ndarray: 2D effective Hamiltonian matrix from LB2020 model in AO basis.
-  """
-  return LB20(parameters='HF').Heff(mol)
+    Returns:
+      numpy ndarray: 2D effective Hamiltonian matrix from LB2020 model in AO basis.
+    """
+    return LB20(parameters='HF').Heff(mol)
+
 
 def LB_HFS(mol, *_):
-  """Computes guess Hamiltonian using Laikov-Briling 2020 model with HFS parameters.
+    """Computes guess Hamiltonian using Laikov-Briling 2020 model with HFS parameters.
 
-  Uses auxiliary basis representation optimized for Hartree-Fock-Slater calculations.
+    Uses auxiliary basis representation optimized for Hartree-Fock-Slater calculations.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    *_: Unused positional arguments (for interface compatibility).
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      *_: Unused positional arguments (for interface compatibility).
 
-  Returns:
-    numpy ndarray: 2D effective Hamiltonian matrix from LB2020-HFS model in AO basis.
-  """
-  return LB20(parameters='HFS').Heff(mol)
+    Returns:
+      numpy ndarray: 2D effective Hamiltonian matrix from LB2020-HFS model in AO basis.
+    """
+    return LB20(parameters='HFS').Heff(mol)
+
 
 def solveF(mol, fock):
-  """Solves generalized eigenvalue problem FC = SCε for the Fock/Hamiltonian matrix.
+    """Solves generalized eigenvalue problem FC = SCε for the Fock/Hamiltonian matrix.
 
-  Args:
-    mol (pyscf Mole): pyscf Mole object.
-    fock (numpy ndarray): 2D Fock or Hamiltonian matrix in AO basis.
+    Args:
+      mol (pyscf Mole): pyscf Mole object.
+      fock (numpy ndarray): 2D Fock or Hamiltonian matrix in AO basis.
 
-  Returns:
-    tuple: (eigenvalues, eigenvectors) where:
-      - eigenvalues: 1D array of orbital energies
-      - eigenvectors: 2D array of MO coefficients (columns are MOs)
-  """
-  s1e = mol.intor_symmetric('int1e_ovlp')
-  return scipy.linalg.eigh(fock, s1e)
+    Returns:
+      tuple: (eigenvalues, eigenvectors) where:
+        - eigenvalues: 1D array of orbital energies
+        - eigenvectors: 2D array of MO coefficients (columns are MOs)
+    """
+    s1e = mol.intor_symmetric('int1e_ovlp')
+    return scipy.linalg.eigh(fock, s1e)
 
 
 def get_guess(arg):
-  """Returns guess Hamiltonian function by name.
+    """Returns guess Hamiltonian function by name.
 
-  Args:
-    arg (str): Guess method name. Available options:
-      - 'core': Core Hamiltonian (H_core)
-      - 'sad': Superposition of Atomic Densities
-      - 'sap': Superposition of Atomic Potentials
-      - 'gwh': Generalized Wolfsberg-Helmholtz
-      - 'lb': Laikov-Briling 2020 (HF parameters)
-      - 'lb-hfs': Laikov-Briling 2020 (HFS parameters)
-      - 'huckel': Extended Hückel method
+    Args:
+      arg (str): Guess method name. Available options:
+        - 'core': Core Hamiltonian (H_core)
+        - 'sad': Superposition of Atomic Densities
+        - 'sap': Superposition of Atomic Potentials
+        - 'gwh': Generalized Wolfsberg-Helmholtz
+        - 'lb': Laikov-Briling 2020 (HF parameters)
+        - 'lb-hfs': Laikov-Briling 2020 (HFS parameters)
+        - 'huckel': Extended Hückel method
 
-  Returns:
-    callable: Guess Hamiltonian function with signature f(mol, xc) -> numpy.ndarray.
+    Returns:
+      callable: Guess Hamiltonian function with signature f(mol, xc) -> numpy.ndarray.
 
-  Raises:
-    RuntimeError: If the specified guess method is not available.
-  """
-  arg = arg.lower()
-  if arg not in guesses_dict:
-      raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses_dict.keys())}')
-  return guesses_dict[arg]
+    Raises:
+      RuntimeError: If the specified guess method is not available.
+    """
+    arg = arg.lower()
+    if arg not in guesses_dict:
+        raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses_dict.keys())}')
+    return guesses_dict[arg]
 
 
 def check_nelec(nelec, nao):
@@ -205,29 +211,29 @@ def get_occ(e, nelec, spin):
 
 
 def get_dm(v, nelec, spin):
-  """Constructs density matrix from occupied molecular orbitals.
+    """Constructs density matrix from occupied molecular orbitals.
 
-  Args:
-    v (numpy ndarray): 2D array of MO coefficients (eigenvectors), columns are MOs.
-    nelec (tuple): Number of (alpha, beta) electrons.
-    spin (int or None): Spin multiplicity. If None, assumes closed-shell (RHF).
+    Args:
+      v (numpy ndarray): 2D array of MO coefficients (eigenvectors), columns are MOs.
+      nelec (tuple): Number of (alpha, beta) electrons.
+      spin (int or None): Spin multiplicity. If None, assumes closed-shell (RHF).
 
-  Returns:
-    numpy ndarray: Density matrix in AO basis.
-      - Closed-shell: 2D array (nao, nao)
-      - Open-shell: 3D array (2, nao, nao) for alpha and beta
-  """
+    Returns:
+      numpy ndarray: Density matrix in AO basis.
+        - Closed-shell: 2D array (nao, nao)
+        - Open-shell: 3D array (2, nao, nao) for alpha and beta
+    """
 
-  check_nelec(nelec, len(v))
-  if spin is None:
-    nocc = nelec[0]
-    dm = v[:,:nocc] @ v[:,:nocc].T
-    return 2.0*dm
-  else:
-    nocc = nelec
-    dm0 = v[:,:nocc[0]] @ v[:,:nocc[0]].T
-    dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
-    return np.array((dm0,dm1))
+    check_nelec(nelec, len(v))
+    if spin is None:
+        nocc = nelec[0]
+        dm = v[:,:nocc] @ v[:,:nocc].T
+        return 2.0*dm
+    else:
+        nocc = nelec
+        dm0 = v[:,:nocc[0]] @ v[:,:nocc[0]].T
+        dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
+        return np.array((dm0,dm1))
 
 ###############################################################################
 
