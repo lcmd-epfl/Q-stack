@@ -7,14 +7,14 @@ from qstack.reorder import get_mrange
 from qstack.compound import singleatom_basis_enumerator
 
 vector_label_names = SimpleNamespace(
-    tm = ['spherical_harmonics_l', 'species_center'],
+    tm = ['o3_lambda', 'center_type'],
     block_prop = ['radial_channel'],
     block_samp = ['atom_id'],
     block_comp = ['spherical_harmonics_m'],
     )
 
 matrix_label_names = SimpleNamespace(
-    tm = ['spherical_harmonics_l1', 'spherical_harmonics_l2', 'species_center1', 'species_center2'],
+    tm = ['o3_lambda1', 'o3_lambda2', 'center_type1', 'center_type2'],
     block_prop = ['radial_channel1', 'radial_channel2'],
     block_samp = ['atom_id1', 'atom_id2'],
     block_comp = ['spherical_harmonics_m1', 'spherical_harmonics_m2'],
@@ -166,7 +166,7 @@ def tensormap_to_vector(mol, tensor):
         llist = llists[q]
         il = dict.fromkeys(range(max(llist) + 1), 0)
         for l in llist:
-            block = tensor.block(spherical_harmonics_l=l, species_center=q)
+            block = tensor.block(o3_lambda=l, center_type=q)
             id_samp = block.samples.position((iat,))
             id_prop = block.properties.position((il[l],))
             for m in get_mrange(l):
@@ -342,7 +342,7 @@ def tensormap_to_matrix(mol, tensor):
                     il2 = dict.fromkeys(range(max(llist2) + 1), 0)
                     for l2 in llist2:
 
-                        block = tensor.block(spherical_harmonics_l1=l1, spherical_harmonics_l2=l2, species_center1=q1, species_center2=q2)
+                        block = tensor.block(o3_lambda1=l1, o3_lambda2=l2, center_type1=q1, center_type2=q2)
                         id_samp = block.samples.position((iat1, iat2))
                         id_prop = block.properties.position((il1[l1], il2[l2]))
 
