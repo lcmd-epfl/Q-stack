@@ -1,3 +1,5 @@
+"""Legacy command-line entry point for SPAHM(b) computations."""
+
 import os
 import numpy as np
 from qstack.tools import correct_num_threads

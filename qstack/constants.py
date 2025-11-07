@@ -1,10 +1,9 @@
-'''
+"""
 NIST physical constants and unit conversion
 
 https://physics.nist.gov/cuu/Constants/
 https://physics.nist.gov/cuu/Constants/Table/allascii.txt
-'''
-
+"""
 # Constants
 SPEED_LIGHT = 299792458.0
 PLANCK = 6.62607004e-34

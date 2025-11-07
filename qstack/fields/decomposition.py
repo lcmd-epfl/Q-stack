@@ -1,8 +1,11 @@
+"""Density matrix decomposition onto auxiliary basis sets."""
+
 import numpy as np
 import scipy
 from pyscf import scf
 from qstack import compound
 from . import moments
+
 
 def decompose(mol, dm, auxbasis):
     """Fit molecular density onto an atom-centered basis.
@@ -13,57 +16,60 @@ def decompose(mol, dm, auxbasis):
         auxbasis (string / pyscf basis dictionary): Atom-centered basis to decompose on.
 
     Returns:
-        A copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object, and a 1D numpy array containing the decomposition coefficients.
+        Tuple containing:
+        - copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object,
+        - 1D numpy array containing the decomposition coefficients.
     """
-
     auxmol = compound.make_auxmol(mol, auxbasis)
     _S, eri2c, eri3c = get_integrals(mol, auxmol)
     c = get_coeff(dm, eri2c, eri3c)
     return auxmol, c
 
+
 def get_integrals(mol, auxmol):
-    """Computes overlap and 2-/3-centers ERI matrices.
+    """Computes overlap integrals and 2-/3-centers ERI matrices.
 
     Args:
         mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
-        auxmol (pyscf Mole): pyscf Mole object holding molecular structure, composition and the auxiliary basis set.
+        auxmol (pyscf Mole): pyscf Mole object of the same molecule with an auxiliary basis set.
 
     Returns:
-        Three numpy ndarray containing: the overlap matrix, the 2-centers ERI matrix, and the 3-centers ERI matrix respectively.
+        Tuple of three numpy ndarray containing:
+        - overlap matrix (auxmol.nao,auxmol.nao) for the auxiliary basis,
+        - 2-centers ERI matrix (auxmol.nao,auxmol.nao) for the auxiliary basis,
+        - 3-centers ERI matrix (mol.nao,mol.nao,auxmol.nao) between AO and auxiliary basis.
     """
-
-    # Get overlap integral in the auxiliary basis
     S = auxmol.intor('int1e_ovlp_sph')
-
-    # Concatenate standard and auxiliary basis set into a pmol object
     pmol = mol + auxmol
-
-    # Compute 2- and 3-centers ERI integrals using the concatenated mol object
     eri2c = auxmol.intor('int2c2e_sph')
     eri3c = pmol.intor('int3c2e_sph', shls_slice=(0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas))
     eri3c = eri3c.reshape(mol.nao_nr(), mol.nao_nr(), -1)
-
     return S, eri2c, eri3c
 
-def get_self_repulsion(mol, dm):
-    """Computes the Einstein summation of the Coulumb matrix and the density matrix.
+
+def get_self_repulsion(mol_or_mf, dm):
+    r"""Computes the self-repulsion of the density.
+
+    \int \int \rho_DM(r1) 1/|r1-r2| \rho_DM(r2) dr1 dr2
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        dm (numpy ndarray): Density matrix.
+        mol_or_mf (pyscf Mole or SCF): pyscf Mole or Mean Field object.
+        dm (2D numpy ndarray): Density matrix.
 
     Returns:
-        A nummpy ndarray result of the Einstein summation of the J matrix and the Density matrix.
+        float: Self-repulsion energy (a.u).
     """
-
     try:
-        j, _k = mol.get_jk()
+        j, _k = mol_or_mf.get_jk()
     except AttributeError:
-        j, _k = scf.hf.get_jk(mol, dm)
+        j, _k = scf.hf.get_jk(mol_or_mf, dm)
     return np.einsum('ij,ij', j, dm)
 
-def decomposition_error(self_repulsion, c, eri2c):
-    """Computes the decomposition error for density fitting.
+
+def optimal_decomposition_error(self_repulsion, c, eri2c):
+    r"""Computes the decomposition error for optimal density fitting.
+
+    \int \int \rho_DM(r1) 1/|r1-r2| \rho_DF(r2) dr1 dr2
 
     Args:
         self_repulsion (float): Self-repulsion energy from the original density matrix.
@@ -72,8 +78,36 @@ def decomposition_error(self_repulsion, c, eri2c):
 
     Returns:
         float: The decomposition error.
+
+    Notes:
+        - It is assumed that `c` are the optimal coefficients obtained from the density matrix.
+        - `self_repulsion` can be set to 0 to avoid expensive computations when only the relative error is needed.
     """
     return self_repulsion - c @ eri2c @ c
+
+
+def decomposition_error(self_repulsion, c, eri2c, eri3c, dm):
+    r"""Computes the decomposition error for optimal density fitting.
+
+    \int \int \rho_DM(r1) 1/|r1-r2| \rho_DF(r2) dr1 dr2
+
+    Args:
+        self_repulsion (float): Self-repulsion energy from the original density matrix.
+        c (numpy ndarray): 1D array of density expansion coefficients.
+        eri2c (numpy ndarray): 2D array of 2-center ERIs.
+        eri3c (numpy ndarray): 3D array of 3-center ERIs.
+        dm (numpy ndarray): Density matrix.
+
+    Returns:
+        float: The decomposition error.
+
+    Notes:
+        - If `c` are the optimal coefficients obtained from the density matrix, `optimal_decomposition_error()` can be used instead.
+        - `self_repulsion` can be set to 0 to avoid expensive computations when only the relative error is needed.
+    """
+    projection = np.einsum('ijp,ij->p', eri3c, dm)
+    return self_repulsion + c @ eri2c @ c - 2.0 * c @ projection
+
 
 def get_coeff(dm, eri2c, eri3c, slices=None):
     """Computes the density expansion coefficients.
@@ -82,12 +116,14 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
         dm (numpy ndarray): Density matrix.
         eri2c (numpy ndarray): 2-centers ERI matrix.
         eri3c (numpy ndarray): 3-centers ERI matrix.
-        slices (optional numpy ndarray): assume that eri2c is bloc-diagonal, by giving the boundaries of said blocks
+        slices (optional numpy ndarray): Assume that eri2c is bloc-diagonal, by giving the boundaries of said blocks.
 
     Returns:
         A numpy ndarray containing the expansion coefficients of the density onto the auxiliary basis.
-    """
 
+    Raises:
+        RuntimeError: If the `slices` argument is incorrectly formatted or inconsistent with the auxiliary basis size.
+    """
     # Compute the projection of the density onto auxiliary basis using a Coulomb metric
     projection = np.einsum('ijp,ij->p', eri3c, dm)
 
@@ -105,16 +141,17 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
 
     return c
 
+
 def _get_inv_metric(mol, metric, v):
     """Computes the inverse metric applied to a vector.
 
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      metric (str or numpy ndarray): Metric type ('unit', 'overlap', 'coulomb') or a metric matrix.
-      v (numpy ndarray): Vector to apply the inverse metric to.
+        mol (pyscf Mole): pyscf Mole object.
+        metric (str or numpy ndarray): Metric type ('unit', 'overlap', 'coulomb') or a metric matrix.
+        v (numpy ndarray): Vector to apply the inverse metric to.
 
     Returns:
-      numpy ndarray: Result of applying the inverse metric to the input vector.
+        numpy ndarray: Result of applying the inverse metric to the input vector.
     """
     if isinstance(metric, str):
         metric = metric.lower()
@@ -130,7 +167,7 @@ def _get_inv_metric(mol, metric, v):
 
 
 def correct_N_atomic(mol, N, c0, metric='u'):
-    """Corrects decomposition coefficients to match the target electron count per atom.
+    """Corrects decomposition coefficients to match the target number of electrons per atom.
 
     Uses Lagrange multipliers to enforce the correct number of electrons per atom
     while minimizing changes to the decomposition coefficients.
@@ -144,7 +181,6 @@ def correct_N_atomic(mol, N, c0, metric='u'):
     Returns:
         numpy ndarray: Corrected decomposition coefficients (1D array).
     """
-
     Q   = moments.r2_c(mol, None, moments=[0], per_atom=True)[0]
     N0  = c0 @ Q
     O1q = _get_inv_metric(mol, metric, Q)
@@ -154,19 +190,18 @@ def correct_N_atomic(mol, N, c0, metric='u'):
 
 
 def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
-    """Corrects decomposition coefficients to match the target total electron count.
+    """Corrects decomposition coefficients to match the target total number of electrons.
 
     Args:
         mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
         c0 (numpy ndarray): 1D array of initial decomposition coefficients.
         N (int, optional): Target number of electrons. If None, uses mol.nelectron. Defaults to None.
-        mode (str): Correction method ('scale' or 'lagrange'). Defaults to 'Lagrange'.
+        mode (str): Correction method ('scale' or 'Lagrange'). Defaults to 'Lagrange'.
         metric (str): Metric type for Lagrange correction ('u', 's', or 'j'). Defaults to 'u'.
 
     Returns:
         numpy ndarray: Corrected decomposition coefficients (1D array).
     """
-
     mode = mode.lower()
     q = moments.r2_c(mol, None, moments=[0])
     N0 = c0 @ q

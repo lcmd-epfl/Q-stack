@@ -1,3 +1,5 @@
+"""Hyperparameter optimization."""
+
 import sys
 import numpy as np
 import scipy
@@ -15,27 +17,27 @@ def hyperparameters(X, y,
     """ Performs a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
 
     Args:
-        X (numpy.ndarray[Nsamples,...]): array containing the representations of all Nsamples
-        y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
-        sigma (list): list of kernel width for the grid search
-        eta (list): list of regularization strength for the grid search
-        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
-        gkernel (str): global kernel (None, 'REM', 'avg')
-        gdict (dict): parameters of the global kernels
-        test_size (float or int): test set fraction (or number of samples)
-        splits (int): K number of splits for the Kfold cross-validation
-        idx_test (numpy.1darray): list of indices for the test set (based on the sequence in X)
-        idx_train (numpy.1darray): list of indices for the training set (based on the sequence in X)
-        printlevel (int): controls level of output printing
-        adaptative (bool): to expand the grid search adaptatively
-        read_kernel (bool): if 'X' is a kernel and not an array of representations
-        sparse (int): the number of reference environnments to consider for sparse regression
-        random_state (int): the seed used for random number generator (controls train/test splitting)
+        X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
+        y (numpy.1darray[Nsamples]): Array containing the target property of all Nsamples.
+        sigma (list): List of kernel width for the grid search.
+        eta (list): List of regularization strength for the grid search.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
+        test_size (float or int): Test set fraction (or number of samples).
+        splits (int): K number of splits for the Kfold cross-validation.
+        idx_test (numpy.1darray): List of indices for the test set (based on the sequence in X).
+        idx_train (numpy.1darray): List of indices for the training set (based on the sequence in X).
+        printlevel (int): Controls level of output printing.
+        adaptative (bool): To expand the grid search adaptatively.
+        read_kernel (bool): If 'X' is a kernel and not an array of representations.
+        sparse (int): The number of reference environnments to consider for sparse regression.
+        random_state (int): The seed used for random number generator (controls train/test splitting).
 
     Returns:
         The results of the grid search as a numpy.2darray [Cx(MAE,std,eta,sigma)],
-        where C is the number of parameter set and
-        the array is sorted according to MAEs (last is minimum)
+            where C is the number of parameter set and
+            the array is sorted according to MAEs (last is minimum)
     """
     def k_fold_opt(K_all, eta):
         kfold = KFold(n_splits=splits, shuffle=False)

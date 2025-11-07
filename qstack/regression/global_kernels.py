@@ -1,3 +1,9 @@
+"""Global (molecular) kernel implementations.
+
+Provides:
+    global_kernels_dict: Dictionary mapping global kernel names to functions.
+"""
+
 import math
 from collections import Counter
 import numpy as np
@@ -123,7 +129,6 @@ def mol_to_dict(mol, species):
     Returns:
         dict: Dictionary mapping atomic numbers to arrays of atomic feature vectors.
     """
-
     mol_dict = {q:[] for q in species}
     for atom in mol:
         mol_dict[atom[0]].append(atom[1])

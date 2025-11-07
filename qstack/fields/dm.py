@@ -1,3 +1,5 @@
+"""Density matrix manipulation and analysis functions."""
+
 from pyscf import dft
 from qstack import constants
 import numpy as np
@@ -14,10 +16,9 @@ def get_converged_mf(mol, xc, dm0=None, verbose=False):
 
     Returns:
         tuple: A tuple containing:
-            - mf (pyscf.dft.rks.RKS or pyscf.dft.uks.UKS): Converged mean-field object.
-            - dm (numpy ndarray): Converged density matrix in AO-basis.
+        - mf (pyscf.dft.rks.RKS or pyscf.dft.uks.UKS): Converged mean-field object.
+        - dm (numpy ndarray): Converged density matrix in AO-basis.
     """
-
     if mol.multiplicity == 1:
         mf = dft.RKS(mol)
     else:
@@ -48,7 +49,6 @@ def get_converged_dm(mol, xc, verbose=False):
     Returns:
         A numpy ndarray containing the density matrix in AO-basis.
     """
-
     return get_converged_mf(mol, xc, dm0=None, verbose=verbose)[1]
 
 
@@ -62,11 +62,11 @@ def make_grid_for_rho(mol, grid_level=3):
     Returns:
         pyscf Grid object.
     """
-
     grid = dft.gen_grid.Grids(mol)
     grid.level = grid_level
     grid.build()
     return grid
+
 
 def sphericalize_density_matrix(mol, dm):
     """Sphericalize the density matrix in the sense of an integral over all possible rotations.
@@ -78,7 +78,6 @@ def sphericalize_density_matrix(mol, dm):
     Returns:
         A numpy ndarray with the sphericalized density matrix.
     """
-
     idx_by_l = [[] for i in range(constants.MAX_L)]
     i0 = 0
     for ib in range(mol.nbas):

@@ -1,3 +1,5 @@
+"""Wigner d-matrices for real spherical harmonics to symmetrize coefficient vectors."""
+
 import numpy as np
 from numpy import sqrt
 
@@ -14,7 +16,7 @@ def c_split(mol, c):
 
     Returns:
         list: List of [l, coefficients] pairs where l is angular momentum and
-              coefficients is the subset of c for that angular momentum shell.
+            coefficients is the subset of c for that angular momentum shell.
     """
     cs = []
     i0 = 0
@@ -55,7 +57,7 @@ def new_xy_axis(z):
 
     Returns:
         numpy ndarray: 3x3 rotation matrix with rows [x', y', z'] defining the
-                      new orthonormal coordinate system.
+            new orthonormal coordinate system.
     """
     z     = z/np.linalg.norm(z)    # don't use /= so a copy of z is created
     i     = np.argmin(abs(z))      # find the axis with the minimal projection of the vector z
@@ -81,7 +83,7 @@ def Dmatrix(xyz, lmax, order='xyz'):
 
     Returns:
         list: List of numpy ndarrays D[l] where D[l] is the (2l+1) x (2l+1) real Wigner
-              D-matrix for angular momentum l. Note: m1 index is rotated (D is transposed).
+        D-matrix for angular momentum l. Note: m1 index is rotated (D is transposed).
 
     Raises:
         NotImplementedError: If lmax > 4.
@@ -89,7 +91,6 @@ def Dmatrix(xyz, lmax, order='xyz'):
     Note:
         The matrices are computed using explicit algebraic expressions for each l.
     """
-
     xx = xyz[0,0]; xy = xyz[0,1]; xz = xyz[0,2]
     yx = xyz[1,0]; yy = xyz[1,1]; yz = xyz[1,2]
     zx = xyz[2,0]; zy = xyz[2,1]; zz = xyz[2,2]

@@ -1,3 +1,11 @@
+"""Initial guess Hamiltonian methods for SPAHM.
+
+Implements various guess methods: Hcore, Hückel, GWH, SAD, SAP, LB2020.
+
+Provides:
+    - guesses_dict: Dictionary mapping guess names to functions.
+"""
+
 import warnings
 import numpy as np
 import scipy
@@ -9,11 +17,11 @@ def hcore(mol, *_):
     """Computes guess Hamiltonian from core contributions (kinetic + nuclear + ECP).
 
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      *_: Unused positional arguments (for interface compatibility).
+        mol (pyscf Mole): pyscf Mole object.
+        *_: Unused positional arguments (for interface compatibility).
 
     Returns:
-      numpy ndarray: 2D array containing the core Hamiltonian matrix in AO basis.
+        numpy ndarray: 2D array containing the core Hamiltonian matrix in AO basis.
     """
     return scf.hf.get_hcore(mol)
 
@@ -21,7 +29,7 @@ def hcore(mol, *_):
 def GWH(mol, *_):
     """Computes guess Hamiltonian using Generalized Wolfsberg-Helmholtz (GWH) method.
 
-    Uses the empirical formula: H_ij = 0.5 * K * (H_ii + H_jj) * S_ij with K = 1.75.
+    Uses the formula: H_ij = 0.5 * K * (H_ii + H_jj) * S_ij with K = 1.75.
 
     Reference:
         M. Wolfsberg, L. Helmholtz,
@@ -29,13 +37,12 @@ def GWH(mol, *_):
         J. Chem. Phys. 20 837-843 (1952), doi:10.1063/1.1700580.
 
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      *_: Unused positional arguments (for interface compatibility).
+        mol (pyscf Mole): pyscf Mole object.
+        *_: Unused positional arguments (for interface compatibility).
 
     Returns:
-      numpy ndarray: 2D GWH Hamiltonian matrix in AO basis.
+        numpy ndarray: 2D GWH Hamiltonian matrix in AO basis.
     """
-
     h = hcore(mol).diagonal()
     S = mol.intor_symmetric('int1e_ovlp')
     K = 1.75
@@ -44,18 +51,18 @@ def GWH(mol, *_):
     return h_gwh
 
 
-def SAD(mol, func):
+def SAD(mol, xc):
     """Computes guess Hamiltonian using Superposition of Atomic Densities (SAD).
 
     Constructs the Fock matrix from atomic Hartree-Fock density matrices
     summed together as an initial guess for molecular calculations.
 
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      func (str): Exchange-correlation functional name (e.g., 'pbe', 'b3lyp').
+        mol (pyscf Mole): pyscf Mole object.
+        xc (str): Exchange-correlation functional.
 
     Returns:
-      numpy ndarray: 2D Fock matrix in AO basis computed from SAD.
+        numpy ndarray: 2D Fock matrix in AO basis computed from SAD.
 
     Warns:
       RuntimeWarning: If alpha and beta effective potentials differ for the functional.
@@ -63,14 +70,14 @@ def SAD(mol, func):
     hc = hcore(mol)
     dm = scf.hf.init_guess_by_atom(mol)
     mf = dft.RKS(mol)
-    mf.xc = func
+    mf.xc = xc
     vhf = mf.get_veff(dm=dm)
     if vhf.ndim == 2:
         fock = hc + vhf
     else:
         fock = hc + vhf[0]
         if not np.array_equal(vhf[0], vhf[1]):
-          msg = f'The effective potential ({func}) returned different alpha and beta matrix components from atomicHF DM'
+          msg = f'The effective potential ({xc}) returned different alpha and beta matrix components from atomicHF DM'
           warnings.warn(msg, RuntimeWarning, stacklevel=2)
     return fock
 
@@ -81,11 +88,11 @@ def SAP(mol, *_):
     Constructs initial Hamiltonian from kinetic energy plus summed atomic potentials.
 
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      *_: Unused positional arguments (for interface compatibility).
+        mol (pyscf Mole): pyscf Mole object.
+        *_: Unused positional arguments (for interface compatibility).
 
     Returns:
-      numpy ndarray: 2D Hamiltonian matrix (T + V_SAP) in AO basis.
+        numpy ndarray: 2D Hamiltonian matrix (T + V_SAP) in AO basis.
     """
     mf = dft.RKS(mol)
     vsap = mf.get_vsap()
@@ -97,14 +104,12 @@ def SAP(mol, *_):
 def LB(mol, *_):
     """Computes guess Hamiltonian using Laikov-Briling 2020 model with HF parameters.
 
-    Uses auxiliary basis representation optimized for Hartree-Fock calculations.
-
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      *_: Unused positional arguments (for interface compatibility).
+        mol (pyscf Mole): pyscf Mole object.
+        *_: Unused positional arguments (for interface compatibility).
 
     Returns:
-      numpy ndarray: 2D effective Hamiltonian matrix from LB2020 model in AO basis.
+        numpy ndarray: 2D effective Hamiltonian matrix from LB2020 model in AO basis.
     """
     return LB20(parameters='HF').Heff(mol)
 
@@ -112,14 +117,12 @@ def LB(mol, *_):
 def LB_HFS(mol, *_):
     """Computes guess Hamiltonian using Laikov-Briling 2020 model with HFS parameters.
 
-    Uses auxiliary basis representation optimized for Hartree-Fock-Slater calculations.
-
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      *_: Unused positional arguments (for interface compatibility).
+        mol (pyscf Mole): pyscf Mole object.
+        *_: Unused positional arguments (for interface compatibility).
 
     Returns:
-      numpy ndarray: 2D effective Hamiltonian matrix from LB2020-HFS model in AO basis.
+        numpy ndarray: 2D effective Hamiltonian matrix from LB2020-HFS model in AO basis.
     """
     return LB20(parameters='HFS').Heff(mol)
 
@@ -128,11 +131,11 @@ def solveF(mol, fock):
     """Solves generalized eigenvalue problem FC = SCε for the Fock/Hamiltonian matrix.
 
     Args:
-      mol (pyscf Mole): pyscf Mole object.
-      fock (numpy ndarray): 2D Fock or Hamiltonian matrix in AO basis.
+        mol (pyscf Mole): pyscf Mole object.
+        fock (numpy ndarray): 2D Fock or Hamiltonian matrix in AO basis.
 
     Returns:
-      tuple: (eigenvalues, eigenvectors) where:
+        tuple: (eigenvalues, eigenvectors) where:
         - eigenvalues: 1D array of orbital energies
         - eigenvectors: 2D array of MO coefficients (columns are MOs)
     """
@@ -144,20 +147,20 @@ def get_guess(arg):
     """Returns guess Hamiltonian function by name.
 
     Args:
-      arg (str): Guess method name. Available options:
-        - 'core': Core Hamiltonian (H_core)
-        - 'sad': Superposition of Atomic Densities
-        - 'sap': Superposition of Atomic Potentials
-        - 'gwh': Generalized Wolfsberg-Helmholtz
-        - 'lb': Laikov-Briling 2020 (HF parameters)
-        - 'lb-hfs': Laikov-Briling 2020 (HFS parameters)
-        - 'huckel': Extended Hückel method
+        arg (str): Guess method name. Available options:
+            - 'core': Core Hamiltonian (H_core).
+            - 'sad': Superposition of Atomic Densities.
+            - 'sap': Superposition of Atomic Potentials.
+            - 'gwh': Generalized Wolfsberg-Helmholtz.
+            - 'lb': Laikov-Briling 2020 (HF parameters).
+            - 'lb-hfs': Laikov-Briling 2020 (HFS parameters).
+            - 'huckel': Extended Hückel method.
 
     Returns:
-      callable: Guess Hamiltonian function with signature f(mol, xc) -> numpy.ndarray.
+        callable: Guess Hamiltonian function with signature f(mol, xc) -> numpy.ndarray.
 
     Raises:
-      RuntimeError: If the specified guess method is not available.
+        RuntimeError: If the specified guess method is not available.
     """
     arg = arg.lower()
     if arg not in guesses_dict:
@@ -189,12 +192,13 @@ def get_occ(e, nelec, spin):
     """Extracts occupied orbital eigenvalues/energies.
 
     Args:
-      e (numpy ndarray): Full array of orbital eigenvalues.
-      nelec (tuple): Number of (alpha, beta) electrons.
-      spin (int or None): Spin multiplicity. If None, assumes closed-shell.
+        e (numpy ndarray): Full array of orbital eigenvalues (1D)
+            or possibly arrays of larger dimensionality.
+        nelec (tuple): Number of (alpha, beta) electrons.
+        spin (int or None): Spin multiplicity. If None, assumes closed-shell.
 
     Returns:
-      numpy ndarray: Occupied eigenvalues. Shape depends on spin:
+        numpy ndarray: Occupied eigenvalues. Shape depends on spin:
         - Closed-shell (spin=None): 1D array of occupied eigenvalues
         - Open-shell: 2D array (2, nocc) for alpha and beta separately
     """
@@ -204,7 +208,7 @@ def get_occ(e, nelec, spin):
         return e[:nocc,...]
     else:
         nocc = nelec
-        e1 = np.zeros((2, *e.shape))[:,:nocc[0],...]
+        e1 = np.zeros((2, nocc[0], *e.shape[1:]))
         e1[0,:nocc[0],...] = e[:nocc[0],...]
         e1[1,:nocc[1],...] = e[:nocc[1],...]
         return e1
@@ -214,16 +218,15 @@ def get_dm(v, nelec, spin):
     """Constructs density matrix from occupied molecular orbitals.
 
     Args:
-      v (numpy ndarray): 2D array of MO coefficients (eigenvectors), columns are MOs.
-      nelec (tuple): Number of (alpha, beta) electrons.
-      spin (int or None): Spin multiplicity. If None, assumes closed-shell (RHF).
+        v (numpy ndarray): 2D array of MO coefficients (eigenvectors), columns are MOs.
+        nelec (tuple): Number of (alpha, beta) electrons.
+        spin (int or None): Spin multiplicity. If None, assumes closed-shell (RHF).
 
     Returns:
-      numpy ndarray: Density matrix in AO basis.
+        numpy ndarray: Density matrix in AO basis.
         - Closed-shell: 2D array (nao, nao)
         - Open-shell: 3D array (2, nao, nao) for alpha and beta
     """
-
     check_nelec(nelec, len(v))
     if spin is None:
         nocc = nelec[0]
@@ -235,18 +238,18 @@ def get_dm(v, nelec, spin):
         dm1 = v[:,:nocc[1]] @ v[:,:nocc[1]].T
         return np.array((dm0,dm1))
 
-###############################################################################
 
 def hcore_grad(mf):
     """Returns core Hamiltonian gradient generator function.
 
     Args:
-        mf: Mean-field object with hcore_generator method.
+        mf: PySCF mean-field object.
 
     Returns:
         callable: Function that returns core Hamiltonian gradient for a given atom.
     """
     return mf.hcore_generator(mf.mol)
+
 
 def LB_grad(mf):
     """Returns Laikov-Briling Hamiltonian gradient generator function.
@@ -264,6 +267,7 @@ def LB_grad(mf):
     def H_grad(iat):
         return hcore_grad(iat) + HLB_grad(iat)
     return H_grad
+
 
 def get_guess_g(arg):
     """Returns both guess Hamiltonian function and its gradient generator.
@@ -283,6 +287,7 @@ def get_guess_g(arg):
         raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses.keys())}')
     return guesses[arg]
 
+
 def eigenvalue_grad(mol, e, c, s1, h1):
     """Computes nuclear gradients of orbital eigenvalues from generalized eigenvalue problem HC = eSC.
 
@@ -292,7 +297,7 @@ def eigenvalue_grad(mol, e, c, s1, h1):
         mol (pyscf Mole): pyscf Mole object.
         e (numpy ndarray): 1D array (nao,) of orbital eigenvalues.
         c (numpy ndarray): 2D array (nao, nao) of MO coefficients (eigenvectors).
-        s1 (numpy ndarray): 3D array (3, nao, nao) - compact gradient of overlap matrix.
+        s1 (numpy ndarray): 3D array (3, nao, nao) - gradient of overlap matrix.
         h1 (callable): Function returning dH/dr[iat] - Hamiltonian gradient for atom iat.
 
     Returns:

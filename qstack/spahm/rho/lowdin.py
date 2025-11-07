@@ -1,4 +1,7 @@
+"""Löwdin orthogonalization for density matrix partitioning."""
+
 import numpy as np
+
 
 class Lowdin_split:
     """Löwdin orthogonalization for density matrix partitioning.
@@ -14,7 +17,6 @@ class Lowdin_split:
         dm (numpy ndarray): Original density matrix in AO basis.
         dmL (numpy ndarray): Löwdin-orthogonalized density matrix.
     """
-
     def __init__(self, mol, dm):
         """Initializes Löwdin split with molecule and density matrix.
 

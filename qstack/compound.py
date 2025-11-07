@@ -1,3 +1,5 @@
+"""Molecular structure parsing and manipulation."""
+
 import json
 import re
 import warnings
@@ -5,7 +7,7 @@ import numpy as np
 from pyscf import gto, data
 from qstack import constants
 from qstack.reorder import get_mrange
-from qstack.mathutils.array import vstack_padding
+from qstack.mathutils.array import stack_padding
 from qstack.mathutils.rotation_matrix import rotate_euler
 
 
@@ -21,6 +23,7 @@ _re_keyline2 = re.compile(r'{0}(,{0})*,?\s*'.format(r'\s*\w+\s*[=:]\s*[^\s,]+\s*
 _re_int = re.compile(r'[+-]?(?P<basisprefix>0[obxOBX])?[1-9a-fA-F][0-9a-fA-F]*')
 # matches a floating-point number in any format python reads
 _re_float = re.compile(r'[+-]?[0-9]*?([0-9]\.|\.[0-9]|[0-9])[0-9]*?([eEdD][+-]?[0-9]+)?')
+
 
 def xyz_comment_line_parser(line):
     """Reads the 'comment' line of a XYZ file and tries to infer its meaning.
@@ -105,7 +108,6 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     Raises:
         RuntimeError: If units are not recognized or if minao basis requires ECP for heavy atoms.
     """
-
     if '\n' in inp:
         molxyz = gto.fromstring(inp)
     else:
@@ -180,7 +182,6 @@ def mol_to_xyz(mol, fout, fmt="xyz"):
     Raises:
         NotImplementedError: If fmt is not "xyz".
     """
-
     fmt = fmt.lower()
     output = []
     if fmt == "xyz":
@@ -267,7 +268,6 @@ def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
     Returns:
         list or numpy.ndarray: Contribution of each fragment. Returns list if input was list, array otherwise.
     """
-
     props_atom = prop_atom_inp if type(prop_atom_inp) is list else [prop_atom_inp]
 
     props_frag = []
@@ -312,9 +312,9 @@ def singleatom_basis_enumerator(basis):
 
     Returns:
         tuple: A tuple containing:
-            - l_per_bas (list): Angular momentum quantum number l for each basis function.
-            - n_per_bas (list): Radial function counter n (starting at 0) for each basis function.
-            - ao_starts (list): Starting index in AO array for each basis function.
+        - l_per_bas (list): Angular momentum quantum number l for each basis function.
+        - n_per_bas (list): Radial function counter n (starting at 0) for each basis function.
+        - ao_starts (list): Starting index in AO array for each basis function.
     """
     ao_starts = []
     l_per_bas = []
@@ -350,14 +350,14 @@ def basis_flatten(mol, return_both=True):
 
     Returns:
         - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
-                - 0: atom index
-                - 1: angular momentum quantum number l
-                - 2: magnetic quantum number m
+        - 0: atom index
+        - 1: angular momentum quantum number l
+        - 2: magnetic quantum number m
         If return_both is True, also returns:
         - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
-            - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
-            - j: AO index
-            - k: radial function index (padded with zeros if necessary)
+        - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
+        - j: AO index
+        - k: radial function index (padded with zeros if necessary)
     """
     x = []
     y = np.zeros((3, mol.nao), dtype=int)
@@ -377,7 +377,7 @@ def basis_flatten(mol, return_both=True):
             y[2,i:i+msize*n] = [*get_mrange(l)]*n
             i += msize*n
     if return_both:
-        x = vstack_padding(x).transpose((1,0,2))
+        x = stack_padding(x).transpose((1,0,2))
         return y, x
     else:
         return y

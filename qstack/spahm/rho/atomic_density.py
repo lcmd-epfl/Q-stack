@@ -1,3 +1,5 @@
+"""Atomic density computation."""
+
 import numpy as np
 from qstack import compound, fields
 from . import lowdin
@@ -22,8 +24,8 @@ def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
 
     Returns:
         list or numpy ndarray: Density fitting coefficients for each atom.
-            - If short=False: list of 1D arrays (full aux basis per atom)
-            - If short=True: 1D array (concatenated atom-centered coefficients only)
+        - If short=False: list of 1D arrays (full aux basis per atom)
+        - If short=True: 1D array (concatenated atom-centered coefficients only)
     """
     L = lowdin.Lowdin_split(mol, dm)
 

@@ -1,3 +1,5 @@
+"""Main computation routines for SPAHM(a,b) representations."""
+
 import os
 import itertools
 import numpy as np
@@ -25,7 +27,7 @@ def spahm_a_b(rep_type, mols, dms,
         mols (list): List of pyscf Mole objects.
         dms (list): List of density matrices (2D or 3D numpy arrays) for each molecule.
         bpath (str): Directory path containing bond-optimized basis files (.bas) for SPAHM(b). Defaults to defaults.bpath.
-        cutoff (float): Bond cutoff distance in Angstrom for SPAHM(b). Defaults to defaults.cutoff.
+        cutoff (float): Bond cutoff distance in Å for SPAHM(b). Defaults to defaults.cutoff.
         omods (list): Open-shell modes ('alpha', 'beta', 'sum', 'diff'). Defaults to defaults.omod.
         elements (list, optional): Element symbols present in dataset. Auto-detected if None. Defaults to None.
         only_m0 (bool): Use only m=0 angular momentum component for SPAHM(b). Defaults to False.
@@ -40,10 +42,10 @@ def spahm_a_b(rep_type, mols, dms,
 
     Returns:
         numpy ndarray: 4D array (n_omods, n_mols, max_atoms, n_features) where:
-            - n_omods: Number of open-shell components (1 for closed-shell, len(omods) for open-shell)
-            - n_mols: Number of molecules in dataset
-            - max_atoms: Maximum number of atoms/bonds across all molecules
-            - n_features: Representation dimension
+        - n_omods: Number of open-shell components (1 for closed-shell, len(omods) for open-shell)
+        - n_mols: Number of molecules in dataset
+        - max_atoms: Maximum number of atoms/bonds across all molecules
+        - n_features: Representation dimension
     """
     maxlen = 0
     if only_z is None:
@@ -120,7 +122,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
         dump_and_exit (bool): Save atom pair file for SPAHM(b) to pairfile and exit without computing. Defaults to False.
         same_basis (bool): Use generic CC.bas for all atom pairs for SPAHM(b). Defaults to False.
         bpath (str): Directory path containing bond-optimized basis files (.bas) for SPAHM(b). Defaults to defaults.bpath.
-        cutoff (float): Bond cutoff distance in Angstrom for SPAHM(b). Defaults to defaults.cutoff.
+        cutoff (float): Bond cutoff distance in Å for SPAHM(b). Defaults to defaults.cutoff.
         omods (list): Open-shell modes ('alpha', 'beta', 'sum', 'diff'). Defaults to defaults.omod.
         elements (list, optional): Element symbols in dataset. Auto-detected if None. Defaults to None.
         only_m0 (bool): Use only m=0 angular momentum component for SPAHM(b). Defaults to False.
@@ -135,11 +137,11 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
 
     Returns:
         numpy ndarray: Representation array with shape depending on options:
-            - Base: (n_omods, n_mols, max_atoms, n_features)
-            - If split=False: (n_omods, total_atoms, n_features) - all molecules concatenated
-            - If merge=True: Features concatenated, omods dimension removed
-            - If with_symbols=True: Object array with (symbol, vector) tuples per atom
-            - If split=True and with_symbols=True: List format per molecule
+        - Base: (n_omods, n_mols, max_atoms, n_features)
+        - If split=False: (n_omods, total_atoms, n_features) - all molecules concatenated
+        - If merge=True: Features concatenated, omods dimension removed
+        - If with_symbols=True: Object array with (symbol, vector) tuples per atom
+        - If split=True and with_symbols=True: List format per molecule
     """
     if not dump_and_exit:
         dms = utils.mols_guess(mols, xyzlist, guess, xc=xc, spin=spin, readdm=readdm, printlevel=printlevel)

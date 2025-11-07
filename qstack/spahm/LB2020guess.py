@@ -1,11 +1,21 @@
+"""Laikov-Briling 2020 guess Hamiltonian implementation."""
+
 import copy
 import numpy as np
 from pyscf import data, df, scf
 
 
 class LB2020guess:
-    """See https://github.com/briling/aepm."""
+    """Laikov-Briling 2020 guess Hamiltonian implementation.
 
+    Reference:
+        D. N. Laikov, K. R. Briling,
+        "Atomic effective potentials for starting molecular electronic structure calculations",
+        Theor. Chem. Acc. 139, 17 (2020), doi:10.1007/s00214-019-2521-3.
+
+    Implements the atomic effective potential method for initial guess generation.
+    See https://github.com/briling/aepm for a C implementation.
+    """
     def __init__(self, fname=None, parameters='HF'):
         self.acfile_default  = './parameters_HF.dat'
         self.Qmax = 102
@@ -40,7 +50,8 @@ class LB2020guess:
             fname (str, optional): Path to parameter file. If None, uses default.
 
         Returns:
-            dict: Dictionary mapping element symbols to basis function parameters.
+            dict: Dictionary mapping element symbols to lists of basis function
+                parameters [[l, [exponent, coefficient]], ...].
         """
         if fname is None:
             fname = self.acfile_default
@@ -64,21 +75,24 @@ class LB2020guess:
         """Adds cap (diffuse) functions to the auxiliary basis.
 
         Args:
-            basis (dict): Basis set dictionary to modify.
+            basis (dict): Basis set dictionary to modify in-place.
 
         Returns:
-            dict: Modified basis set with cap functions added.
+            None. Modifies basis in-place.
         """
         for q in range(1, self.Qmax+1):
-            a = self.caps_array[q]
+            a = self._caps_array[q]
             qname = data.elements.ELEMENTS[q]
             if qname in basis:
                 basis[qname].append( [0, [a, self.renormalize(a) ]] )
-        return basis
+        return
 
 
     def get_basis(self, fname, parameters):
         """Initializes auxiliary basis set from file or predefined parameters.
+
+        Loads basis set from either predefined HF/HFS parameters or custom file,
+        then adds cap functions and stores in self.acbasis.
 
         Args:
             fname (str, optional): Path to custom parameter file.
@@ -90,25 +104,27 @@ class LB2020guess:
             self.acbasis = acbasis
             self.parameters = None
         elif parameters=='HF':
-            acbasis = self.hf_basis
+            acbasis = self._hf_basis
             self.add_caps(acbasis)
             self.acbasis = acbasis
             self.parameters = 'HF'
         elif parameters=='HFS':
-            self.acbasis = self.hfs_basis
+            self.acbasis = self._hfs_basis
             self.parameters = 'HFS'
 
 
     def use_charge(self, mol):
         """Adjusts basis coefficients based on molecular charge.
 
+        For charged molecules with HF parameters, scales the cap function
+        coefficient to account for charge redistribution.
+
         Args:
-            mol (pyscf Mole): pyscf Mole object.
+            mol (pyscf.gto.Mole): pyscf Mole object.
 
         Returns:
-            dict: Adjusted auxiliary basis set.
+            dict: Adjusted auxiliary basis set for molecule's elements.
         """
-
         acbasis = {q: copy.deepcopy(self.acbasis[q]) for q in map(mol.atom_symbol, range(mol.natm))}
         if self.parameters == 'HF':
             factor = 1.0-mol.charge/mol.natm
@@ -120,12 +136,15 @@ class LB2020guess:
     def use_ecp(self, mol, acbasis):
         """Adjusts basis set to account for effective core potentials (ECP).
 
+        When ECP is present, removes basis functions corresponding to core electrons
+        by reducing coefficients proportionally until core charge is accounted for.
+
         Args:
-            mol (pyscf Mole): pyscf Mole object with ECP.
+            mol (pyscf.gto.Mole): pyscf Mole object potentially with ECP.
             acbasis (dict): Auxiliary basis set dictionary.
 
         Returns:
-            dict: Adjusted auxiliary basis set accounting for ECP.
+            dict: Adjusted auxiliary basis set with core electrons removed if ECP present.
         """
         if not mol.has_ecp():
             return acbasis
@@ -159,13 +178,16 @@ class LB2020guess:
 
 
     def get_auxweights(self, auxmol):
-        """Extracts auxiliary basis weights from auxiliary molecule object.
+        """Extracts auxiliary basis weights from the basis.
+
+        Collects the coefficients from each auxiliary basis primitive
+        into a single array aligned with auxiliary orbital indices.
 
         Args:
-            auxmol (pyscf Mole): Auxiliary molecule object.
+            auxmol (pyscf.gto.Mole): Molecule object with auxiliary basis.
 
         Returns:
-            numpy ndarray: Array of auxiliary basis function weights.
+            numpy.ndarray: Array of auxiliary basis function weights (length nao).
         """
         w = np.zeros(auxmol.nao)
         iao = 0
@@ -180,12 +202,15 @@ class LB2020guess:
     def merge_caps(self, w, eri3c):
         """Contracts 3-center integrals with auxiliary basis weights.
 
+        PySCF internally renormalizes basis functions, thus ignores the charge normalization
+        of the auxiliary basis, and the weights must be used directly later.
+
         Args:
-            w (numpy ndarray): Auxiliary basis weights.
-            eri3c (numpy ndarray): 3-center electron repulsion integrals.
+            w (numpy.ndarray): Auxiliary basis weights.
+            eri3c (numpy.ndarray): 3-center electron repulsion integrals (ij|P).
 
         Returns:
-            numpy ndarray: Contracted integrals.
+            numpy.ndarray: Contracted integrals (ij) = sum_P w_P * (ij|P).
         """
         return np.einsum('...i,i->...', eri3c, w)
 
@@ -194,11 +219,12 @@ class LB2020guess:
         """Computes 3-center electron repulsion integrals.
 
         Args:
-            mol (pyscf Mole): Main molecule object.
-            auxmol (pyscf Mole): Auxiliary molecule object.
+            mol (pyscf.gto.Mole): Main molecule object.
+            auxmol (pyscf.gto.Mole): Auxiliary molecule object.
 
         Returns:
-            numpy ndarray: 3-center ERIs (ij|P) where i,j are AO indices and P is aux basis index.
+            numpy.ndarray: 3-center ERIs (ij|P) where i,j are primary AO indices
+                and P is auxiliary basis index.
         """
         pmol       = mol + auxmol
         shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
@@ -207,6 +233,18 @@ class LB2020guess:
 
 
     def check_coefficients(self, mol, acbasis):
+        """Validates that auxiliary basis coefficients sum to correct total charge.
+
+        Ensures basis set modifications (charge adjustment, ECP) maintain
+        consistency with molecular electronic structure.
+
+        Args:
+            mol (pyscf.gto.Mole): Molecule object.
+            acbasis (dict): Auxiliary basis set dictionary.
+
+        Raises:
+            RuntimeError: If coefficient sum doesn't match expected charge.
+        """
         ch1 = sum(sum(c/self.renormalize(a) for _, (a, c) in acbasis[mol.atom_pure_symbol(iat)]) for iat in range(mol.natm))
         ch2 = sum(mol.atom_charges()) - (mol.charge if self.parameters == 'HF' else 0)
         if not np.isclose(ch1, ch2):
@@ -214,6 +252,14 @@ class LB2020guess:
 
 
     def HLB20(self, mol):
+        """Computes the LB2020 effective potential matrix.
+
+        Args:
+            mol (pyscf.gto.Mole): Molecule object.
+
+        Returns:
+            numpy.ndarray: LB2020 potential matrix in AO basis (nao x nao).
+        """
         acbasis = self.use_charge(mol)
         acbasis = self.use_ecp(mol, acbasis)
         self.check_coefficients(mol, acbasis)
@@ -224,6 +270,16 @@ class LB2020guess:
 
 
     def Heff(self, mol):
+        """Constructs one-electron Hamiltonian for initial guess.
+
+        Combines standard core Hamiltonian with LB2020 effective potential.
+
+        Args:
+            mol (pyscf.gto.Mole): Molecule object.
+
+        Returns:
+            numpy.ndarray: Effective Hamiltonian matrix in AO basis (nao x nao).
+        """
         self.mol   = mol
         self.Hcore = scf.hf.get_hcore(mol)
         self.H     = self.Hcore + self.HLB20(mol)
@@ -231,6 +287,19 @@ class LB2020guess:
 
 
     def HLB20_ints_generator(self, mol, auxmol):
+        """Creates generator for LB2020 potential gradients.
+
+        Computes derivative integrals and returns a function that evaluates
+        the gradient of LB2020 potential with respect to atomic positions.
+
+        Args:
+            mol (pyscf.gto.Mole): Molecule object.
+            auxmol (pyscf.gto.Mole): Auxiliary molecule object.
+
+        Returns:
+            callable: Function that takes atom index and returns gradient integrals
+                as numpy.ndarray of shape (3, nao, nao, naux).
+        """
         pmol  = mol + auxmol
         shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
         eri3c2e_ip1 = pmol.intor('int3c2e_ip1', shls_slice=shls_slice) # (nabla \, \| \)
@@ -249,6 +318,15 @@ class LB2020guess:
 
 
     def HLB20_generator(self, mol):
+        """Creates generator for LB2020 potential gradient contributions.
+
+        Args:
+            mol (pyscf.gto.Mole): Molecule object.
+
+        Returns:
+            callable: Function that takes atom index and returns LB2020 potential
+                gradient as numpy.ndarray of shape (3, nao, nao).
+        """
         acbasis = self.use_charge(mol)
         acbasis = self.use_ecp(mol, acbasis)
         self.check_coefficients(mol, acbasis)
@@ -261,23 +339,28 @@ class LB2020guess:
 
 
     def init_data(self):
-        self.caps_array = np.zeros(self.Qmax+1)
-        self.caps_array  [  1 :   2 +1] = 1.0 /  3.0
-        self.caps_array  [  3 :   4 +1] = 1.0 / 16.0
-        self.caps_array  [  5 :  10 +1] = 1.0 /  3.0
-        self.caps_array  [ 11 :  12 +1] = 1.0 / 32.0
-        self.caps_array  [ 13 :  18 +1] = 1.0 /  8.0
-        self.caps_array  [ 19 :  20 +1] = 1.0 / 32.0
-        self.caps_array  [ 21 :  30 +1] = 1.0 /  6.0
-        self.caps_array  [ 31 :  36 +1] = 1.0 / 12.0
-        self.caps_array  [ 37 :  38 +1] = 1.0 / 32.0
-        self.caps_array  [ 39 :  48 +1] = 1.0 /  8.0
-        self.caps_array  [ 49 :  54 +1] = 1.0 / 12.0
-        self.caps_array  [ 55 :  70 +1] = 1.0 / 32.0
-        self.caps_array  [ 71 :  86 +1] = 1.0 / 12.0
-        self.caps_array  [ 87 : 102 +1] = 1.0 / 32.0
+        """Set parameters:
+        - self._caps_array: Diffuse function exponents for each element.
+        - self._hf_basis: Predefined HF parameter set for all elements.
+        - self._hfs_basis: Predefined HFS parameter set for all elements.
+        """
+        self._caps_array = np.zeros(self.Qmax+1)
+        self._caps_array  [  1 :   2 +1] = 1.0 /  3.0
+        self._caps_array  [  3 :   4 +1] = 1.0 / 16.0
+        self._caps_array  [  5 :  10 +1] = 1.0 /  3.0
+        self._caps_array  [ 11 :  12 +1] = 1.0 / 32.0
+        self._caps_array  [ 13 :  18 +1] = 1.0 /  8.0
+        self._caps_array  [ 19 :  20 +1] = 1.0 / 32.0
+        self._caps_array  [ 21 :  30 +1] = 1.0 /  6.0
+        self._caps_array  [ 31 :  36 +1] = 1.0 / 12.0
+        self._caps_array  [ 37 :  38 +1] = 1.0 / 32.0
+        self._caps_array  [ 39 :  48 +1] = 1.0 /  8.0
+        self._caps_array  [ 49 :  54 +1] = 1.0 / 12.0
+        self._caps_array  [ 55 :  70 +1] = 1.0 / 32.0
+        self._caps_array  [ 71 :  86 +1] = 1.0 / 12.0
+        self._caps_array  [ 87 : 102 +1] = 1.0 / 32.0
 
-        self.hfs_basis = {'H': [[0, [0.0815877135278, 0.03846658840144482]]],
+        self._hfs_basis = {'H': [[0, [0.0815877135278, 0.03846658840144482]]],
                           'He': [[0, [0.808048051263, 0.42950970838920094]]],
                           'Li': [[0, [2.60255347642, 0.9236581585938292]], [0, [0.0280604557276, 0.02092188631196157]]],
                           'Be': [[0, [4.59692793038, 1.5671644720955082]], [0, [0.0804833286681, 0.07687177344753668]]],
@@ -381,7 +464,7 @@ class LB2020guess:
                           'No': [[0, [9692.47931286, 489.2442112346279]], [0, [672.034303671, 214.23197488829172]], [0, [105.988550516, 117.63038685999115]], [0, [18.5442146559, 70.92646079341314]], [0, [2.7932429022, 16.425417198806798]], [0, [0.577107028367, 2.4645969790388342]], [0, [0.0432042120982, 0.07161106318788321]]],
                           }
 
-        self.hf_basis = {'H': [],
+        self._hf_basis = {'H': [],
                          'He': [[0, [1.8865345899608519, 0.4056146926108746]]],
                          'Li': [[0, [1.9854870701524918, 0.842937532901041]]],
                          'Be': [[0, [4.744586184977778, 1.3574437702689057]], [0, [0.2792470137084066, 0.12818229520909]]],

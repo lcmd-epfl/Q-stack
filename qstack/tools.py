@@ -1,3 +1,7 @@
+"""Utility functions and classes for Q-stack.
+
+Provides decorators, argument parsers, and helper functions for command-line tools."""
+
 import os
 import time
 import resource
@@ -69,7 +73,6 @@ class FlexParser(argparse.ArgumentParser):
         **kwargs: Arguments passed to ArgumentParser.
 
     """
-
     def remove_argument(self, arg):
         """Removes an argument from the parser.
 

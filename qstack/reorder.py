@@ -1,3 +1,5 @@
+"""Functions for reordering atomic orbitals between different conventions."""
+
 import numpy as np
 
 
@@ -63,7 +65,6 @@ def _pyscf2gpr_idx(l):
     Returns:
         tuple: Re-arranged indices array and sign array.
     """
-
     idx = np.arange(len(l))
     i=0
     while(i < len(idx)):
@@ -93,7 +94,6 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         NotImplementedError: If the specified convention is not implemented.
         ValueError: If vector dimension is not 1 or 2.
     """
-
     def get_idx(l, m, convention):
         convention = convention.lower()
         if convention == 'gpr':
@@ -107,6 +107,7 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             raise NotImplementedError(errstr)
 
     from .compound import basis_flatten
+
     _, l, m = basis_flatten(mol, return_both=False)
     idx_src, sign_src  = get_idx(l, m, src)
     idx_dest, sign_dest = get_idx(l, m, dest)

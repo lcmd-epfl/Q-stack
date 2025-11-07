@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"""Wigner D-matrices and spherical harmonic transformations."""
+
 import sys
 import sympy as sp
 from .xyz_integrals_sym import xyz as xyzint
@@ -97,8 +99,8 @@ def product_Y(Y1,Y2):
 
     Returns:
         tuple: A tuple containing:
-            - coefficients (sympy.Matrix): Coefficients of the product.
-            - monomials (list): List of monomial powers.
+        - coefficients (sympy.Matrix): Coefficients of the product.
+        - monomials (list): List of monomial powers.
     """
     prod = Y1 * Y2
     prod = prod.expand().cancel()

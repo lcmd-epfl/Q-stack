@@ -1,3 +1,5 @@
+"""Hirshfeld partitioning and atomic charge analysis."""
+
 import numpy as np
 import pyscf
 from .dm import make_grid_for_rho
@@ -16,7 +18,6 @@ def spherical_atoms(elements, atm_bas):
     Returns:
         dict: Dictionary mapping element symbols (str) to atomic density matrices (numpy 2D ndarrays).
     """
-
     dm_atoms = {}
     for q in elements:
         mol_atm = pyscf.gto.M(atom=[[q, [0,0,0]]], spin=pyscf.data.elements.ELEMENTS_PROTON[q]%2, basis=atm_bas)
@@ -32,7 +33,7 @@ def _hirshfeld_weights(mol, grid_coord, atm_dm, atm_bas, dominant):
     each grid point exclusively to the atom with the highest weight.
 
     Args:
-        mol (pyscf Mole): molecular pyscf Mole object.
+        mol (pyscf Mole): pyscf Mole object.
         grid_coord (numpy ndarray): 2D array (ngrids, 3) of grid point coordinates in Bohr.
         atm_dm (dict): Dictionary mapping element symbols to atomic density matrices from `spherical_atoms`.
         atm_bas (str or dict): Basis set name or dictionary used for atomic density matrices.
@@ -41,7 +42,6 @@ def _hirshfeld_weights(mol, grid_coord, atm_dm, atm_bas, dominant):
     Returns:
         numpy ndarray: 2D array (natm, ngrids) of partitioning weights for each atom at each grid point.
     """
-
     # promolecular density
     grid_n = len(grid_coord)
     rho_atm = np.zeros((mol.natm, grid_n), dtype=float)
@@ -76,11 +76,11 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
     or density matrices, and supports both standard and dominant partitioning.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object for the molecule.
+        mol (pyscf Mole): pyscf Mole object.
         cd (numpy ndarray or list): Density representation as:
-            - 1D array: density-fitting coefficients
-            - 2D array: density matrix in AO basis
-            - list: multiple densities (returns list of results)
+            - 1D array: Density-fitting coefficients
+            - 2D array: Density matrix in AO basis
+            - list: Multiple densities (returns list of results).
         dm_atoms (dict, optional): Pre-computed atomic density matrices from `spherical_atoms`.
             If None, computed automatically. Defaults to None.
         atm_bas (str or dict, optional): Basis set for atomic density matrices.
@@ -93,10 +93,9 @@ def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
 
     Returns:
         numpy ndarray or list: Atomic charges or occupations.
-            - Single 1D array if cd is a single density
-            - List of 1D arrays if cd is a list of densities
+        - Single 1D array if cd is a single density.
+        - List of 1D arrays if cd is a list of densities.
     """
-
     def atom_contributions(cd, ao, tot_weights):
         if cd.ndim==1:
             tmp = np.einsum('i,xi->x', cd, ao)

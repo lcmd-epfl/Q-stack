@@ -1,3 +1,5 @@
+"""Cross-validation results."""
+
 import numpy as np
 from tqdm import tqdm
 from qstack.tools import correct_num_threads
@@ -17,26 +19,26 @@ def cv_results(X, y,
     """ Computes various learning curves (LC) ,with random sampling, and returns the average performance.
 
     Args:
-        X (numpy.ndarray[Nsamples,...]): array containing the representations of all Nsamples
-        y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
-        sigmaarr (list): list of kernel width for the grid search
-        etaarr (list): list of regularization strength for the grid search
-        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
-        gkernel (str): global kernel (None, 'REM', 'avg')
-        gdict (dict): parameters of the global kernels
-        test_size (float or int): test set fraction (or number of samples)
-        train_size (list): list of training set size fractions used to evaluate the points on the LC
-        splits (int): K number of splits for the Kfold cross-validation
-        printlevel (int): controls level of output printing
-        adaptative (bool): to expand the grid for optimization adaptatively
-        read_kernel (bool): if 'X' is a kernel and not an array of representations
-        n_rep (int): the number of repetition for each point (using random sampling)
-        save (bool): wheather to save intermediate LCs (.npy)
-        preffix (str): the prefix to use for filename when saving intemediate results
-        save_pred (bool): to save predicted targets for all LCs (.npy)
-        progress (bool): to print a progress bar
-        sparse (int): the number of reference environnments to consider for sparse regression
-        seed0 (int): the initial seed to produce a set of seeds used for random number generator
+        X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
+        y (numpy.1darray[Nsamples]): Array containing the target property of all Nsamples.
+        sigmaarr (list): List of kernel width for the grid search.
+        etaarr (list): List of regularization strength for the grid search.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
+        test_size (float or int): Test set fraction (or number of samples).
+        train_size (list): List of training set size fractions used to evaluate the points on the LC.
+        splits (int): K number of splits for the Kfold cross-validation.
+        printlevel (int): Controls level of output printing.
+        adaptative (bool): To expand the grid for optimization adaptatively.
+        read_kernel (bool): If 'X' is a kernel and not an array of representations.
+        n_rep (int): The number of repetition for each point (using random sampling).
+        save (bool): Wheather to save intermediate LCs (.npy).
+        preffix (str): The prefix to use for filename when saving intemediate results.
+        save_pred (bool): To save predicted targets for all LCs (.npy).
+        progress (bool): To print a progress bar.
+        sparse (int): The number of reference environnments to consider for sparse regression.
+        seed0 (int): The initial seed to produce a set of seeds used for random number generator.
 
     Returns:
         The averaged LC data points as a numpy.ndarray containing (train sizes, MAE, std)

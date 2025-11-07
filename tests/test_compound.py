@@ -37,7 +37,7 @@ def test_rotate_molecule():
 def test_mol_to_xyz():
     path = os.path.dirname(os.path.realpath(__file__))
     molpath = path+'/data/H2O_saved.xyz'
-    with open(molpath, 'r') as f:
+    with open(molpath) as f:
         xyz0 = f.read().strip()
     mol = compound.xyz_to_mol(molpath, 'def2svp', charge=0, spin=0)
     xyz = compound.mol_to_xyz(mol, '/dev/null')

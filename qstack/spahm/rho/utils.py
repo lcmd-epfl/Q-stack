@@ -1,3 +1,10 @@
+"""Utility functions for SPAHM(a,b) computation and default settings.
+
+Provides:
+    defaults: Default parameters for SPAHM(a,b) computation.
+    omod_fns_dict: Dictionary of density matrix modification functions for open-shell systems.
+"""
+
 import os
 import warnings
 import numpy as np
@@ -6,6 +13,7 @@ from tqdm import tqdm
 import qstack.spahm.compute_spahm as spahm
 from qstack.spahm import guesses
 from qstack import compound
+
 
 defaults = SimpleNamespace(
         guess='LB',
@@ -59,10 +67,10 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
         xyzlist (list): List of XYZ filenames.
         charge (list or None): List of molecular charges (or None for neutral).
         spin (list or None): List of spin multiplicities (or None for default).
-        basis (str or dict): Basis set specification.
+        basis (str or dict): Basis set.
         printlevel (int): Verbosity level (0=silent). Defaults to 0.
         units (str): Coordinate units ('ANG' or 'BOHR'). Defaults to 'ANG'.
-        ecp (str or dict, optional): Effective core potential specification. Defaults to None.
+        ecp (str or dict, optional): Effective core potential. Defaults to None.
         progress (bool): If True, shows progress bar. Defaults to False.
         srcdir (str, optional): Source directory prepended to XYZ filenames. Defaults to None.
 
@@ -106,15 +114,15 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
     dms = []
     guess = guesses.get_guess(guess)
     if spin is None:
-        spin = [None] *len(xyzlist)
+        spin = [None]*len(xyzlist)
     for xyzfile, mol, sp in zip(xyzlist, mols, spin, strict=True):
         if printlevel>0:
             print(xyzfile, flush=True)
         if readdm is None:
             _e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
-            dm   = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None)
+            dm = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None)
         else:
-            dm = np.load(readdm+'/'+os.path.basename(xyzfile)+'.npy')
+            dm = np.load(f'{readdm}/{os.path.basename(xyzfile)}.npy')
             if spin and dm.ndim==2:
                 dm = np.array((dm/2,dm/2))
         dms.append(dm)
@@ -124,29 +132,55 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
 
 
 def dm_open_mod(dm, omod):
-    """Applies open-shell modification to density matrix.
+    """Treats density matrix according to the open-shell mode..
 
     Args:
         dm (numpy ndarray): Density matrix (2D for closed-shell, 3D for open-shell).
-        omod (str or None): Open-shell modification type. Options in omod_fns_dict.
+        omod (str or None): Open-shell mode. Options in omod_fns_dict.
 
     Returns:
         numpy ndarray: Modified density matrix.
 
     Raises:
-        ValueError: If omod is not a valid modification type.
+        NotImplementedError: If omod is not a valid modification type.
+        RuntimeError: If dm is 2D but omod is None, or if dm is 3D but omod is not None.
     """
-    omod_fns_dict[None] = lambda dm: dm
-    if omod in omod_fns_dict:
-        return omod_fns_dict[omod](dm)
-    else:
-        raise ValueError(f'unknown open-shell mod: must be in {list(omod_fns_dict.keys())}, None if the system is closed-shell')
+    if omod is None:
+        if dm.ndim==3:
+            raise RuntimeError('Density matrix is open-shell (3D) but omod is None')
+        elif dm.ndim==2:
+            return dm
+    elif dm.ndim == 2:
+        raise RuntimeError('Density matrix is closed-shell (2D) but omod is not None')
+    if omod not in omod_fns_dict:
+        raise ValueError(f'unknown open-shell mode: must be in {list(omod_fns_dict.keys())}, None if the system is closed-shell')
+    return omod_fns_dict[omod](dm)
 
 
 def get_xyzlist(xyzlistfile):
+    """Load list of paths to files.
+
+    Args:
+        xyzlistfile (str): Path to the file containing list of XYZ filenames.
+
+    Returns:
+        numpy ndarray: Array of XYZ filenames as strings.
+    """
     return np.loadtxt(xyzlistfile, dtype=str, ndmin=1)
 
+
 def check_data_struct(fin, local=False):
+    """Check the structure of a representation file.
+
+    Args:
+        fin (str): Input file path.
+        local (bool): If True, checks for local representations.
+
+    Returns:
+        tuple: (is_single (bool), is_labeled (bool))
+            is_single: True if the file contains a single representation.
+            is_labeled: True if the representations are labeled.
+    """
     x = np.load(fin, allow_pickle=True)
     if type(x.flatten()[0]) is str or type(x.flatten()[0]) is np.str_:
         is_labeled = True
@@ -167,26 +201,26 @@ def check_data_struct(fin, local=False):
     return is_single, is_labeled
 
 
-
 def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
               local=True, sum_local=False, printlevel=0, progress=False,
               file_format=None):
-    '''
-    A function to load representations from txt-list/npy files.
-        Args:
-            - f_in: the name of the input file
-            - from_list(bool): if the input file is a txt-file containing a list of paths to the representations
-            - srcdir(str) : the path prefix to be at the begining of each file in `f_in`, defaults to cwd
-            - with_label(bool): saves a list of tuple (filename, representation)
-            - local(bool): if the representations is local
-            - sum_local(bool): if local=True then sums the local components
-            - printlevel(int): level of verbosity
-            - progress(bool): if True shows progress-bar
-            - file_format(dict): (for "experienced users" only) structure of the input data, defaults to structure auto determination
-        Return:
-            np.array with shape (N,M) where N number of representations M dimmensionality of the representation
-            OR tuple ([N],np.array(N,M)) containing list of labels and np.array of representations
-    '''
+    """Load representations from disk.
+
+       Args:
+           f_in (str): Path to the input file.
+           from_list (bool): If the input file is a text file containing a list of paths to the representations.
+           srcdir (str) : The path prefix to be at the begining of each file in `f_in`. Defaults to current working directory.
+           with_labels (bool): If return atom type labes along with the representations.
+           local (bool): If the representations are local (per-atom) or global (per-molecule).
+           sum_local (bool): Sums the local components into a global representation, only if local=True.
+           printlevel (int): Verbosity level.
+           progress (bool): If shows a progress bar.
+           file_format (dict): Structure of the input data, with keys=('is_labeled;, 'is_single').
+               Defaults to structure auto determination (for "experienced users" only).
+
+       Returns:
+           np.array with shape (N_representations, N_features), or a tuple containing a list of atomic labels and said np.array.
+    """
     if file_format is None:  # Do not use mutable data structures for argument defaults
         file_format = {'is_labeled':None, 'is_single':None}
     if srcdir is None:
@@ -247,7 +281,18 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
     else:
         return reps
 
+
 def regroup_symbols(file_list, print_level=0, trim_reps=False):
+    """Regroups representations by atom type.
+
+    Args:
+        file_list (list): List of representation files.
+        print_level (int): Verbosity level. Defaults to 0.
+        trim_reps (bool): If True, trims zeros from representations. Defaults to False.
+
+    Returns:
+        dict: Dictionary with atom types as keys and lists of representations as values.
+    """
     reps, atoms = load_reps(file_list, from_list=True, with_labels=True, local=True, printlevel=print_level)
     if print_level > 0:
         print(f"Extracting {len(atoms)} atoms from {file_list}:")

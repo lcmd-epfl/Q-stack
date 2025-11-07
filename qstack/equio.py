@@ -1,10 +1,14 @@
+"""Equilibrium geometry and molecular structure I/O utilities."""
+
+import itertools
 from functools import reduce
-import numpy as np
 from types import SimpleNamespace
+import numpy as np
 from pyscf import data
 import metatensor
 from qstack.reorder import get_mrange
 from qstack.compound import singleatom_basis_enumerator
+
 
 vector_label_names = SimpleNamespace(
     tm = ['o3_lambda', 'center_type'],
@@ -48,8 +52,9 @@ def _get_tsize(tensor):
     """
     return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
 
+
 def _labels_to_array(labels):
-    """Represents a set of metatensor labels as an array of the labels, using custom dtypes.
+    """Represents a set of metatensor labels as an array.
 
     Args:
         labels (metatensor.Labels): Labels object.
@@ -58,22 +63,23 @@ def _labels_to_array(labels):
         numpy.ndarray: 1D structured array containing the same labels.
     """
     values = labels.values
-    dtype = [ (name,values.dtype) for name in labels.names]
+    dtype = [(name, values.dtype) for name in labels.names]
     return values.view(dtype=dtype).reshape(values.shape[0])
 
+
 def vector_to_tensormap(mol, c):
-    """Transform a vector into a tensor map. Used by :py:func:`array_to_tensormap`.
+    """Transforms an vector into a tensor map.
+
+    Each element of the vector corresponds to an atomic orbital of the molecule.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
-        c (numpy.ndarray): Vector to transform.
+        c (numpy.ndarray): vector to transform.
 
     Returns:
         metatensor.TensorMap: Tensor map representation of the vector.
     """
-
-    atom_charges = list(mol.atom_charges())
-    elements = sorted(set(atom_charges))
+    atom_charges = mol.atom_charges()
 
     tm_label_vals = []
     block_prop_label_vals = {}
@@ -87,18 +93,18 @@ def vector_to_tensormap(mol, c):
 
     llists = _get_llist(mol)
 
-    for q in elements:
+    for q, samples_count in zip(*np.unique(atom_charges, return_counts=True), strict=True):
         llist = llists[q]
+        block_samp_label_vals_q = np.where(atom_charges==q)[0].reshape(-1,1)
         for l in sorted(set(llist)):
             label = (l, q)
             tm_label_vals.append(label)
-            samples_count    = atom_charges.count(q)
             components_count = 2*l+1
             properties_count = llist.count(l)
             blocks[label] = np.zeros((samples_count, components_count, properties_count))
             block_comp_label_vals[label] = np.arange(-l, l+1).reshape(-1,1)
             block_prop_label_vals[label] = np.arange(properties_count).reshape(-1,1)
-            block_samp_label_vals[label] = np.where(atom_charges==q)[0].reshape(-1,1)
+            block_samp_label_vals[label] = block_samp_label_vals_q
 
     tm_labels = metatensor.Labels(vector_label_names.tm, np.array(tm_label_vals))
 
@@ -108,7 +114,7 @@ def vector_to_tensormap(mol, c):
 
     # Fill in the blocks
 
-    iq = dict.fromkeys(elements, 0)
+    iq = dict.fromkeys(llists.keys(), 0)
     i = 0
     for q in atom_charges:
         if llists[q]==sorted(llists[q]):
@@ -141,11 +147,11 @@ def vector_to_tensormap(mol, c):
 
 
 def tensormap_to_vector(mol, tensor):
-    """Transform a tensor map into a vector. Used by :py:func:`tensormap_to_array`.
+    """Transform a tensor map into a vector.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
-        tensor (metatensor.TensorMap): Tensor to transform.
+        tensor (metatensor.TensorMap): tensor to transform.
 
     Returns:
         numpy.ndarray: 1D array (vector) representation.
@@ -153,7 +159,6 @@ def tensormap_to_vector(mol, tensor):
     Raises:
         RuntimeError: If tensor size does not match mol.nao.
     """
-
     nao = _get_tsize(tensor)
     if mol.nao != nao:
         raise RuntimeError(f'Tensor size mismatch ({nao} instead of {mol.nao})')
@@ -178,62 +183,51 @@ def tensormap_to_vector(mol, tensor):
 
 
 def matrix_to_tensormap(mol, dm):
-    """Transform a matrix into a tensor map. Used by :py:func:`array_to_tensormap`.
+    """Transforms a matrix into a tensor map.
+
+    Each element of the matrix corresponds to a pair of atomic orbitals.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
-        dm (numpy.ndarray): Matrix to transform.
+        dm (numpy.ndarray): matrix to transform.
 
     Returns:
         metatensor.TensorMap: Tensor map representation of the matrix.
     """
-
-    def pairs(list1, list2):
-        """Generate all pairs from two lists.
-
-        Args:
-            list1 (list): First list.
-            list2 (list): Second list.
-
-        Returns:
-            numpy.ndarray: Array of all (i,j) pairs.
-        """
-        return np.array([(i,j) for i in list1 for j in list2])
-
-    atom_charges = list(mol.atom_charges())
-    elements = sorted(set(atom_charges))
+    atom_charges = mol.atom_charges()
+    elements, counts = np.unique(atom_charges, return_counts=True)
+    counts = dict(zip(elements, counts, strict=True))
+    element_indices = {q: np.where(atom_charges==q)[0] for q in elements}
+    llists = _get_llist(mol)
 
     tm_label_vals = []
     block_prop_label_vals = {}
     block_samp_label_vals = {}
     block_comp_label_vals = {}
-
     blocks = {}
-    llists = _get_llist(mol)
 
     # Create labels for TensorMap, lables for blocks, and empty blocks
 
     for q1 in elements:
         for q2 in elements:
+            samples_count1 = counts[q1]
+            samples_count2 = counts[q2]
             llist1 = llists[q1]
             llist2 = llists[q2]
+            block_samp_label_vals_q1q2 = np.array([*itertools.product(element_indices[q1], element_indices[q2])])
             for l1 in sorted(set(llist1)):
+                components_count1 = 2*l1+1
+                properties_count1 = llist1.count(l1)
                 for l2 in sorted(set(llist2)):
-                    label = (l1, l2, q1, q2)
-                    tm_label_vals.append(label)
-
-                    samples_count1    = atom_charges.count(q1)
-                    components_count1 = 2*l1+1
-                    properties_count1 = llist1.count(l1)
-
-                    samples_count2    = atom_charges.count(q2)
                     components_count2 = 2*l2+1
                     properties_count2 = llist2.count(l2)
 
+                    label = (l1, l2, q1, q2)
+                    tm_label_vals.append(label)
                     blocks[label] = np.zeros((samples_count1*samples_count2, components_count1, components_count2, properties_count1*properties_count2))
                     block_comp_label_vals[label] = (np.arange(-l1, l1+1).reshape(-1,1), np.arange(-l2, l2+1).reshape(-1,1))
-                    block_prop_label_vals[label] = pairs(np.arange(properties_count1), np.arange(properties_count2))
-                    block_samp_label_vals[label] = pairs(np.where(atom_charges==q1)[0],np.where(atom_charges==q2)[0])
+                    block_prop_label_vals[label] = np.array([*itertools.product(np.arange(properties_count1), np.arange(properties_count2))])
+                    block_samp_label_vals[label] = block_samp_label_vals_q1q2
 
     tm_labels = metatensor.Labels(matrix_label_names.tm, np.array(tm_label_vals))
 
@@ -309,11 +303,11 @@ def matrix_to_tensormap(mol, dm):
 
 
 def tensormap_to_matrix(mol, tensor):
-    """Transform a tensor map into a matrix. Used by :py:func:`tensormap_to_array`.
+    """Transform a tensor map into a matrix.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
-        tensor (metatensor.TensorMap): Tensor to transform.
+        tensor (metatensor.TensorMap): tensor to transform.
 
     Returns:
         numpy.ndarray: 2D array (matrix) representation.
@@ -321,7 +315,6 @@ def tensormap_to_matrix(mol, tensor):
     Raises:
         RuntimeError: If tensor size does not match mol.nao * mol.nao.
     """
-
     nao2 = _get_tsize(tensor)
     if mol.nao*mol.nao != nao2:
         raise RuntimeError(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
@@ -335,17 +328,14 @@ def tensormap_to_matrix(mol, tensor):
         il1 = dict.fromkeys(range(max(llist1) + 1), 0)
         for l1 in llist1:
             for m1 in get_mrange(l1):
-
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     llist2 = llists[q2]
                     il2 = dict.fromkeys(range(max(llist2) + 1), 0)
                     for l2 in llist2:
-
                         block = tensor.block(o3_lambda1=l1, o3_lambda2=l2, center_type1=q1, center_type2=q2)
                         id_samp = block.samples.position((iat1, iat2))
                         id_prop = block.properties.position((il1[l1], il2[l2]))
-
                         for m2 in get_mrange(l2):
                             id_comp1 = block.components[0].position((m1,))
                             id_comp2 = block.components[1].position((m2,))
@@ -354,11 +344,13 @@ def tensormap_to_matrix(mol, tensor):
                         il2[l2] += 1
                 i1 += 1
             il1[l1] += 1
-
     return dm
+
 
 def array_to_tensormap(mol, v):
     """Transform an array into a tensor map.
+
+    Wrapper for vector_to_tensormap and matrix_to_tensormap.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
@@ -381,6 +373,8 @@ def array_to_tensormap(mol, v):
 def tensormap_to_array(mol, tensor):
     """Transform a tensor map into an array.
 
+    Wrapper for tensormap_to_vector and tensormap_to_matrix.
+
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         tensor (metatensor.TensorMap): Tensor to transform.
@@ -391,7 +385,6 @@ def tensormap_to_array(mol, tensor):
     Raises:
         RuntimeError: If tensor key names don't match expected format.
     """
-
     if tensor.keys.names==vector_label_names.tm:
         return tensormap_to_vector(mol, tensor)
     elif tensor.keys.names==matrix_label_names.tm:
@@ -412,7 +405,6 @@ def join(tensors):
     Raises:
         RuntimeError: If tensors have different label names.
     """
-
     if not all(tensor.keys.names==tensors[0].keys.names for tensor in tensors):
         raise RuntimeError('Cannot merge tensors with different label names')
     tm_label_vals = set().union(*[set(_labels_to_array(tensor.keys)) for tensor in tensors])
@@ -459,12 +451,11 @@ def split(tensor):
 
     Returns:
         list or dict: Collection of metatensor.TensorMap objects, one per molecule.
-            Returns list if molecule indices are continuous, dict otherwise.
+        Returns list if molecule indices are continuous, dict otherwise.
 
     Raises:
         RuntimeError: If tensor does not contain multiple molecules.
     """
-
     if tensor.sample_names[0]!=_molid_name:
         raise RuntimeError('Tensor does not seem to contain several molecules')
 

@@ -1,3 +1,7 @@
+"""ORCA quantum chemistry package I/O utilities.
+
+Read and parse ORCA output files, including orbitals and densities binary files."""
+
 import warnings
 import struct
 import numpy as np
@@ -20,7 +24,6 @@ def read_input(fname, basis, ecp=None):
     Returns:
         pyscf.gto.Mole: pyscf Mole object.
     """
-
     with open(fname) as f:
         lines = [x.strip() for x in f]
 
@@ -65,7 +68,6 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     Raises:
         RuntimeError: If density matrix reordering is compromised for def2 basis with 3d elements.
     """
-
     path = directory+'/'+basename
     if version < 500:
         if version==400:
@@ -115,15 +117,16 @@ def _parse_gbw(fname):
 
     Returns:
         tuple: A tuple containing:
-            - coefficients_ab (numpy.ndarray): 3D array of shape (s,nao,nao) with MO coefficients.
-            - energies_ab (numpy.ndarray): 2D array of shape (s,nao) with MO energies.
-            - occupations_ab (numpy.ndarray): 2D array of shape (s,nao) with MO occupation numbers.
-            - ls (dict): Dictionary mapping atom index to list of basis function angular momenta.
+        - coefficients_ab (numpy.ndarray): 3D array of shape (s,nao,nao) with MO coefficients.
+        - energies_ab (numpy.ndarray): 2D array of shape (s,nao) with MO energies.
+        - occupations_ab (numpy.ndarray): 2D array of shape (s,nao) with MO occupation numbers.
+        - ls (dict): Dictionary mapping atom index to list of basis function angular momenta.
+        s=1 for closed-shell and 2 for open-shell computation,
+            nao is the number of atomic/molecular orbitals.
 
     Raises:
         RuntimeError: If number of MO sets is not 1 or 2.
     """
-
     def read_array(f, n, dtype):
         return np.frombuffer(f.read(dtype().itemsize * n), dtype=dtype)
 
@@ -252,10 +255,10 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
 
     Returns:
         tuple: A tuple containing:
-            - c (numpy.ndarray): 3D array of shape (s,nao,nao) with MO coefficients.
-            - e (numpy.ndarray): 2D array of shape (s,nao) with MO energies.
-            - occ (numpy.ndarray): 2D array of shape (s,nao) with MO occupation numbers.
-            Where s is 1 for closed-shell and 2 for open-shell computation,
+        - c (numpy.ndarray): 3D array of shape (s,nao,nao) with MO coefficients.
+        - e (numpy.ndarray): 2D array of shape (s,nao) with MO energies.
+        - occ (numpy.ndarray): 2D array of shape (s,nao) with MO occupation numbers.
+        Where s is 1 for closed-shell and 2 for open-shell computation,
             and nao is the number of atomic/molecular orbitals.
 
     Raises:

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
+"""Cartesian integrals for spherical harmonics (float version)."""
+
 import sys
+
 
 def xyz(n, m, k):
     """Computes the integral of x^2k y^2n z^2m over a unit sphere.
@@ -16,7 +19,6 @@ def xyz(n, m, k):
     Returns:
         float: The value of the integral.
     """
-
     k,n,m = sorted([k,n,m], reverse=True)
     if n==0:  # both n and m are 0
         xyz = 2.0 * (1.0 - (2.0*k-1.0)/(2.0*k+1.0))
@@ -36,7 +38,6 @@ def I23(n,m,k):
     Returns:
         float: The value of the integral.
     """
-
     I23 = 0.0
     for l in range(n+m+2):
         I23 = I23 + (-1)**l * trinomial( n+m+1, n+m+1-l, l) / (2.0*l+2.0*k-1.0)
@@ -57,7 +58,6 @@ def trinomial(k1, k2, k3):
     Returns:
         float: The value of the trinomial coefficient.
     """
-
     k1,k2,k3 = sorted([k1,k2,k3], reverse=True)
     trinom = 1.0
     for k in range(1,k2+1):

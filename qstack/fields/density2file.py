@@ -1,8 +1,11 @@
+"""Density field output to file formats (cube, etc.)."""
+
 import numpy as np
 from pyscf.dft.numint import eval_ao
 from pyscf.tools.cubegen import Cube
 import pyscf.tools.molden
 from . import moments
+
 
 def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, margin=3.0):
     """Saves the electron density to a cube file.
@@ -20,7 +23,6 @@ def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, m
     Returns:
         None: Creates a file named <cubename>.cube on disk.
     """
-
     grid = Cube(mol, nx, ny, nz, resolution, margin)
     coords = grid.get_coords()
     ao = eval_ao(mol, coords)
@@ -40,7 +42,6 @@ def coeffs_to_molden(mol, coeffs, moldenname):
     Returns:
         None: Creates a file named <moldenname>.molden on disk.
     """
-
     with open(moldenname, 'w') as f:
         N = moments.r2_c(mol, coeffs, moments=[0])[0]
         pyscf.tools.molden.header(mol, f, True)

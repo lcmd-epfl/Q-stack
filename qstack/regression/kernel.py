@@ -1,3 +1,5 @@
+"""Kernel matrix computation."""
+
 import os
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -9,12 +11,12 @@ def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=def
     """ Computes a kernel between sets A and B (or A and A) using their representations.
 
     Args:
-        X (numpy.ndarray): Representation of A
+        X (numpy.ndarray): Representation of A.
         Y (numpy.ndarray): Representation of B.
-        sigma (float): width of the kernel
-        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
-        gkernel (str): global kernel (None, 'REM', 'avg')
-        gdict (dict): parameters of the global kernels
+        sigma (float): Width of the kernel.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
 
     Returns:
         A numpy ndarray containing the kernel.

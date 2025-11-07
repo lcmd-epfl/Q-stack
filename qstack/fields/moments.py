@@ -1,3 +1,5 @@
+"""Multipole moment computation functions."""
+
 import numpy as np
 from qstack.compound import basis_flatten
 from qstack.mathutils.array import safe_divide, scatter
@@ -61,30 +63,27 @@ def r2_c(mol, rho, moments=(0,1,2), per_atom=False):
 
     Returns:
         tuple: If rho!=None, values representing the requested moments, possibly containing:
-            - float: Zeroth moment (integrated density).
-            - numpy ndarray: First moment (3-component dipole vector).
-            - float: Second moment (mean square radius).
-            If rho is None, arrays representing the requested moments in AO basis so that
+        - float: Zeroth moment (integrated density).
+        - numpy ndarray: First moment (3-component dipole vector).
+        - float: Second moment (mean square radius).
+        If rho is None, arrays representing the requested moments in AO basis so that
             they can be contracted with the coefficients usin (returned array)@(rho).
 
-            if rho is None and per_atom is True:
-            0st moment: (mol.nao, mol.natm)
-            1st moment: (3, mol.nao, mol.natm)
-            2nd moment: (mol.nao, mol.natm)
+        if rho is None and per_atom is True:
+        0st moment: (mol.nao, mol.natm)
+        1st moment: (3, mol.nao, mol.natm)
+        2nd moment: (mol.nao, mol.natm)
 
-            if rho is None and per_atom is False:
-            0st moment: (mol.nao,)
-            1st moment: (3, mol.nao)
-            2nd moment: (mol.nao,)
+        if rho is None and per_atom is False:
+        0st moment: (mol.nao,)
+        1st moment: (3, mol.nao)
+        2nd moment: (mol.nao,)
 
-            if rho is not None and per_atom is True:
-            0st moment: (mol.natm,)
-            1st moment: (3, mol.natm)
-            2nd moment: (mol.natm,)
-
-
+        if rho is not None and per_atom is True:
+        0st moment: (mol.natm,)
+        1st moment: (3, mol.natm)
+        2nd moment: (mol.natm,)
     """
-
     if max(moments)>2:
         raise RuntimeError('Only moments 0, 1, and 2 are supported.')
     ret = {}

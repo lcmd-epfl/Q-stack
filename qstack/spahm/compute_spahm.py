@@ -1,3 +1,5 @@
+"""Eigenvalue SPAHM computation."""
+
 import numpy as np
 from pyscf import scf, grad
 from .guesses import solveF, get_guess, get_occ, eigenvalue_grad, get_guess_g
@@ -16,11 +18,11 @@ def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
 
     Returns:
         tuple: Depending on return_ao_dip:
-            - If False: (e, v) where:
-                - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues
-                - v (numpy ndarray): 2D array (nao, nao) of MO coefficients
-            - If True: (e, v, ao_dip) where ao_dip is 3D array (3, nao, nao) of AO dipole integrals
-                                      if field is not None, else None
+        - If False: (e, v) where:
+        - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues.
+        - v (numpy ndarray): 2D array (nao, nao) of MO coefficients.
+        - If True: (e, v, ao_dip) where ao_dip is 3D array (3, nao, nao) of AO dipole integrals
+            if field is not None, else None.
 
     Raises:
         NotImplementedError: If field is specified with Hückel guess.
@@ -60,7 +62,6 @@ def ext_field_generator(mol, field):
             3D array (3, nao, nao) of dH_ext/dr[iat] - external field Hamiltonian
             gradient for atom iat.
     """
-
     shls_slice = (0, mol.nbas, 0, mol.nbas)
     with mol.with_common_orig((0,0,0)):
         int1e_irp = mol.intor('int1e_irp', shls_slice=shls_slice).reshape(3, 3, mol.nao, mol.nao) # ( | rc nabla | )
@@ -92,12 +93,11 @@ def get_guess_orbitals_grad(mol, guess, field=None):
 
     Returns:
         tuple: (e, de_dr, de_dfield) where:
-            - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues in Eh
-            - de_dr (numpy ndarray): 3D array (nao, natm, 3) of eigenvalue gradients in Eh/bohr
-            - de_dfield (numpy ndarray or None): 2D array (nao, 3) of eigenvalue derivatives
-              w.r.t. electric field in Eh/a.u., or None if field is None
+        - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues in Eh.
+        - de_dr (numpy ndarray): 3D array (nao, natm, 3) of eigenvalue gradients in Eh/bohr.
+        - de_dfield (numpy ndarray or None): 2D array (nao, 3) of eigenvalue derivatives
+            w.r.t. electric field in Eh/a.u., or None if field is None.
     """
-
     e, c, ao_dip = get_guess_orbitals(mol, guess[0], field=field, return_ao_dip=True)
     mf = grad.rhf.Gradients(scf.RHF(mol))
     s1 = mf.get_ovlp(mol)
@@ -130,8 +130,8 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
 
     Returns:
         numpy ndarray: SPAHM representation consisting of occupied orbital eigenvalues.
-            - Closed-shell: 1D array of shape (n_occupied,) in Eh
-            - Open-shell: 2D array of shape (2, n_alpha) for alpha and beta orbitals (padded by zeros)
+        - Closed-shell: 1D array of shape (n_occupied,) in Eh.
+        - Open-shell: 2D array of shape (2, n_alpha) for alpha and beta orbitals (padded by zeros).
     """
     guess = get_guess(guess_in)
     e, _v = get_guess_orbitals(mol, guess, xc, field=field)
@@ -153,12 +153,12 @@ def get_spahm_representation_grad(mol, guess_in, field=None):
 
     Returns:
         tuple: (spahm, spahm_grad, spahm_field_grad) where:
-            - spahm (numpy ndarray): SPAHM representation - occupied orbital energies in Eh.
-              Shape: (n_occ,) for closed-shell or (2, n_alpha) for open-shell
-            - spahm_grad (numpy ndarray): Nuclear gradients of SPAHM in Eh/bohr.
-              Shape: (n_occ, natm, 3) or (2, n_alpha, natm, 3)
-            - spahm_field_grad (numpy ndarray or None): Electric field gradients in Eh/a.u.
-              Shape: (n_occ, 3) or (2, n_alpha, 3), or None if field is None
+        - spahm (numpy ndarray): SPAHM representation - occupied orbital energies in Eh.
+            Shape: (n_occ,) for closed-shell or (2, n_alpha) for open-shell.
+        - spahm_grad (numpy ndarray): Nuclear gradients of SPAHM in Eh/bohr.
+            Shape: (n_occ, natm, 3) or (2, n_alpha, natm, 3).
+        - spahm_field_grad (numpy ndarray or None): Electric field gradients in Eh/a.u.
+            Shape: (n_occ, 3) or (2, n_alpha, 3), or None if field is None.
     """
     guess = get_guess_g(guess_in)
     e, agrad, fgrad = get_guess_orbitals_grad(mol, guess, field=field)

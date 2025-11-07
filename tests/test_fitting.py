@@ -39,9 +39,11 @@ def test_fitting_error():
     c0 = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
     error0 = 4.876780263884939e-05
     auxmol = compound.make_auxmol(mol, 'cc-pvdz jkfit')
-    eri2c = auxmol.intor('int2c2e_sph')
+    _, eri2c, eri3c = decomposition.get_integrals(mol, auxmol)
     self_repulsion = decomposition.get_self_repulsion(mol, dm)
-    error = decomposition.decomposition_error(self_repulsion, c0, eri2c)
+    error = decomposition.optimal_decomposition_error(self_repulsion, c0, eri2c)
+    assert(np.allclose(error, error0))
+    error = decomposition.decomposition_error(self_repulsion, c0, eri2c, eri3c, dm)
     assert(np.allclose(error, error0))
 
 

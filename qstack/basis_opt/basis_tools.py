@@ -1,3 +1,5 @@
+"""Utility functions for basis set manipulation."""
+
 import copy
 import numpy as np
 from pyscf import df, dft
@@ -39,10 +41,9 @@ def gradient_mol(nexp, newbasis, moldata):
 
     Returns:
         tuple: A tuple containing:
-            - E (float): Loss function value.
-            - dE_da (numpy.ndarray): Gradient of loss function with respect to exponents.
+        - E (float): Loss function value.
+        - dE_da (numpy.ndarray): Gradient of loss function with respect to exponents.
     """
-
     mol       = moldata['mol'      ]
     rho       = moldata['rho'      ]
     coords    = moldata['coords'   ]

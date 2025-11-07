@@ -1,3 +1,5 @@
+"""Rotation matrix generation functions."""
+
 import numpy as np
 
 
@@ -64,7 +66,6 @@ def rotate_euler(a, b, g, rad=False):
     Returns:
         numpy.ndarray: 3x3 rotation matrix.
     """
-
     if not rad:
         a, b, g = np.radians([a, b, g])
 

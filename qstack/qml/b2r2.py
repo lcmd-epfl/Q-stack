@@ -1,7 +1,14 @@
+"""Bond-based reaction representation (B2R2) for chemical reactions.
+
+Provides:
+    - defaults: default parameters for B2R2 computation.
+"""
+
 import itertools
 from types import SimpleNamespace
 import numpy as np
 from scipy.special import erf
+from tqdm import tqdm
 
 
 defaults = SimpleNamespace(rcut=3.5, gridspace=0.03)
@@ -18,14 +25,15 @@ def get_bags(unique_ncharges):
     """
     combs = list(itertools.combinations(unique_ncharges, r=2))
     combs = [list(x) for x in combs]
-    # add self interaction
     self_combs = [[x, x] for x in unique_ncharges]
     combs += self_combs
     return combs
 
 
 def get_mu_sigma(R):
-    """Computes Gaussian distribution parameters from interatomic distance.
+    """Get Gaussian distribution parameters from interatomic distance.
+
+    The constants used here are taken from the original B2R2 implementation.
 
     Args:
         R (float): Interatomic distance.
@@ -55,7 +63,7 @@ def get_gaussian(x, R):
 
 
 def get_skew_gaussian_l_both(x, R, Z_I, Z_J):
-    """Computes skewed Gaussian distributions for local B2R2 representation.
+    """Computes skewed Gaussian distributions for B2R2_l representation.
 
     Args:
         x (numpy ndarray): Grid points to evaluate the functions.
@@ -81,7 +89,7 @@ def get_skew_gaussian_l_both(x, R, Z_I, Z_J):
 
 
 def get_skew_gaussian_n_both(x, R, Z_I, Z_J):
-    """Computes combined skewed Gaussian distribution for nuclear B2R2 representation.
+    """Computes combined skewed Gaussian distribution for B2R2_n representation.
 
     Args:
         x (numpy ndarray): Grid points to evaluate the function.
@@ -108,7 +116,18 @@ def get_skew_gaussian_n_both(x, R, Z_I, Z_J):
 
 def get_b2r2_n_molecular(ncharges, coords, elements,
                          rcut=defaults.rcut, gridspace=defaults.gridspace):
+    """Computes B2R2_n representation for a single molecule.
 
+    Args:
+        ncharges (array-like): Atomic numbers for all atoms in the molecule.
+        coords (array-like): Atomic coordinates in Å, shape (natom, 3).
+        elements (array-like): Unique atomic numbers present in the dataset.
+        rcut (float): Cutoff radius for bond detection in Å. Defaults to 3.5.
+        gridspace (float): Grid spacing for discretization in Å. Defaults to 0.03.
+
+    Returns:
+        numpy.ndarray: B2R2_n representation (ngrid,).
+    """
     idx_relevant_atoms = np.where(np.sum(np.array(ncharges)==np.array(elements)[:,None], axis=0))
     ncharges = np.array(ncharges)[idx_relevant_atoms]
     coords = np.array(coords)[idx_relevant_atoms]
@@ -129,7 +148,18 @@ def get_b2r2_n_molecular(ncharges, coords, elements,
 
 def get_b2r2_a_molecular(ncharges, coords, elements,
                          rcut=defaults.rcut, gridspace=defaults.gridspace):
+    """Computes B2R2_a representation for a single molecule.
 
+    Args:
+        ncharges (array-like): Atomic numbers for all atoms in the molecule.
+        coords (array-like): Atomic coordinates in Å, shape (natom, 3).
+        elements (array-like): Unique atomic numbers present in the dataset.
+        rcut (float): Cutoff radius for bond detection in Å. Defaults to 3.5.
+        gridspace (float): Grid spacing for discretization in Å. Defaults to 0.03.
+
+    Returns:
+        numpy.ndarray: B2R2_a representation (n_pairs*ngrid,).
+    """
     idx_relevant_atoms = np.where(np.sum(np.array(ncharges)==np.array(elements)[:,None], axis=0))
     ncharges = np.array(ncharges)[idx_relevant_atoms]
     coords = np.array(coords)[idx_relevant_atoms]
@@ -155,7 +185,18 @@ def get_b2r2_a_molecular(ncharges, coords, elements,
 
 def get_b2r2_l_molecular(ncharges, coords, elements,
                          rcut=defaults.rcut, gridspace=defaults.gridspace):
+    """Computes B2R2_l representation for a single molecule.
 
+    Args:
+        ncharges (array-like): Atomic numbers for all atoms in the molecule.
+        coords (array-like): Atomic coordinates in Å, shape (natom, 3).
+        elements (array-like): Unique atomic numbers present in the dataset.
+        rcut (float): Cutoff radius for bond detection in Å. Defaults to 3.5.
+        gridspace (float): Grid spacing for discretization in Å. Defaults to 0.03.
+
+    Returns:
+        numpy.ndarray: B2R2_l representation (n_elements*ngrid,).
+    """
     idx_relevant_atoms = np.where(np.sum(np.array(ncharges)==np.array(elements)[:,None], axis=0))
     ncharges = np.array(ncharges)[idx_relevant_atoms]
     coords = np.array(coords)[idx_relevant_atoms]
@@ -181,6 +222,35 @@ def get_b2r2_l_molecular(ncharges, coords, elements,
 
 
 def get_b2r2(reactions, variant='l', progress=False, rcut=defaults.rcut, gridspace=defaults.gridspace):
+    """High-level interface for computing bond-based reaction representations (B2R2).
+
+    Reference:
+        P. van Gerwen, A. Fabrizio, M. D. Wodrich, C. Corminboeuf,
+        "Physics-based representations for machine learning properties of chemical reactions",
+        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a.
+
+    Args:
+        reactions (List[rxn]): List of reaction objects with attributes:
+            - rxn.reactants (List[Mol]): List of reactant molecules.
+            - rxn.products (List[Mol]): List of product molecules.
+            Mol can be any type with .numbers and .positions (Å) attributes,
+            for example ASE Atoms objects.
+        variant (str): B2R2 variant to compute. Options:
+            - 'l': Local variant with element-resolved skewed Gaussians (default).
+            - 'a': Agnostic variant with element-pair Gaussians.
+            - 'n': Nuclear variant with combined skewed Gaussians.
+        progress (bool): If True, displays progress bar. Defaults to False.
+        rcut (float): Cutoff radius for bond detection in Å. Defaults to 3.5.
+        gridspace (float): Grid spacing for discretization in Å. Defaults to 0.03.
+
+    Returns:
+        numpy.ndarray: B2R2 representations of shape (n_reactions, n_features).
+            For variants 'l' and 'a', returns difference (products - reactants).
+            For variant 'n', returns concatenation [reactants, products].
+
+    Raises:
+        RuntimeError: If an unknown variant is specified.
+    """
     if variant=='l':
         get_b2r2_molecular=get_b2r2_l_molecular
         combine = lambda r,p: p-r
@@ -200,37 +270,35 @@ def get_b2r2_inner(reactions,
                    progress=False,
                    rcut=defaults.rcut, gridspace=defaults.gridspace,
                    get_b2r2_molecular=None, combine=None):
+    """Computes the B2R2 representations for a list of reactions.
 
-    """ Computes the B2R2 representations for a list of reactions.
-
-    Reference:
-        P. van Gerwen, A. Fabrizio, M. D. Wodrich, C. Corminboeuf,
-        "Physics-based representations for machine learning properties of chemical reactions",
-        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a.
+    Internal implementation function that computes B2R2 representations using
+    provided molecular representation function and combination strategy.
+    Automatically determines element set from all reactant molecules.
 
     Args:
-        reactions (List[rxn]): a list of rxn objects containing reaction information.
-            rxn.reactants (List[ase.Atoms]) is a list of reactants (ASE molecules),
-            rxn.products (List[ase.Atoms]) is a list of products.
-        rcut (float): cutoff radius (Å)
-        gridspace (float): grid spacing (Å)
-        get_b2r2_molecular (func): function to compute the molecular representations,
-                                   i.e. one of `get_b2r2_{l,n,a}_molecular`
-        combine (func(r: ndarray, p: ndarray)): function to combine the reactants and products representations,
-                                   e.g. difference or concatenation
-    Returns:
-        ndrarray containing the B2R2 representation for each reaction
-    """
+        reactions (List[rxn]): List of reaction objects with attributes:
+            - rxn.reactants (List[Mol]): List of reactant molecules.
+            - rxn.products (List[Mol]): List of product molecules.
+            Mol can be any type with .numbers and .positions (Å) attributes,
+            for example ASE Atoms objects.
+        progress (bool): If True, displays progress bar. Defaults to False.
+        rcut (float): Cutoff radius for bond detection in Å. Defaults to 3.5.
+        gridspace (float): Grid spacing for discretization in Å. Defaults to 0.03.
+        get_b2r2_molecular (callable): Function to compute molecular representations.
+            Should be one of get_b2r2_{l,n,a}_molecular.
+        combine (callable): Function(r: ndarray, p: ndarray) -> ndarray to combine
+            reactant and product representations (e.g., difference or concatenation).
 
+    Returns:
+        numpy.ndarray: B2R2 representations of shape (n_reactions, n_features),
+            where each row represents a reaction according to the combine function.
+    """
     qs = [mol.numbers for rxn in reactions for mol in rxn.reactants]
     elements = np.unique(np.concatenate(qs))
 
-    if progress:
-        import tqdm
-        reactions = tqdm.tqdm(reactions)
-
     b2r2_diff = []
-    for reaction in reactions:
+    for reaction in tqdm(reactions, disable=not progress):
         b2r2_reactants, b2r2_products = [
                 sum(get_b2r2_molecular(mol.numbers, mol.positions,
                                        rcut=rcut,

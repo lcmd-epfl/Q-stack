@@ -1,3 +1,5 @@
+"""Kernel matrix condition number."""
+
 import numpy as np
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
@@ -12,23 +14,22 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     """ Compute kernel matrix condition number
 
     Args:
-        X (numpy.ndarray[Nsamples,...]): array containing the representations of all Nsamples
-        read_kernel (bool): if 'X' is a kernel and not an array of representations
-        sigma (float): width of the kernel
-        eta (float): regularization strength for matrix inversion
-        akernel (str): local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine')
-        gkernel (str): global kernel (None, 'REM', 'avg')
-        gdict (dict): parameters of the global kernels
-        test_size (float or int): test set fraction (or number of samples)
-        random_state (int): the seed used for random number generator (controls train/test splitting)
-        idx_test (numpy.1darray): list of indices for the test set (based on the sequence in X)
-        idx_train (numpy.1darray): list of indices for the training set (based on the sequence in X)
-        sparse (int): the number of reference environnments to consider for sparse regression
+        X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
+        read_kernel (bool): If 'X' is a kernel and not an array of representations.
+        sigma (float): Width of the kernel.
+        eta (float): Regularization strength for matrix inversion.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
+        test_size (float or int): Test set fraction (or number of samples).
+        random_state (int): The seed used for random number generator (controls train/test splitting).
+        idx_test (numpy.1darray): List of indices for the test set (based on the sequence in X).
+        idx_train (numpy.1darray): List of indices for the training set (based on the sequence in X).
+        sparse (int): The number of reference environnments to consider for sparse regression.
 
     Returns:
-        float : condition number
+        float: Condition number.
     """
-
     idx_train, _, _, _ = train_test_split_idx(y=np.arange(len(X)), idx_test=idx_test, idx_train=idx_train,
                                               test_size=test_size, random_state=random_state)
     if read_kernel is False:

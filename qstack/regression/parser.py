@@ -1,3 +1,5 @@
+"""Command-line argument parser for regression tasks."""
+
 import argparse
 from qstack.tools import FlexParser
 from .kernel_utils import defaults, ParseKwargs, local_kernels_dict, global_kernels_dict
@@ -18,25 +20,25 @@ class RegressionParser(FlexParser):
 
     Attributes:
         Standard arguments added for all modes:
-            - x (--x): Path to molecular representations file
+        - x (--x): Path to molecular representations file
             - y (--y): Path to target properties file
             - akernel (--akernel): Local/atomic kernel type (Gaussian, Laplacian, etc.)
-            - gkernel (--gkernel): Global/molecular kernel type (average, REMatch)
-            - gdict (--gdict): Global kernel parameters dictionary
+        - gkernel (--gkernel): Global/molecular kernel type (average, REMatch)
+        - gdict (--gdict): Global kernel parameters dictionary
             - test (--test): Test set fraction (0.0-1.0)
-            - train (--train): Training set fraction list for learning curvers
-                               (0.0-1.0 where 1.0 means full training set minus test set)
-            - ll (--ll): Thread correction flag for running on clusters
+        - train (--train): Training set fraction list for learning curvers
+          (0.0-1.0 where 1.0 means full training set minus test set)
+        - ll (--ll): Thread correction flag for running on clusters
             - readkernel (--readkernel): Flag if input is pre-computed kernel
             - sparse (--sparse): Sparse regression basis size
             - random_state (--random_state): Random seed for reproducibility
 
         Additional for 'single' mode:
-            - eta (--eta): Single regularization parameter
+        - eta (--eta): Single regularization parameter
             - sigma (--sigma): Single kernel width parameter
 
         Additional for 'array' mode:
-            - eta (--eta): Array of regularization parameters
+        - eta (--eta): Array of regularization parameters
             - sigma (--sigma): Array of kernel width parameters
             - splits (--splits): Number of k-fold cross-validation splits
             - print (--print): Verbosity level

@@ -1,3 +1,5 @@
+"""Symmetry operations for SPAHM(a,b) representations."""
+
 import numpy as np
 from qstack import compound
 from qstack.mathutils.matrix import sqrtm
@@ -7,7 +9,7 @@ from qstack.reorder import get_mrange
 def idxl0(i, l, ao):
     """Returns index of basis function with same L and N quantum numbers but M=0.
 
-    Finds the m=0 component of the same angular momentum shell for normalization.
+    Finds the m=0 component of the same angular momentum shell.
 
     Args:
         i (int): Basis function index.
@@ -17,11 +19,11 @@ def idxl0(i, l, ao):
     Returns:
         int: Index of corresponding m=0 basis function.
     """
-    # return the index of the basis function with the same L and N but M=0
     if l != 1:
         return i - ao['m'][i]+l
     else:
         return i + [0, 2, 1][ao['m'][i]]
+
 
 def get_S(q, basis):
     """Computes overlap matrix and angular momentum info for an atom.
@@ -30,13 +32,13 @@ def get_S(q, basis):
 
     Args:
         q (str): Element symbol.
-        basis (str or dict): Basis set specification.
+        basis (str or dict): Basis set.
 
     Returns:
         tuple: (S, ao, ao_start) where:
-            - S (numpy ndarray): Overlap matrix
-            - ao (dict): Angular momentum info with 'l' and 'm' lists
-            - ao_start (list): Starting indices for each angular momentum shell
+        - S (numpy ndarray): Overlap matrix
+        - ao (dict): Angular momentum info with 'l' and 'm' lists for each AO
+        - ao_start (list): Starting indices for each angular momentum shell
     """
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
@@ -72,6 +74,18 @@ def store_pair_indices(ao):
 
 
 def store_pair_indices_short(ao, ao_start):
+    """Stores basis function pair indices for m=0 components only.
+
+    Creates list of (i,j) pairs using only the first basis function (m=0)
+    of each angular momentum shell, for compact representation.
+
+    Args:
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao_start (list): Starting indices for each angular momentum shell.
+
+    Returns:
+        list: List of [i, j] index pairs for m=0 components with matching L.
+    """
     idx = []
     for i in ao_start:
         for j in ao_start:
@@ -84,6 +98,21 @@ def store_pair_indices_short(ao, ao_start):
 
 
 def metric_matrix(q, idx, ao, S):
+    """Computes metric matrix for symmetrization of density fitting coefficients.
+
+    Constructs metric matrix from overlap integrals of basis function pairs,
+    normalized by angular momentum degeneracy (2l+1). Returns square root
+    for transformation to orthonormal representation.
+
+    Args:
+        q (str): Element symbol key for angular momentum info.
+        idx (list): List of [i, j] basis function pair indices.
+        ao (dict): Angular momentum info dict with nested structure ao[q].
+        S (numpy ndarray): Overlap matrix.
+
+    Returns:
+        numpy ndarray: Square root of metric matrix.
+    """
     N = len(idx)
     A = np.zeros((N,N))
     for p in range(N):
@@ -109,7 +138,7 @@ def metric_matrix_short(idx, ao, S):
         S (numpy ndarray): Overlap matrix.
 
     Returns:
-        numpy ndarray: Square root of metric matrix for normalization.
+        numpy ndarray: Square root of metric matrix.
     """
     N = len(idx)
     A = np.zeros((N,N))
@@ -144,6 +173,24 @@ def vectorize_c(idx, c):
 
 
 def vectorize_c_MR2021(idx_pair, ao, c):
+    """Vectorizes coefficients using MR2021 scheme.
+
+    Reference:
+        J. T. Margraf, K. Reuter,
+        "Pure non-local machine-learned density functional theory for electron correlation",
+        Nat. Commun. 12, 344 (2021), doi:10.1038/s41467-020-20471-y.
+
+    Computes simplified rotationally invariant representation by contracting coefficients
+    within each angular momentum shell.
+
+    Args:
+        idx_pair (list): List of [i, j] basis function pair indices.
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        c (numpy ndarray): 1D array of density fitting coefficients.
+
+    Returns:
+        numpy ndarray: 1D array of contracted coefficient norms per shell.
+    """
     idx = sorted(set(np.array(idx_pair)[:,0]))
     v = np.zeros(len(idx))
     for p,i in enumerate(idx):
@@ -154,6 +201,18 @@ def vectorize_c_MR2021(idx_pair, ao, c):
 
 
 def vectorize_c_short(idx, ao, c):
+    """Vectorizes coefficients using short format with shell-wise dot products.
+
+    Computes representation by contracting coefficient vectors of angular momentum shells.
+
+    Args:
+        idx (list): List of [i, j] basis function pair indices (shell starts).
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        c (numpy ndarray): 1D array of density fitting coefficients.
+
+    Returns:
+        numpy ndarray: 1D array of shell-pair dot products.
+    """
     v = np.zeros(len(idx))
     for p, [i,j] in enumerate(idx):
         l = ao['l'][i]
@@ -163,6 +222,17 @@ def vectorize_c_short(idx, ao, c):
 
 
 def store_pair_indices_z(ao):
+    """Stores basis function pairs with matching |m| quantum numbers.
+
+    Creates list of all (i,j) pairs where basis functions have equal
+    absolute values of magnetic quantum number m.
+
+    Args:
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+
+    Returns:
+        list: List of [i, j] index pairs with |m_i| = |m_j|.
+    """
     idx = []
     for i, mi in enumerate(ao['m']):
         for j, mj in enumerate(ao['m']):
@@ -173,6 +243,15 @@ def store_pair_indices_z(ao):
 
 
 def store_pair_indices_z_only0(ao):
+    """Stores basis function pairs restricted to m=0 components only.
+
+    Creates list of all (i,j) pairs where both basis functions have m=0.
+
+    Args:
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+
+    Returns:
+        list: List of [i, j] index pairs where both m_i = m_j = 0."""
     idx = []
     for i, mi in enumerate(ao['m']):
         if mi!=0:
@@ -185,6 +264,19 @@ def store_pair_indices_z_only0(ao):
 
 
 def metric_matrix_z(idx, ao, S):
+    """Computes metric matrix for z-axis symmetric representations.
+
+    Constructs metric matrix accounting for m and -m degeneracy. Matrix
+    elements are nonzero only when angular momenta match and m quantum
+    numbers satisfy m_i=m_j AND m_i1=m_j1, or m_i=-m_j AND m_i1=-m_j1.
+
+    Args:
+        idx (list): List of [i, j] basis function pair indices.
+        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        S (numpy ndarray): Overlap matrix.
+
+    Returns:
+        numpy ndarray: Square root of metric matrix for z-symmetric normalization."""
     N = len(idx)
     A = np.zeros((N,N))
     for p in range(N):

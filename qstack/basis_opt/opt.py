@@ -1,4 +1,7 @@
+"""Basis set optimization routines and command-line interface."""
+
 import sys
+import argparse
 from ast import literal_eval
 import numpy as np
 import scipy.optimize
@@ -24,8 +27,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         Dictionary containing the optimized basis.
 
     """
-
-
     def energy(x):
         """Compute total loss function (fitting error) for given exponents.
 
@@ -42,6 +43,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             E += qbbt.energy_mol(newbasis, m)
         return E
 
+
     def gradient(x):
         """Compute total loss function (fitting error) and gradient for given exponents.
 
@@ -50,8 +52,8 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
         Returns:
             tuple: A tuple containing:
-                - E (float): Loss function value.
-                - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
+            - E (float): Loss function value.
+            - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
         """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
@@ -135,18 +137,18 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
         Args:
             fname (str or dict): Path to .npz file or dictionary containing molecular structure,
-                                 grid coordinates and weights, and reference density evaluated on it.
+                grid coordinates and weights, and reference density evaluated on it.
 
         Returns:
             dict: Dictionary containing:
-                        mol (pyscf Mole): pyscf Mole object.
-                        rho (numpy.ndarray): Reference density values on the grid.
-                        coords (numpy.ndarray): Grid coordinates.
-                        weights (numpy.ndarray): Grid weights.
-                        self (float): Integral of the squared reference density.
-                        idx (numpy.ndarray): Basis function indices for each AO.
-                        centers (list): Atomic center indices for each AO.
-                        distances (numpy.ndarray): Squared distances from each atom to each grid point.
+            mol (pyscf Mole): pyscf Mole object.
+            rho (numpy.ndarray): Reference density values on the grid.
+            coords (numpy.ndarray): Grid coordinates.
+            weights (numpy.ndarray): Grid weights.
+            self (float): Integral of the squared reference density.
+            idx (numpy.ndarray): Basis function indices for each AO.
+            centers (list): Atomic center indices for each AO.
+            distances (numpy.ndarray): Squared distances from each atom to each grid point.
         """
         if isinstance(fname, str):
             rho_data = np.load(fname)
@@ -232,8 +234,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
 def main():
     """Main function for basis set optimization command-line interface."""
-    import argparse
-
     parser = argparse.ArgumentParser(description='Optimize a density fitting basis set.')
     parser.add_argument('--elements',  type=str,   dest='elements',  nargs='+',    help='elements for optimization')
     parser.add_argument('--basis',     type=str,   dest='basis',     nargs='+',    help='initial df bases', required=True)

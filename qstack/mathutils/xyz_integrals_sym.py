@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
+"""Cartesian integrals for spherical harmonics (symbolic version)."""
+
 import sys
 try:
     import sympy
 except ImportError:
     print("""
-
 ERROR: cannot import sympy. Have you installed qstack with the \"wigner\" option?\n\n
 (for instance, with `pip install qstack[wigner]` or `pip install qstack[all]`)
 
@@ -27,7 +28,6 @@ def xyz(n, m, k):
     Returns:
         sympy.Expr: The value of the integral.
     """
-
     k,n,m = sorted([k,n,m], reverse=True)
     if n==0:  # both n and m are 0
         K = sympy.symbols('K')
@@ -48,7 +48,6 @@ def I23(n,m,k):
     Returns:
         sympy.Expr: The value of the integral.
     """
-
     I23 = 0.0
     K = sympy.symbols('K')
     for l in range(n+m+2):
@@ -71,7 +70,6 @@ def trinomial(k1, k2, k3):
     Returns:
         sympy.Expr: The value of the trinomial coefficient.
     """
-
     k1,k2,k3 = sorted([k1,k2,k3])
     trinom = sympy.FallingFactorial(k1+k2+k3, k3) / (sympy.factorial(k1)*sympy.factorial(k2))
     return trinom

@@ -1,3 +1,5 @@
+"""Matrix operation utility functions."""
+
 import numpy as np
 
 

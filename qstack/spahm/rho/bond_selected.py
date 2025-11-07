@@ -1,3 +1,5 @@
+"""Representation for a specific bond in a molecule."""
+
 import os
 import numpy as np
 from . import utils, dmb_rep_bond as dmbb, lowdin
@@ -23,7 +25,7 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
         guess (str): Guess Hamiltonian method name. Defaults to defaults.guess.
         xc (str): Exchange-correlation functional. Defaults to defaults.xc.
         spin (numpy ndarray, optional): Array of numbers of unpaired electrons per molecule. Defaults to None.
-        cutoff (float): Maximum bond distance in Angstrom. Defaults to defaults.cutoff.
+        cutoff (float): Maximum bond distance in Å. Defaults to defaults.cutoff.
         printlevel (int): Verbosity level. Defaults to 0.
         omods (list): Open-shell modes (e.g. 'alpha', 'beta'). Defaults to defaults.omod.
         bpath (str): Path to bond basis set directory. Defaults to defaults.bpath.
@@ -33,7 +35,6 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
     Returns:
         list: List of (filename, representation) tuples for each specified bond.
     """
-
     if spin is None or (spin == None).all():
         omods = [None]
 

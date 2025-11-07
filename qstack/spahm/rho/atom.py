@@ -1,3 +1,5 @@
+"""Legacy command-line entry point for SPAHM(a) computations."""
+
 import numpy as np
 from qstack import compound
 from .compute_rho_spahm import get_repr

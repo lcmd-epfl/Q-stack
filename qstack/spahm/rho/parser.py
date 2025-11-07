@@ -1,3 +1,5 @@
+"""Command-line argument parser for SPAHM(a,b) main functions."""
+
 import argparse
 from qstack.tools import FlexParser
 from .utils import defaults, omod_fns_dict

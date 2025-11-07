@@ -1,3 +1,5 @@
+"""Farthest Point Sampling algorithm implementation."""
+
 import numpy as np
 
 
@@ -25,8 +27,8 @@ def do_fps(x, d=0):
 
     Returns:
         tuple: A tuple containing:
-            - iy (numpy.ndarray): Indices of sampled points.
-            - measure (numpy.ndarray): Distances to nearest selected point for each iteration.
+        - iy (numpy.ndarray): Indices of sampled points.
+        - measure (numpy.ndarray): Distances to nearest selected point for each iteration.
     """
     n = len(x)
     if d==0:

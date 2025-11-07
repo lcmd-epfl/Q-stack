@@ -1,4 +1,12 @@
+"""Local (atomic) kernel implementations.
+
+Provides:
+    local_kernels_dict: Dictionary mapping kernel names to their implementations.
+"""
+
 import os
+import ctypes
+import sysconfig
 import warnings
 import numpy as np
 import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
@@ -46,8 +54,6 @@ def custom_C_kernels(kernel_function, return_distance_function=False):
     Returns:
         callable or None: Kernel or distance function, or None if C library cannot be loaded.
     """
-    import ctypes
-    import sysconfig
     array_2d_double = np.ctypeslib.ndpointer(dtype=np.float64, ndim=2, flags='CONTIGUOUS')
 
     lib_path = REGMODULE_PATH[0]+"/lib/manh"+sysconfig.get_config_var('EXT_SUFFIX')

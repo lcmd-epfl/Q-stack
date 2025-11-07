@@ -1,3 +1,5 @@
+"""Converter from cell2mol Cell objects to PySCF Mole."""
+
 import sys
 import os
 import io
@@ -14,10 +16,10 @@ def get_cell2mol_xyz(mol):
 
     Returns:
         tuple: A tuple containing:
-            - xyz (str): XYZ coordinate string.
-            - charge (int): Total charge of the molecule.
-            - spin (int): Number of unpaired electrons of the molecule (multiplicity - 1)
-                          for molecules and None for ligands.
+        - xyz (str): XYZ coordinate string.
+        - charge (int): Total charge of the molecule.
+        - spin (int): Number of unpaired electrons of the molecule (multiplicity - 1)
+        for molecules and None for ligands.
     """
     f = io.StringIO()
     sys.stdout, stdout = f, sys.stdout
@@ -37,7 +39,7 @@ def get_cell(fpath, workdir='.'):
     Args:
         fpath (str): Path to the input file (.cell or .cif).
         workdir (str): Directory to read / write .cell file and logs if a .cif file
-                       is provided. Defaults to '.'.
+            is provided. Defaults to '.'.
 
     Returns:
         cell2mol.unitcell: Unit cell object.

@@ -1,3 +1,5 @@
+"""Hartree-Fock on-top pair density."""
+
 from pyscf import dft
 import numpy as np
 from .dm import make_grid_for_rho
@@ -18,9 +20,8 @@ def hf_otpd(mol, dm, grid_level=3, save_otpd=False, return_all=False):
 
     Returns:
         numpy ndarray or tuple: If return_all is False, returns 1D array of OTPD values.
-            If return_all is True, returns tuple of (otpd, grid) where grid is the pyscf Grid object.
+        If return_all is True, returns tuple of (otpd, grid) where grid is the pyscf Grid object.
     """
-
     grid = make_grid_for_rho(mol, grid_level)
 
     ao = dft.numint.eval_ao(mol, grid.coords)
@@ -50,6 +51,5 @@ def save_OTPD(mol, otpd, grid):
     Returns:
         None: Creates a file named <elements>_otpd_data.npz on disk.
     """
-
     output = ''.join(mol.elements)+"_otpd_data"
     np.savez(output, atom=mol.atom, rho=otpd, coords=grid.coords, weights=grid.weights)
