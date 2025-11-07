@@ -86,7 +86,7 @@ def vstack_padding(xs):
     if len({x.ndim for x in xs}) > 1:
         raise ValueError("All input arrays must have the same number of dimensions.")
     shapes_common_axis, shapes_other_axes = np.split(np.array([x.shape for x in xs]), (1,), axis=1)
-    if len(np.unique(shapes_other_axes, axis=0))>1:
+    if len(np.unique(shapes_other_axes, axis=0))==1:
         return np.vstack(xs)
     X = np.zeros((shapes_common_axis.sum(), *shapes_other_axes.max(axis=0)))
     idx = 0

@@ -4,6 +4,7 @@ import os
 import numpy as np
 from qstack import compound
 from qstack.spahm import compute_spahm
+from qstack.mathutils.array import vstack_padding
 
 
 def test_spahm_GWH():
@@ -71,8 +72,7 @@ def test_generate_reps():
     xyzlist = [os.path.join(path,s) for s in sorted(os.listdir(path)) if ".xyz" in s]
     mols = [compound.xyz_to_mol(f, basis='minao', charge=0, spin=0) for f in xyzlist]
     xmols = [compute_spahm.get_spahm_representation(mol, 'lb')[0] for mol in mols]
-    maxlen = max([len(x) for x in xmols])
-    X = np.array([np.pad(x, pad_width=(0,maxlen-len(x)), constant_values=0) for x in xmols])
+    X = vstack_padding(xmols)
     Xtrue = np.load(os.path.join(path, 'X_lb.npy'))
     assert(np.allclose(X, Xtrue))
 
