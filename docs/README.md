@@ -3,20 +3,11 @@
 Install Sphinx:
 
 ```bash
-pip install sphinx myst-parser sphinx-autobuild sphinx-ext-todo alabaster
+pip install -r requirements.txt
 ```
 
-on the main directory `Q-stack/`, execute the code `generate_rst.py` to update or generate the rst files used to build
-the documentation:
-
 ```bash
-python docs/generate_rst.py qstack/ -o docs/source/ --project "Qstack" --package-root-name qstack
-```
-
-Finally, in the directory `Q-stack/docs/` execute the comands:
-
-```bash
-make clean
+make clean clean-src
 make html
 ```
 
