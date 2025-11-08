@@ -17,15 +17,15 @@ import sys
 import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
 
 # --------------------------- Utilities ---------------------------------
 
-def rel_module_name(py_path: Path, package_root: Path, package_root_name: Optional[str]) -> str:
+def rel_module_name(py_path: Path, package_root: Path, package_root_name: str | None) -> str:
     rel = py_path.with_suffix("").relative_to(package_root)
     parts = list(rel.parts)
     if package_root_name:
-        return ".".join([package_root_name] + parts)
+        return ".".join([package_root_name, *parts])
     return ".".join(parts)
 
 
@@ -33,7 +33,7 @@ def is_package_dir(p: Path) -> bool:
     return p.is_dir() and (p / "__init__.py").exists()
 
 
-def iter_python_files(root: Path, exclude: List[str]) -> Iterable[Path]:
+def iter_python_files(root: Path, exclude: list[str]) -> Iterable[Path]:
     exclude_patterns = [re.compile(fnmatch_to_regex(x)) for x in exclude]
     for dirpath, dirnames, filenames in os.walk(root):
         dp = Path(dirpath)
@@ -57,34 +57,34 @@ class FunctionInfo:
     name: str
     lineno: int
     signature: str
-    doc: Optional[str] = None
+    doc: str | None = None
 
 @dataclass
 class ClassInfo:
     name: str
     lineno: int
-    doc: Optional[str] = None
-    methods: List[FunctionInfo] = field(default_factory=list)
+    doc: str | None = None
+    methods: list[FunctionInfo] = field(default_factory=list)
 
 @dataclass
 class ModuleInfo:
     name: str
     path: Path
-    doc: Optional[str]
-    classes: List[ClassInfo]
-    functions: List[FunctionInfo]
+    doc: str | None
+    classes: list[ClassInfo]
+    functions: list[FunctionInfo]
 
 
 def format_signature(args: ast.arguments) -> str:
     """Reconstruct a best-effort Python signature from ast.arguments."""
-    def fmt_arg(a: ast.arg, default: Optional[str]=None, annotation: Optional[str]=None):
+    def fmt_arg(a: ast.arg, default: str | None=None, annotation: str | None=None):
         name = a.arg
         ann = f": {annotation}" if annotation else ""
         if default is not None:
             return f"{name}{ann}={default}"
         return f"{name}{ann}"
 
-    def ann_to_str(node: Optional[ast.AST]) -> Optional[str]:
+    def ann_to_str(node: ast.AST | None) -> str | None:
         if node is None:
             return None
         try:
@@ -92,7 +92,7 @@ def format_signature(args: ast.arguments) -> str:
         except Exception:
             return None
 
-    def const_to_str(node: Optional[ast.AST]) -> Optional[str]:
+    def const_to_str(node: ast.AST | None) -> str | None:
         if node is None:
             return None
         try:
@@ -100,20 +100,20 @@ def format_signature(args: ast.arguments) -> str:
         except Exception:
             return None
 
-    parts: List[str] = []
+    parts: list[str] = []
 
     posonly = getattr(args, 'posonlyargs', []) or []
     arg_defaults = [None] * (len(args.args) - len(args.defaults)) + args.defaults
     posonly_defaults = [None] * (len(posonly))
 
     # pos-only
-    for a, d in zip(posonly, posonly_defaults):
+    for a, d in zip(posonly, posonly_defaults, strict=True):
         parts.append(fmt_arg(a, default=const_to_str(d), annotation=ann_to_str(a.annotation)))
     if posonly:
         parts.append("/")
 
     # positional-or-keyword
-    for a, d in zip(args.args, arg_defaults):
+    for a, d in zip(args.args, arg_defaults, strict=True):
         parts.append(fmt_arg(a, default=const_to_str(d), annotation=ann_to_str(a.annotation)))
 
     # vararg / kw-only separator
@@ -124,7 +124,7 @@ def format_signature(args: ast.arguments) -> str:
         parts.append("*")
 
     # kw-only
-    for a, d in zip(args.kwonlyargs, args.kw_defaults or [None]*len(args.kwonlyargs)):
+    for a, d in zip(args.kwonlyargs, args.kw_defaults or [None]*len(args.kwonlyargs), strict=True):
         parts.append(fmt_arg(a, default=const_to_str(d), annotation=ann_to_str(a.annotation)))
 
     # **kwargs
@@ -143,13 +143,13 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
         return ModuleInfo(module_name, py_path, None, [], [])
 
     mdoc = ast.get_docstring(tree)
-    classes: List[ClassInfo] = []
-    functions: List[FunctionInfo] = []
+    classes: list[ClassInfo] = []
+    functions: list[FunctionInfo] = []
 
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
             cdoc = ast.get_docstring(node)
-            methods: List[FunctionInfo] = []
+            methods: list[FunctionInfo] = []
             for n in node.body:
                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     sig = safe_sig(n)
@@ -183,14 +183,14 @@ def title(text: str, level: int = 0) -> str:
     return f"{text}\n{line}\n\n"
 
 
-def rst_escape_heading(text: Optional[str]) -> str:
+def rst_escape_heading(text: str | None) -> str:
     if not text:
         return ""
     # Minimal escaping for common problem characters in headings
     return text.replace("*", "\\*").replace("_", "\\_")
 
 
-def format_docstring(doc: Optional[str]) -> str:
+def format_docstring(doc: str | None) -> str:
     """Render docstrings as literal blocks so Sphinx won't parse them.
 
     This avoids common docutils errors caused by Markdown or mixed formatting
@@ -202,8 +202,8 @@ def format_docstring(doc: Optional[str]) -> str:
     return "::\n\n" + textwrap.indent(d + "\n", "    ") + "\n"
 
 
-def render_module_rst(mi: ModuleInfo, project: str) -> str:
-    out: List[str] = []
+def render_module_rst(mi: ModuleInfo) -> str:
+    out: list[str] = []
     out.append(title(rst_escape_heading(mi.name), 0))
     out.append(format_docstring(mi.doc))
 
@@ -230,8 +230,8 @@ def render_module_rst(mi: ModuleInfo, project: str) -> str:
 
 
 
-def render_index_rst(project: str, package_root: Path, modules: List[ModuleInfo], out_dir: Path) -> str:
-    out: List[str] = []
+def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> str:
+    out: list[str] = []
     heading = f"Welcome to {project} Documentation"
     out.append(title(heading, 0))
 
@@ -258,7 +258,7 @@ def out_path_for_module(mi: ModuleInfo, out_dir: Path) -> Path:
 
 # --------------------------- Main CLI -----------------------------------
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     p.add_argument("package_root", type=Path, help="Path to your package root (dir containing your modules)")
     p.add_argument("-o", "--out", dest="out_dir", type=Path, required=True, help="Output directory for .rst files")
@@ -277,7 +277,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
 
     # Collect modules
-    modules: List[ModuleInfo] = []
+    modules: list[ModuleInfo] = []
     for py in iter_python_files(pkg_root, args.exclude):
         # Skip __init__.py as a module page? We'll still document it under package name
         mod_name = rel_module_name(py, pkg_root, args.package_root_name)
@@ -288,11 +288,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     for mi in modules:
         out_path = out_path_for_module(mi, out_dir)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(render_module_rst(mi, args.project), encoding="utf-8")
+        out_path.write_text(render_module_rst(mi), encoding="utf-8")
 
     # Write package-level index
     index_path = out_dir / "index.rst"
-    index_path.write_text(render_index_rst(args.project, pkg_root, modules, out_dir), encoding="utf-8")
+    index_path.write_text(render_index_rst(args.project, modules, out_dir), encoding="utf-8")
 
     print(f"Wrote {len(modules)} module pages under {out_dir}")
     print(f"Index: {index_path}")
