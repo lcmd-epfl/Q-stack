@@ -8,6 +8,7 @@ import math
 from collections import Counter
 import numpy as np
 from tqdm import tqdm
+from qstack.tools import slice_generator
 
 
 def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
@@ -83,18 +84,15 @@ def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None)
         numpy ndarray: Covariance matrix of shape (max_size, max_size).
     """
     K_covar = np.zeros((max_size, max_size))
-    idx = 0
-    for q in species:
+    for q, slice_ in slice_generator(species, inc=lambda q: max_atoms[q]):
         n1 = len(mol1[q])
         n2 = len(mol2[q])
         q_size = max_atoms[q]
         if n1==0 or n2==0:
-            idx += q_size
             continue
         x1 = np.pad(mol1[q], ((0, q_size - n1),(0,0)), 'constant')
         x2 = np.pad(mol2[q], ((0, q_size - n2),(0,0)), 'constant')
-        K_covar[idx:idx+q_size, idx:idx+q_size] = kernel(x1, x2,  sigma)
-        idx += q_size
+        K_covar[slice_, slice_] = kernel(x1, x2,  sigma)
     return K_covar
 
 

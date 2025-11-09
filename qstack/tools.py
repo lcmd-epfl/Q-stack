@@ -101,9 +101,20 @@ class FlexParser(argparse.ArgumentParser):
                     return
 
 
-def slice_generator(iterable, inc=lambda x: x, initial=0):
+def slice_generator(iterable, inc=lambda x: x, i0=0):
+    """Generates slices for elements in an iterable based on increments.
+
+    Args:
+        iterable (iterable): Iterable of elements to generate slices for.
+        inc (callable: int->int): Function that computes increment size for each element.
+                                  Defaults to identity function.
+        i0 (int): Initial starting index. Defaults to 0.
+
+    Yields:
+        tuple: (element, slice) pairs for each element in the iterable.
+    """
     func = func=lambda total, elem: total+inc(elem)
-    starts = itertools.accumulate(iterable, func=func, initial=initial)
+    starts = itertools.accumulate(iterable, func=func, initial=i0)
     starts_ends = itertools.pairwise(starts)
     for elem, (start, end) in zip(iterable, starts_ends, strict=True):
         yield elem, np.s_[start:end]

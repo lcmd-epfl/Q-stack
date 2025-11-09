@@ -6,7 +6,8 @@ from types import SimpleNamespace
 import numpy as np
 from pyscf import data
 import metatensor
-from qstack.reorder import get_mrange
+from qstack.tools import Cursor
+from qstack.reorder import get_mrange, pyscf2gpr_l1_order
 from qstack.compound import singleatom_basis_enumerator
 
 
@@ -26,7 +27,6 @@ matrix_label_names = SimpleNamespace(
 
 _molid_name = 'mol_id'
 
-_pyscf2gpr_l1_order = [1,2,0]
 
 
 def _get_llist(mol):
@@ -123,7 +123,7 @@ def vector_to_tensormap(mol, c):
                 nsize = blocks[(l,q)].shape[-1]
                 cslice = c[i:i+nsize*msize].reshape(nsize,msize).T
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    cslice = cslice[_pyscf2gpr_l1_order]
+                    cslice = cslice[pyscf2gpr_l1_order]
                 blocks[(l,q)][iq[q],:,:] = cslice
                 i += msize*nsize
         else:
@@ -132,7 +132,7 @@ def vector_to_tensormap(mol, c):
                 msize = 2*l+1
                 cslice = c[i:i+msize]
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    cslice = cslice[_pyscf2gpr_l1_order]
+                    cslice = cslice[pyscf2gpr_l1_order]
                 blocks[(l,q)][iq[q],:,il[l]] = cslice
                 i     += msize
                 il[l] += 1
@@ -291,9 +291,9 @@ def matrix_to_tensormap(mol, dm):
     for key in blocks:
         l1,l2 = key[:2]
         if l1==1:
-            blocks[key] = np.ascontiguousarray(blocks[key][:,_pyscf2gpr_l1_order,:,:])
+            blocks[key] = np.ascontiguousarray(blocks[key][:,pyscf2gpr_l1_order,:,:])
         if l2==1:
-            blocks[key] = np.ascontiguousarray(blocks[key][:,:,_pyscf2gpr_l1_order,:])
+            blocks[key] = np.ascontiguousarray(blocks[key][:,:,pyscf2gpr_l1_order,:])
 
     # Build tensor map
     tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]

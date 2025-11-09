@@ -1,6 +1,14 @@
-"""Functions for reordering atomic orbitals between different conventions."""
+"""Functions for reordering atomic orbitals between different conventions.
+
+Provides:
+    pyscf2gpr_l1_order: indices to reorder l=1 orbitals from PySCF to GPR.
+"""
 
 import numpy as np
+from .tools import slice_generator
+
+
+pyscf2gpr_l1_order = [1,2,0]
 
 
 def get_mrange(l):
@@ -21,7 +29,7 @@ def get_mrange(l):
         return range(-l,l+1)
 
 
-def _orca2gpr_idx(l, m):
+def _orca2gpr_idx(l_slices, m):
     """Given a molecule returns a list of reordered indices to tranform Orca AO ordering into SA-GPR.
 
     In Orca, orbital ordering corresponds to:
@@ -31,26 +39,22 @@ def _orca2gpr_idx(l, m):
     Additionally, Orca uses a different sign convention for |m|>=3.
 
     Args:
-        l (np.ndarray): Array of angular momentum quantum numbers.
-        m (np.ndarray): Array of magnetic quantum numbers.
+        l (np.ndarray): Array of angular momentum quantum numbers per shell.
+        m (np.ndarray): Array of magnetic quantum numbers per AO.
 
     Returns:
         tuple: Re-arranged indices array and sign array.
     """
-    idx = np.arange(len(l))
-    i=0
-    while(i < len(idx)):
-        msize = 2*l[i]+1
-        j = np.s_[i:i+msize]
-        idx[j] = np.concatenate((idx[j][::-2], idx[j][1::2]))
-        i += msize
+    idx = np.arange(len(m))
+    for _l, s in l_slices:
+        idx[s] = np.concatenate((idx[s][::-2], idx[s][1::2]))
     signs = np.ones_like(idx)
     signs[np.where(np.abs(m)>=3)] = -1  # in pyscf order
     signs[idx] = signs # in orca order
     return idx, signs
 
 
-def _pyscf2gpr_idx(l):
+def _pyscf2gpr_idx(l_slices, m):
     """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
 
     In SA-GPR, orbital ordering corresponds to:
@@ -60,18 +64,17 @@ def _pyscf2gpr_idx(l):
     Signs are the same in both conventions, so they are returned for compatibility.
 
     Args:
-        l (np.ndarray): Array of angular momentum quantum numbers.
+        l_slices (iterator): Iterator that yeilds (l: int, s: slice) per shell, where
+            l is angular momentum quantum number and s is the corresponding slice of size 2*l+1.
+        m (np.ndarray): Array of magnetic quantum numbers per AO.
 
     Returns:
         tuple: Re-arranged indices array and sign array.
     """
-    idx = np.arange(len(l))
-    i=0
-    while(i < len(idx)):
-        msize = 2*l[i]+1
-        if l[i]==1:
-            idx[i:i+3] = [i+1,i+2,i]
-        i += msize
+    idx = np.arange(len(m))
+    for l, s in l_slices:
+        if l==1:
+            idx[s] = idx[s][pyscf2gpr_l1_order]
     return idx, np.ones_like(idx)
 
 
@@ -94,23 +97,24 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         NotImplementedError: If the specified convention is not implemented.
         ValueError: If vector dimension is not 1 or 2.
     """
-    def get_idx(l, m, convention):
+    def get_idx(L, m, convention):
         convention = convention.lower()
+        l_slices = slice_generator(L, inc=lambda l: 2*l+1)
         if convention == 'gpr':
-            return np.arange(len(l)), np.ones_like(l)
+            return np.arange(len(m)), np.ones_like(m)
         elif convention == 'pyscf':
-            return _pyscf2gpr_idx(l)
+            return _pyscf2gpr_idx(l_slices, m)
         elif convention == 'orca':
-            return _orca2gpr_idx(l, m)
+            return _orca2gpr_idx(l_slices, m)
         else:
             errstr = f'Conversion to/from the {convention} convention is not implemented'
             raise NotImplementedError(errstr)
 
     from .compound import basis_flatten
 
-    _, l, m = basis_flatten(mol, return_both=False)
-    idx_src, sign_src  = get_idx(l, m, src)
-    idx_dest, sign_dest = get_idx(l, m, dest)
+    (_, _, m), L = basis_flatten(mol, return_both=False, return_shells=True)
+    idx_src, sign_src  = get_idx(L, m, src)
+    idx_dest, sign_dest = get_idx(L, m, dest)
 
     if vector.ndim == 2:
         sign_src  = np.einsum('i,j->ij', sign_src, sign_src)
