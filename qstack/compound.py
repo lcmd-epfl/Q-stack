@@ -341,25 +341,30 @@ def singleatom_basis_enumerator(basis):
     return l_per_bas, n_per_bas, ao_starts
 
 
-def basis_flatten(mol, return_both=True):
+def basis_flatten(mol, return_both=True, return_shells=False):
     """Flatten a basis set definition for AOs.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         return_both (bool): Whether to return both AO info and primitive Gaussian info. Defaults to True.
+        return_shells (bool): Whether to return angular momenta per shell. Defaults to False.
 
     Returns:
         - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
-        - 0: atom index
-        - 1: angular momentum quantum number l
-        - 2: magnetic quantum number m
+            - 0: atom index
+            - 1: angular momentum quantum number l
+            - 2: magnetic quantum number m
         If return_both is True, also returns:
         - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
-        - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
-        - j: AO index
-        - k: radial function index (padded with zeros if necessary)
+            - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
+            - j: AO index
+            - k: radial function index (padded with zeros if necessary)
+        If return_shell is True, also returns:
+        - numpy.ndarray: angular momentum quantum number for each shell
+
     """
     x = []
+    L = []
     y = np.zeros((3, mol.nao), dtype=int)
     i = 0
     a = mol.bas_exps()
@@ -373,11 +378,13 @@ def basis_flatten(mol, return_both=True):
                 for c in cs.T:
                     ac = np.array([a[bas_id], c])
                     x.extend([ac]*msize)
-            y[:2,i:i+msize*n] = np.array([[iat, l]]*msize*n).T
-            y[2,i:i+msize*n] = [*get_mrange(l)]*n
-            i += msize*n
+            y[:,i.add(msize*n)] = np.vstack((np.array([[iat, l]]*msize*n).T, [*get_mrange(l)]*n))
+            if return_shells:
+                L.extend([l]*n)
+
+    ret = [y]
     if return_both:
-        x = stack_padding(x).transpose((1,0,2))
-        return y, x
-    else:
-        return y
+        ret.append(stack_padding(x).transpose((1,0,2)))
+    if return_shells:
+        ret.append(np.array(L))
+    return ret[0] if len(ret)==1 else ret

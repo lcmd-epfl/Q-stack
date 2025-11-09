@@ -1,6 +1,7 @@
 """Array manipulation utility functions."""
 
 import numpy as np
+from qstack.tools import slice_generator
 
 
 def scatter(values, indices):
@@ -89,9 +90,7 @@ def vstack_padding(xs):
     if len(np.unique(shapes_other_axes, axis=0))==1:
         return np.vstack(xs)
     X = np.zeros((shapes_common_axis.sum(), *shapes_other_axes.max(axis=0)))
-    idx = 0
-    for x in xs:
-        slices = (np.s_[idx:idx+x.shape[0]], *(np.s_[0:s] for s in x.shape[1:]))
+    for x, s0 in slice_generator(xs, inc=lambda x: x.shape[0]):
+        slices = (s0, *(np.s_[0:s] for s in x.shape[1:]))
         X[slices] = x
-        idx += x.shape[0]
     return X

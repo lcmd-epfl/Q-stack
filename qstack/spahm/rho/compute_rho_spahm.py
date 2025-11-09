@@ -3,7 +3,7 @@
 import os
 import itertools
 import numpy as np
-from qstack.tools import correct_num_threads
+from qstack.tools import correct_num_threads, slice_generator
 from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
 from .utils import defaults
@@ -191,24 +191,21 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
                 ], dtype=object)
 
     else:
-        natm_tot = sum(len(elems) for elems in all_atoms)
-        allvec_new = np.empty_like(allvec, shape=(len(omods), natm_tot, maxlen))
-        atm_i = 0
-        for mol_i, elems in enumerate(all_atoms):
-            allvec_new[:, atm_i:atm_i+len(elems), :] = allvec[:, mol_i, :len(elems), :]
-            atm_i += len(elems)
+        all_atoms_list = list(itertools.chain.from_iterable(all_atoms))
+        allvec_new = np.empty_like(allvec, shape=(len(omods), len(all_atoms_list), maxlen))
+        for (mol_i, elems), slice_i in slice_generator([*enumerate(all_atoms)], inc=lambda x: len(x[1])):
+            allvec_new[:, slice_i, :] = allvec[:, mol_i, :len(elems), :]
         allvec = allvec_new
         del allvec_new
-        all_atoms = list(itertools.chain.from_iterable(all_atoms))
 
         if merge:
             allvec = np.hstack(allvec)
             if with_symbols:
-                allvec = np.array(list(zip(all_atoms, allvec, strict=True)), dtype=object)
+                allvec = np.array(list(zip(all_atoms_list, allvec, strict=True)), dtype=object)
         else:
             if with_symbols:
                 allvec = np.array([
-                    np.array(list(zip(all_atoms, modvec, strict=True)), dtype=object)
+                    np.array(list(zip(all_atoms_list, modvec, strict=True)), dtype=object)
                     for modvec in allvec
                 ], dtype=object)
 
