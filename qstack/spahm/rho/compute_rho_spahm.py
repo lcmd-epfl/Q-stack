@@ -47,9 +47,14 @@ def spahm_a_b(rep_type, mols, dms,
         - max_atoms: Maximum number of atoms/bonds across all molecules
         - n_features: Representation dimension
     """
-    maxlen = 0
     if only_z is None:
         only_z = []
+    if len(only_z) > 0:
+        print(f"Selecting atom-types in {only_z}")
+        natm = max(sum(sum(z==np.array(mol.elements)) for z in only_z) for mol in mols)
+    else:
+        natm = max(mol.natm for mol in mols)
+
     if rep_type == 'bond':
         elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                          elements=elements, cutoff=cutoff,
@@ -62,40 +67,28 @@ def spahm_a_b(rep_type, mols, dms,
             for mol in mols:
                 elements.update(mol.elements)
         elements = sorted(set(elements))
-        df_wrapper, sym_wrapper = dmba.get_model(model)
+        df_wrapper, sym_wrapper, maxlen_fn = dmba.get_model(model)
         ao, ao_len, idx, M = dmba.get_basis_info(elements, auxbasis)
-        maxlen = sum([len(v) for v in idx.values()])
+        maxlen = maxlen_fn(idx, idx.keys() if len(only_z)==0 else only_z)
 
-    if len(only_z) > 0:
-        print(f"Selecting atom-types in {only_z}")
-        zinmols = []
-        for mol in mols:
-            zinmol = [sum(z == np.array(mol.elements)) for z in only_z]
-            zinmols.append(sum(zinmol))
-        natm  = max(zinmols)
-    else:
-        natm   = max([mol.natm for mol in mols])
-        zinmols = [mol.natm for mol in mols]
     allvec = np.zeros((len(omods), len(mols), natm, maxlen))
 
     for imol, (mol, dm) in enumerate(zip(mols, dms, strict=True)):
         if printlevel>0:
             print('mol', imol, flush=True)
-        if len(only_z) >0:
+        if len(only_z)>0:
             only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
         else:
             only_i = range(mol.natm)
 
         for iomod, omod in enumerate(omods):
             DM  = utils.dm_open_mod(dm, omod)
-            vec = None # This too !!! (maybe a wrapper or dict)
             if rep_type == 'bond':
                 vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
                 c_df = df_wrapper(mol, DM, auxbasis, only_i=only_i)
-                vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
+                vec = sym_wrapper(maxlen, c_df, mol.elements, idx, ao, ao_len, M, only_i)
             allvec[iomod,imol,:len(vec)] = vec
-
     return allvec
 
 
