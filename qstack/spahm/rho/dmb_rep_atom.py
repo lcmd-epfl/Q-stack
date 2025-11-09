@@ -58,6 +58,8 @@ def _make_models_dict():
         """Density fitting on difference from superposition of atomic densities (SAD)."""
         mf = pyscf.scf.RHF(mol)
         dm_sad = mf.init_guess_by_atom(mol)
+        if dm_sad.ndim==3:
+            dm_sad = dm_sad.sum(axis=0)
         dm = dm - dm_sad
         return fields.decomposition.decompose(mol, dm, auxbasis)[1]
 
