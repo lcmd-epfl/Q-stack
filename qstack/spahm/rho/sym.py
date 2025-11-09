@@ -6,6 +6,27 @@ from qstack.mathutils.matrix import sqrtm
 from qstack.reorder import get_mrange
 
 
+def c_split_atom(mol, c, only_i=None):
+    """Splits coefficient vector by angular momentum quantum number for each atom.
+
+    Organizes expansion coefficients into sublists grouped by angular momentum (l)
+    for each atomic basis function.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        c (numpy ndarray): 1D array of expansion coefficients.
+        only_i (list[int]): List of atom indices to use.
+
+    Returns:
+        list: List of coefficients (numpy ndarrays) per atom.
+    """
+    if only_i is None or len(only_i)==0:
+        aoslice_by_atom = mol.aoslice_by_atom()[:,2:]
+    else:
+        aoslice_by_atom = mol.aoslice_by_atom()[only_i,2:]
+    return [c[i0:i1] for i0, i1 in aoslice_by_atom]
+
+
 def idxl0(i, l, ao):
     """Returns index of basis function with same L and N quantum numbers but M=0.
 

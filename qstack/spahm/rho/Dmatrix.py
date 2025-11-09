@@ -20,8 +20,8 @@ def c_split(mol, c):
     """
     cs = []
     i0 = 0
-    for at in mol.aoslice_by_atom():
-        for b in range(at[0], at[1]):
+    for at0, at1 in mol.aoslice_by_atom()[:,:2]:
+        for b in range(at0, at1):
             l = mol.bas_angular(b)
             msize = 2*l+1
             for _n in range(mol.bas_nctr(b)):

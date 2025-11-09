@@ -50,18 +50,20 @@ def _make_models_dict():
     Returns:
         dict: Mapping model names to (density_fitting_function, symmetrization_function, maxlen_function).
     """
-    def df_pure(mol, dm, auxbasis, **kwargs):
+    def df_pure(mol, dm, auxbasis, only_i):
         """Pure density fitting without modifications."""
-        return fields.decomposition.decompose(mol, dm, auxbasis)[1]
+        auxmol, c = fields.decomposition.decompose(mol, dm, auxbasis)
+        return sym.c_split_atom(auxmol, c, only_i=only_i)
 
-    def df_sad_diff(mol, dm, auxbasis, **kwargs):
+    def df_sad_diff(mol, dm, auxbasis, only_i=None):
         """Density fitting on difference from superposition of atomic densities (SAD)."""
         mf = pyscf.scf.RHF(mol)
         dm_sad = mf.init_guess_by_atom(mol)
         if dm_sad.ndim==3:
             dm_sad = dm_sad.sum(axis=0)
         dm = dm - dm_sad
-        return fields.decomposition.decompose(mol, dm, auxbasis)[1]
+        auxmol, c = fields.decomposition.decompose(mol, dm, auxbasis)
+        return sym.c_split_atom(auxmol, c, only_i=only_i)
 
     def df_lowdin_long(mol, dm, auxbasis, only_i=None):
         """Löwdin partitioning with block-diagonal slicing with contributions from other elements."""
@@ -79,7 +81,7 @@ def _make_models_dict():
         """Löwdin partitioning."""
         return atomic_density.fit(mol, dm, auxbasis, short=True, w_slicing=False, only_i=only_i)
 
-    def df_occup(mol, dm, auxbasis):
+    def df_occup(mol, dm, auxbasis, only_i=None):
         """Pure density fitting with preserving atom charges."""
         L = lowdin.Lowdin_split(mol, dm)
         diag = np.diag(L.dmL)
@@ -88,7 +90,8 @@ def _make_models_dict():
         eri2c, eri3c = fields.decomposition.get_integrals(mol, auxmol)[1:]
         c0 = fields.decomposition.get_coeff(dm, eri2c, eri3c)
         c  = fields.decomposition.correct_N_atomic(auxmol, Q, c0, metric=eri2c)
-        return c
+        return sym.c_split_atom(auxmol, c, only_i=only_i)
+
 
     def maxlen_long(idx, _):
         return sum(len(v) for v in idx.values())
@@ -131,8 +134,9 @@ def get_model(arg):
                 mol (pyscf Mole): Molecule object.
                 dm (numpy ndarray): Density matrix (2D).
                 auxbasis (str or dict): Auxiliary basis set.
+                only_i (list[int]): List of atom indices to use.
             Returns:
-                numpy ndarray or list: Density fitting coefficients (1D).
+                list: Density fitting coefficients per atom (1D numpy ndarrays).
             - symmetrization_function (callable): Function for symmetrizing coefficients.
             Args:
                 maxlen (int): Maximum feature length.
@@ -161,7 +165,7 @@ def get_model(arg):
     return models_dict[arg]
 
 
-def coefficients_symmetrize_MR2021(maxlen, c, atoms, idx, ao, ao_len, _M, only_i):
+def coefficients_symmetrize_MR2021(maxlen, c, atoms, idx, ao, _, _M, only_i):
     """Symmetrizes density fitting coefficients using MR2021 method.
 
     Reference:
@@ -171,11 +175,11 @@ def coefficients_symmetrize_MR2021(maxlen, c, atoms, idx, ao, ao_len, _M, only_i
 
     Args:
         maxlen (int): Maximum feature length.
-        c (numpy ndarray): Concatenated density fitting coefficients.
+        c (list): List of coefficient arrays per atom.
         atoms (list[str]): Atoms in molecule (from pyscf Mole.elements).
         idx (dict): Pair indices per element.
         ao (dict): Angular momentum info per element.
-        ao_len (dict): Basis set sizes per element.
+        _: Unused (for interface compatibility).
         _M: Unused (for interface compatibility).
         only_i (list[int]): List of atom indices to use.
 
@@ -185,24 +189,24 @@ def coefficients_symmetrize_MR2021(maxlen, c, atoms, idx, ao, ao_len, _M, only_i
     if only_i is not None and len(only_i)>0:
         atoms = np.array(atoms)[only_i]
     v = np.zeros((len(atoms), maxlen))
-    for iat, (q, ao_slice) in enumerate(slice_generator(atoms, inc=lambda q: ao_len[q])):
-        vi = sym.vectorize_c_MR2021(idx[q], ao[q], c[ao_slice])
+    for iat, (q, ci) in enumerate(zip(atoms, c, strict=True)):
+        vi = sym.vectorize_c_MR2021(idx[q], ao[q], ci)
         v[iat,:len(vi)] = vi
     return v
 
 
-def coefficients_symmetrize_short(maxlen, c, atoms, idx, ao, ao_len, M, only_i):
+def coefficients_symmetrize_short(maxlen, c, atoms, idx, ao, _, M, only_i):
     """Symmetrizes coefficients for each atom.
 
     For each atom, use contributions from the said atom.
 
     Args:
         maxlen (int): Maximum feature length.
-        c (numpy ndarray): Density fitting coefficients.
+        c (list): List of coefficient arrays per atom.
         atoms (list[str]): Atoms in molecule (from pyscf Mole.elements).
         idx (dict): Pair indices per element.
         ao (dict): Angular momentum info per element.
-        ao_len (dict): Basis set sizes per element.
+        _: Unused (for interface compatibility).
         M (dict): Metric matrices per element.
         only_i (list[int]): List of atom indices to use.
 
@@ -212,8 +216,8 @@ def coefficients_symmetrize_short(maxlen, c, atoms, idx, ao, ao_len, M, only_i):
     if only_i is not None and len(only_i)>0:
         atoms = np.array(atoms)[only_i]
     v = np.zeros((len(atoms), maxlen))
-    for iat, (q, ao_slice) in enumerate(slice_generator(atoms, inc=lambda q: ao_len[q])):
-        v[iat,:len(idx[q])] = M[q] @ sym.vectorize_c_short(idx[q], ao[q], c[ao_slice])
+    for iat, (q, ci) in enumerate(zip(atoms, c, strict=True)):
+        v[iat,:len(idx[q])] = M[q] @ sym.vectorize_c_short(idx[q], ao[q], ci)
     return v
 
 

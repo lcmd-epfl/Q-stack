@@ -105,5 +105,5 @@ def slice_generator(iterable, inc=lambda x: x, initial=0):
     func = func=lambda total, elem: total+inc(elem)
     starts = itertools.accumulate(iterable, func=func, initial=initial)
     starts_ends = itertools.pairwise(starts)
-    for elem, (start, end) in zip(iterable, starts_ends):
+    for elem, (start, end) in zip(iterable, starts_ends, strict=True):
         yield elem, np.s_[start:end]

@@ -57,13 +57,10 @@ def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
         a_dfs.append(c_a)
 
     if short:
-        cc = []
         if only_i is not None and len(only_i) > 0:
             aoslice_by_atom = auxmol.aoslice_by_atom()[only_i,2:]
         else:
             aoslice_by_atom = auxmol.aoslice_by_atom()[:,2:]
-        for i, c in zip(aoslice_by_atom, a_dfs, strict=True):
-            cc.append(c[i[0]:i[1]])
-        return np.hstack(cc)
+        return [c[i0:i1] for (i0, i1), c in zip(aoslice_by_atom, a_dfs, strict=True)]
 
     return a_dfs
