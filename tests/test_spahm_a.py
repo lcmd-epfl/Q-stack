@@ -59,20 +59,18 @@ def test_water_mr21():
     X = np.array([(z,np.trim_zeros(v)) for z,v in X], dtype=object) ## trimming is necessary to get the short-version vector !
     underlying_test('/data/SPAHM_a_H2O/X_H2O_MR2021.npy', X)
 
-#################### TODO
 def test_water_SAD_guess_open_shell():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'sto3g', charge=1, spin=1) ## test breaks when effective open-shell caluclation is needed
     Xsad = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'sad',
                          elements=["H", "O"], spin=[1], with_symbols=True,
-                         xc = 'hf', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
+                         xc = 'hf', model='sad-diff', auxbasis='ccpvdzjkfit')
     underlying_test('/data/SPAHM_a_H2O/X_H2O-RC_SAD.npy', Xsad)
 
-#################### TODO
 def test_water_SAD_guess_close_shell():
     mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'sto3g', charge=0, spin=0) ## test breaks when effective open-shell caluclation is needed
     Xsad = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'sad',
                          elements=["H", "O"], spin=None, with_symbols=True,
-                         xc = 'hf', model='lowdin-long-x', auxbasis='ccpvdzjkfit')
+                         xc = 'hf', model='sad-diff', auxbasis='ccpvdzjkfit')
     underlying_test('/data/SPAHM_a_H2O/X_H2O_SAD.npy', Xsad)
 
 def test_water_single_element():
