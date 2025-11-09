@@ -115,26 +115,24 @@ def vector_to_tensormap(mol, c):
     # Fill in the blocks
 
     iq = dict.fromkeys(llists.keys(), 0)
-    i = 0
+    i = Cursor(action='slicer')
     for q in atom_charges:
         if llists[q]==sorted(llists[q]):
             for l in set(llists[q]):
                 msize = 2*l+1
                 nsize = blocks[(l,q)].shape[-1]
-                cslice = c[i:i+nsize*msize].reshape(nsize,msize).T
+                cslice = c[i(nsize*msize)].reshape(nsize,msize).T
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
                     cslice = cslice[pyscf2gpr_l1_order]
                 blocks[(l,q)][iq[q],:,:] = cslice
-                i += msize*nsize
         else:
             il = dict.fromkeys(range(max(llists[q]) + 1), 0)
             for l in llists[q]:
                 msize = 2*l+1
-                cslice = c[i:i+msize]
+                cslice = c[i(msize)]
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
                     cslice = cslice[pyscf2gpr_l1_order]
                 blocks[(l,q)][iq[q],:,il[l]] = cslice
-                i     += msize
                 il[l] += 1
         iq[q] += 1
 
@@ -242,48 +240,44 @@ def matrix_to_tensormap(mol, dm):
 
     if all(llists[q]==sorted(llists[q]) for q in llists):
         iq1 = dict.fromkeys(elements, 0)
-        i1 = 0
+        i1 = Cursor(action='slicer')
         for iat1, q1 in enumerate(atom_charges):
             for l1 in set(llists[q1]):
                 msize1 = 2*l1+1
                 nsize1 = llists[q1].count(l1)
                 iq2 = dict.fromkeys(elements, 0)
-                i2 = 0
+                i1.add(nsize1*msize1)
+                i2 = Cursor(action='slicer')
                 for iat2, q2 in enumerate(atom_charges):
                     for l2 in set(llists[q2]):
                         msize2 = 2*l2+1
                         nsize2 = llists[q2].count(l2)
-                        dmslice = dm[i1:i1+nsize1*msize1,i2:i2+nsize2*msize2].reshape(nsize1,msize1,nsize2,msize2)
+                        dmslice = dm[i1(),i2(nsize2*msize2)].reshape(nsize1,msize1,nsize2,msize2)
                         dmslice = np.transpose(dmslice, axes=[1,3,0,2]).reshape(msize1,msize2,-1)
                         block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
                         at_p = block.samples.position((iat1,iat2))
                         blocks[(l1,l2,q1,q2)][at_p,:,:,:] = dmslice
-                        i2 += msize2*nsize2
                     iq2[q2] += 1
-                i1 += msize1*nsize1
             iq1[q1] += 1
     else:
         iq1 = dict.fromkeys(elements, 0)
-        i1 = 0
+        i1 = Cursor(action='slicer')
         for iat1, q1 in enumerate(atom_charges):
             il1 = dict.fromkeys(range(max(llists[q1]) + 1), 0)
             for l1 in llists[q1]:
-                msize1 = 2*l1+1
+                i1.add(2*l1+1)
                 iq2 = dict.fromkeys(elements, 0)
-                i2 = 0
+                i2 = Cursor(action='slicer')
                 for iat2, q2 in enumerate(atom_charges):
                     il2 = dict.fromkeys(range(max(llists[q2]) + 1), 0)
                     for l2 in llists[q2]:
-                        msize2 = 2*l2+1
-                        dmslice = dm[i1:i1+msize1,i2:i2+msize2]
+                        dmslice = dm[i1(),i2(2*l2+1)]
                         block = tensor_blocks[tm_label_vals.index((l1, l2, q1, q2))]
                         at_p = block.samples.position((iat1, iat2))
                         n_p = block.properties.position((il1[l1], il2[l2]))
                         blocks[(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
-                        i2 += msize2
                         il2[l2] += 1
                     iq2[q2] += 1
-                i1 += msize1
                 il1[l1] += 1
             iq1[q1] += 1
 
