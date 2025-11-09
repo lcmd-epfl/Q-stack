@@ -2,6 +2,7 @@
 
 import numpy as np
 from numpy import sqrt
+from qstack.tools import Cursor
 
 
 def c_split(mol, c):
@@ -19,14 +20,11 @@ def c_split(mol, c):
             coefficients is the subset of c for that angular momentum shell.
     """
     cs = []
-    i0 = 0
+    slicer = Cursor(inc=lambda l: 2*l+1, action='slicer')
     for at0, at1 in mol.aoslice_by_atom()[:,:2]:
         for b in range(at0, at1):
             l = mol.bas_angular(b)
-            msize = 2*l+1
-            for _n in range(mol.bas_nctr(b)):
-                cs.append([l, c[i0:i0+msize]])
-                i0 += msize
+            cs.extend([[l, c[slicer(l)]] for _n in range(mol.bas_nctr(b))])
     return cs
 
 

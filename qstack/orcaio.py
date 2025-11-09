@@ -9,6 +9,7 @@ import numpy as np
 import pyscf
 from qstack.mathutils.matrix import from_tril
 from qstack.reorder import reorder_ao
+from qstack.tools import Cursor
 
 
 def read_input(fname, basis, ecp=None):
@@ -206,10 +207,9 @@ def _get_indices(mol, ls_from_orca):
     indices_full = np.arange(mol.nao)
     for iat, ls in ls_from_orca.items():
         indices = []
-        i = 0
+        i = Cursor(action='ranger')
         for il, l in enumerate(ls):
-            indices.append((l, il, i + np.arange(2*l+1)))
-            i += 2*l+1
+            indices.append((l, il, i(2*l+1)))
         indices = sorted(indices, key=lambda x: (x[0], x[1]))
         indices = np.array([j for i in indices for j in i[2]])
         atom_slice = np.s_[ao_limits[iat][0]:ao_limits[iat][1]]
