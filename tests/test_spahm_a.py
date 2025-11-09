@@ -101,6 +101,20 @@ def test_water_single_element_short():
             assert(np.linalg.norm(a[1]-a_true[1]) < 1e-08)   # atom representations
 
 
+def test_water_single_element_SAD():
+    mol = compound.xyz_to_mol(PATH+'/data/H2O.xyz', 'sto3g', charge=0, spin=0)
+    X = atom.get_repr("atom", [mol], [PATH+'/data/H2O.xyz'], 'sad',
+                         elements=["H", "O"], spin=None, with_symbols=True,
+                         xc = 'hf', model='sad-diff', auxbasis='ccpvdzjkfit', only_z=['O'])
+    X = np.array([(z,np.trim_zeros(v)) for z,v in X], dtype=object) ## trimming is necessary to get the short-version vector !
+    X_true = np.load(PATH+'/data/SPAHM_a_H2O/X_H2O_SAD.npy', allow_pickle=True)
+    a = X[0]
+    assert(X.shape == np.array(X_true[0], ndmin=2).shape)
+    for a_true in X_true:
+        if a[0] == a_true[0]:                       # atom type
+            assert(np.linalg.norm(a[1]-a_true[1]) < 1e-08)   # atom representations
+
+
 if __name__ == '__main__':
     test_water()
     test_water_alternate()
@@ -112,3 +126,4 @@ if __name__ == '__main__':
     test_water_single_element()
     test_water_single_element_short()
     test_water_mr21()
+    test_water_single_element_SAD()
