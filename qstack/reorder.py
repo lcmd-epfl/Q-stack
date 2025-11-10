@@ -33,7 +33,7 @@ def _orca2gpr_idx(l_slices, m):
     """Given a molecule returns a list of reordered indices to tranform Orca AO ordering into SA-GPR.
 
     In Orca, orbital ordering corresponds to:
-        m=0, +1, +2, ..., l, -1, -2, ..., -l
+        m=0, +1, -1, +2, -2, ..., +l, -l
     while in SA-GPR it is:
         m=-l, -l+1, ..., -1, 0, +1, ..., l-1, l
     Additionally, Orca uses a different sign convention for |m|>=3.
@@ -79,6 +79,33 @@ def _pyscf2gpr_idx(l_slices, m):
     return idx, np.ones_like(idx)
 
 
+def _gau2gpr_idx(l_slices, m):
+    """Given a molecule returns a list of reordered indices to tranform pyscf AO ordering into SA-GPR.
+
+    In SA-GPR, orbital ordering corresponds to:
+        m=-l, -l+1, ..., -1, 0, +1, ..., l-1, l
+    In Gaussian, it is:
+        l=1: m=+1, -1, 0 (i.e., x,y,z, like in PySCF)
+        l>1: m=0, +1, -1, +2, -2, ..., +l, -l (like in Orca)
+    Signs are the same in both conventions, so they are returned for compatibility.
+
+    Args:
+        l_slices (iterator): Iterator that yeilds (l: int, s: slice) per shell, where
+            l is angular momentum quantum number and s is the corresponding slice of size 2*l+1.
+        m (np.ndarray): Array of magnetic quantum numbers per AO.
+
+    Returns:
+        tuple: Re-arranged indices array and sign array.
+    """
+    idx = np.arange(len(m))
+    for l, s in l_slices:
+        if l==1:
+            idx[s] = idx[s][pyscf2gpr_l1_order]
+        elif l>1:
+            idx[s] = np.concatenate((idx[s][::-2], idx[s][1::2]))
+    return idx, np.ones_like(idx)
+
+
 def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
     """Reorder the atomic orbitals from one convention to another.
 
@@ -91,7 +118,7 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             If None, returns the indices to reorder and sign multipliers for an 1D vector
             to use as `x = x[idx]*sign`.
         src (str): Current convention. Defaults to 'pyscf'.
-        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca'). Defaults to 'gpr'.
+        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca', 'gaussian'). Defaults to 'gpr'.
 
     Returns:
         numpy.ndarray: Reordered vector or matrix, or tuple of (idx (numpy.ndarray), sign (numpy.ndarray)) if vector is None.
@@ -109,6 +136,8 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             return _pyscf2gpr_idx(l_slices, m)
         elif convention == 'orca':
             return _orca2gpr_idx(l_slices, m)
+        elif convention == 'gaussian':
+            return _gau2gpr_idx(l_slices, m)
         else:
             errstr = f'Conversion to/from the {convention} convention is not implemented'
             raise NotImplementedError(errstr)
@@ -139,5 +168,4 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
 
     newvector = np.zeros_like(vector)
     newvector[idx_dest] = (sign_src*vector)[idx_src] * sign_dest[idx_dest]
-
     return newvector
