@@ -41,11 +41,15 @@ docstring-code-line-length = "dynamic"
 
 
 [lint]
+
+
+
 select = [
   "A", "E", "F", "B",
   "S", "COM", "C4", "EXE", "ICN", "PIE", "PLR1714", "ARG",
   "PERF", "FURB", "PLE", "TRY002", "W", "UP", "RUF", "SIM", "NPY",
-  #"FIX", "TD", "D",  # later
+  "D",
+  #"FIX", "TD", # later
 ]
 ignore = [
 "E741",     # ambiguous variable name
@@ -57,7 +61,52 @@ ignore = [
 "SIM3",     # yoda condition
 "SIM114",   # combine if branches
 "SIM108",   # use ternary operator
+"D105",     # missing docstring in magic method
+"D107",     # missing docstring in __init__
+"D203",     # blank line required before class docstring
+"D204",     # blank line required after class docstring
+"D213",     # multi-line docstring summary should start at the second line
+"D413",     # missing blank line after last section
 ]
+
+preview = true
+extend-select = ["DOC"]
+extend-ignore = [
+ "E265",           #      1
+ "FURB103",        #      1
+ "FURB152",        #      1
+ "E266",           #      2
+ "E271",           #      2
+ "E305",           #      2
+ "FURB101",        #      2
+ "E262",           #      3
+ "E306",           #      5
+ "E228",           #      6
+ "E272",           #      6
+ "W391",           #      6
+ "RUF031",         #      7
+ "E261",           #     12
+ "E275",           #     13
+ "E251",           #     18
+ "E211",           #     19
+ "E303",           #     24
+ "E201",           #     33
+ "E202",           #     34
+ "E203",           #     51
+ "E221",           #    113
+ "E225",           #    179
+ "E241",           #    268
+ "E222",           #    278
+ "E231",           #    608
+ "E226",           #   4313
+ "FURB118",
+ "E117",
+ "E111",
+ "C419",
+]
+
+#[lint.pydocstyle]
+#convention = "google"
 
 [lint.per-file-ignores]
 "qstack/spahm/rho/Dmatrix.py"           = ["E702"]  # multiple statements on one line (semicolon)
@@ -67,4 +116,14 @@ ignore = [
 "tests/*" = [
 "S101",  # use of assert
 "S306",  # use of mktemp
+"D", "DOC",
+]
+"qstack/mathutils/xyz_integrals_sym.py"   = ["D417"]   # missing argument descriptions
+"qstack/mathutils/xyz_integrals_float.py" = ["D417"]   # missing argument descriptions
+"qstack/reorder.py"                       = ["DOC502"] # raised exception is not explicitly raised
+"qstack/orcaio.py"                        = ["DOC502"] # raised exception is not explicitly raised
+"qstack/spahm/rho/dmb_rep_atom.py" = [
+"DOC201", # `return` is not documented in docstring
+"DOC102", # documented parameter is not in the function's signature
+"D214",   # section is over-indented
 ]

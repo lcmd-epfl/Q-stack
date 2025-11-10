@@ -12,7 +12,7 @@ from . import basis_tools as qbbt
 
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", printlvl=2, check=False):
-    """ Optimize a given basis set.
+    """Optimize a given basis set.
 
     Args:
         elements_in (str): List of elements to optimize. If None, optimize all elements in the basis.
@@ -233,7 +233,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
 
 def main():
-    """Main function for basis set optimization command-line interface."""
+    """Run basis set optimization via command-line interface."""
     parser = argparse.ArgumentParser(description='Optimize a density fitting basis set.')
     parser.add_argument('--elements',  type=str,   dest='elements',  nargs='+',    help='elements for optimization')
     parser.add_argument('--basis',     type=str,   dest='basis',     nargs='+',    help='initial df bases', required=True)

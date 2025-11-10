@@ -1,6 +1,7 @@
 """ORCA quantum chemistry package I/O utilities.
 
-Read and parse ORCA output files, including orbitals and densities binary files."""
+Read and parse ORCA output files, including orbitals and densities binary files.
+"""
 
 import warnings
 import struct

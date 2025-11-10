@@ -7,7 +7,7 @@ from qstack.tools import Cursor
 
 
 def get_converged_mf(mol, xc, dm0=None, verbose=False):
-    """Performs SCF calculation.
+    """Perform SCF calculation.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -40,7 +40,7 @@ def get_converged_mf(mol, xc, dm0=None, verbose=False):
 
 
 def get_converged_dm(mol, xc, verbose=False):
-    """Wrapper around get_converged_mf to get the DM.
+    """Get a converged density matrix.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -54,7 +54,7 @@ def get_converged_dm(mol, xc, verbose=False):
 
 
 def make_grid_for_rho(mol, grid_level=3):
-    """Generates a grid of real space coordinates and weights for integration.
+    """Generate a grid of real space coordinates and weights for integration.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.

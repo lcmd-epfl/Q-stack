@@ -39,7 +39,8 @@ def _orca2gpr_idx(l_slices, m):
     Additionally, Orca uses a different sign convention for |m|>=3.
 
     Args:
-        l (np.ndarray): Array of angular momentum quantum numbers per shell.
+        l_slices (iterator): Iterator that yeilds (l: int, s: slice) per shell, where
+            l is angular momentum quantum number and s is the corresponding slice of size 2*l+1.
         m (np.ndarray): Array of magnetic quantum numbers per AO.
 
     Returns:

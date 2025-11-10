@@ -10,7 +10,7 @@ from .Dmatrix import Dmatrix_for_z, c_split, rotate_c
 
 
 def make_bname(q0, q1):
-    """Creates canonical bond name from two element symbols.
+    """Create canonical bond name from two element symbols.
 
     Args:
         q0 (str): First element symbol.
@@ -23,7 +23,7 @@ def make_bname(q0, q1):
 
 
 def get_basis_info(qqs, mybasis, only_m0, printlevel):
-    """Computes basis indices and metric matrices for bond pairs.
+    """Compute basis indices and metric matrices for bond pairs.
 
     Args:
         qqs (list): List of bond pair names (e.g., ['CC', 'CH', 'OH']).
@@ -51,7 +51,7 @@ def get_basis_info(qqs, mybasis, only_m0, printlevel):
 
 
 def read_df_basis(bnames, bpath, same_basis=False):
-    """Loads bond-optimized basis sets from .bas files.
+    """Load bond-optimized basis sets from .bas files.
 
     Args:
         bnames (list): List of bond pair names (e.g., ['CC', 'CH']).
@@ -72,7 +72,7 @@ def read_df_basis(bnames, bpath, same_basis=False):
 
 
 def get_element_pairs(elements):
-    """Generates all possible element pair combinations.
+    """Generate all possible element pair combinations.
 
     Creates complete list of bond types assuming all elements can bond with each other.
 
@@ -98,7 +98,7 @@ def get_element_pairs(elements):
 
 
 def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
-    """Determines element pairs based on actual distances in molecules.
+    """Determine element pairs based on actual distances in molecules.
 
     Identifies which element pairs actually form bonds within the distance cutoff
     by scanning molecular geometries.
@@ -145,7 +145,7 @@ def get_element_pairs_cutoff(elements, mols, cutoff, align=False):
 
 
 def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_basis=False):
-    """Reads basis sets and computes metric matrices for specified bond pairs.
+    """Read basis sets and computes metric matrices for specified bond pairs.
 
     Processes bond pairs from molecular structures and loads their corresponding
     basis sets from disk, then computes basis indices and metric matrices.
@@ -174,7 +174,7 @@ def read_basis_wrapper_pairs(mols, bondidx, bpath, only_m0, printlevel, same_bas
 
 
 def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=None, pairfile=None, dump_and_exit=False, same_basis=False):
-    """Reads basis sets for all element pairs present in molecules.
+    """Read basis sets for all element pairs present in molecules.
 
     Determines which element pairs exist (either all possible or within cutoff distance),
     loads corresponding basis sets, and computes metric matrices and indices.
@@ -226,7 +226,7 @@ def read_basis_wrapper(mols, bpath, only_m0, printlevel, cutoff=None, elements=N
 
 
 def bonds_dict_init(qqs, M):
-    """Initializes storage for bond representations.
+    """Initialize storage for bond representations.
 
     Creates a dictionary with zero-initialized arrays for each bond type,
     with array sizes matching the corresponding metric matrix dimensions.
@@ -250,7 +250,7 @@ def bonds_dict_init(qqs, M):
 
 
 def fit_dm(dm, mol, mybasis, ri0, ri1):
-    """Fits density matrix using auxiliary basis functions at bond center.
+    """Fit density matrix using auxiliary basis functions at bond center.
 
     Decomposes the bond density matrix into auxiliary basis coefficients
     centered at the bond midpoint, then splits coefficients by angular momentum.
@@ -263,7 +263,8 @@ def fit_dm(dm, mol, mybasis, ri0, ri1):
         ri1 (numpy.ndarray): Coordinates of second atom in Å.
 
     Returns:
-        list: Coefficients split by angular momentum quantum number [(l, coeff), ...]."""
+        list: Coefficients split by angular momentum quantum number [(l, coeff), ...].
+    """
     rm = (ri0+ri1)*0.5
     atom = f"No {rm[0]} {rm[1]} {rm[2]}"
     auxmol = gto.M(atom=atom, basis=mybasis)
@@ -274,7 +275,7 @@ def fit_dm(dm, mol, mybasis, ri0, ri1):
 
 
 def vec_from_cs(z, cs, lmax, idx):
-    """Rotates basis coefficients to bond axis and creates vectorized representation.
+    """Rotate basis coefficients to bond axis and creates vectorized representation.
 
     Applies Wigner D-matrix rotation to align coefficients with the bond vector
     (same as pretending the bond is along the z-axis),
@@ -296,7 +297,7 @@ def vec_from_cs(z, cs, lmax, idx):
 
 
 def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
-    """Computes bond representation for a specific atom pair.
+    """Compute bond representation for a specific atom pair.
 
     Extracts bond density, fits it with basis functions at the bond center,
     and symmetrizes the representation from both atom perspectives.
@@ -333,7 +334,7 @@ def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
 
 
 def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=None):
-    """Computes SPAHM(b) representations for all atoms in a molecule.
+    """Compute SPAHM(b) representations for all atoms in a molecule.
 
     Constructs bond-based atomic representations by summing contributions from
     all bonds of the same type within cutoff distance.

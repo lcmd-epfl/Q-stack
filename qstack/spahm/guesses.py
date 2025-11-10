@@ -3,7 +3,7 @@
 Implements various guess methods: Hcore, Hückel, GWH, SAD, SAP, LB2020.
 
 Provides:
-    - guesses_dict: Dictionary mapping guess names to functions.
+    guesses_dict: Dictionary mapping guess names to functions.
 """
 
 import warnings
@@ -14,7 +14,7 @@ from .LB2020guess import LB2020guess as LB20
 
 
 def hcore(mol, *_):
-    """Computes guess Hamiltonian from core contributions (kinetic + nuclear + ECP).
+    """Compute guess Hamiltonian from core contributions (kinetic + nuclear + ECP).
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -27,7 +27,7 @@ def hcore(mol, *_):
 
 
 def GWH(mol, *_):
-    """Computes guess Hamiltonian using Generalized Wolfsberg-Helmholtz (GWH) method.
+    """Compute guess Hamiltonian using Generalized Wolfsberg-Helmholtz (GWH) method.
 
     Uses the formula: H_ij = 0.5 * K * (H_ii + H_jj) * S_ij with K = 1.75.
 
@@ -52,7 +52,7 @@ def GWH(mol, *_):
 
 
 def SAD(mol, xc):
-    """Computes guess Hamiltonian using Superposition of Atomic Densities (SAD).
+    """Compute guess Hamiltonian using Superposition of Atomic Densities (SAD).
 
     Constructs the Fock matrix from atomic Hartree-Fock density matrices
     summed together as an initial guess for molecular calculations.
@@ -83,7 +83,7 @@ def SAD(mol, xc):
 
 
 def SAP(mol, *_):
-    """Computes guess Hamiltonian using Superposition of Atomic Potentials (SAP).
+    """Compute guess Hamiltonian using Superposition of Atomic Potentials (SAP).
 
     Constructs initial Hamiltonian from kinetic energy plus summed atomic potentials.
 
@@ -102,7 +102,7 @@ def SAP(mol, *_):
 
 
 def LB(mol, *_):
-    """Computes guess Hamiltonian using Laikov-Briling 2020 model with HF parameters.
+    """Compute guess Hamiltonian using Laikov-Briling 2020 model with HF parameters.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -115,7 +115,7 @@ def LB(mol, *_):
 
 
 def LB_HFS(mol, *_):
-    """Computes guess Hamiltonian using Laikov-Briling 2020 model with HFS parameters.
+    """Compute guess Hamiltonian using Laikov-Briling 2020 model with HFS parameters.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -144,7 +144,7 @@ def solveF(mol, fock):
 
 
 def get_guess(arg):
-    """Returns guess Hamiltonian function by name.
+    """Return guess Hamiltonian function by name.
 
     Args:
         arg (str): Guess method name. Available options:
@@ -169,7 +169,7 @@ def get_guess(arg):
 
 
 def check_nelec(nelec, nao):
-    """Validates that the number of electrons can be accommodated by available orbitals.
+    """Validate that the number of electrons can be accommodated by available orbitals.
 
     Args:
         nelec (tuple or int): Number of electrons (alpha, beta) or total.
@@ -189,7 +189,7 @@ def check_nelec(nelec, nao):
 
 
 def get_occ(e, nelec, spin):
-    """Extracts occupied orbital eigenvalues/energies.
+    """Extract occupied orbital eigenvalues/energies.
 
     Args:
         e (numpy ndarray): Full array of orbital eigenvalues (1D)
@@ -215,7 +215,7 @@ def get_occ(e, nelec, spin):
 
 
 def get_dm(v, nelec, spin):
-    """Constructs density matrix from occupied molecular orbitals.
+    """Construct density matrix from occupied molecular orbitals.
 
     Args:
         v (numpy ndarray): 2D array of MO coefficients (eigenvectors), columns are MOs.
@@ -240,7 +240,7 @@ def get_dm(v, nelec, spin):
 
 
 def hcore_grad(mf):
-    """Returns core Hamiltonian gradient generator function.
+    """Return core Hamiltonian gradient generator function.
 
     Args:
         mf: PySCF mean-field object.
@@ -252,7 +252,7 @@ def hcore_grad(mf):
 
 
 def LB_grad(mf):
-    """Returns Laikov-Briling Hamiltonian gradient generator function.
+    """Return Laikov-Briling Hamiltonian gradient generator function.
 
     Combines core Hamiltonian gradient with LB2020 model gradient.
 
@@ -270,7 +270,7 @@ def LB_grad(mf):
 
 
 def get_guess_g(arg):
-    """Returns both guess Hamiltonian function and its gradient generator.
+    """Return both guess Hamiltonian function and its gradient generator.
 
     Args:
         arg (str): Guess method name. Available: 'core', 'lb'.
@@ -289,7 +289,7 @@ def get_guess_g(arg):
 
 
 def eigenvalue_grad(mol, e, c, s1, h1):
-    """Computes nuclear gradients of orbital eigenvalues from generalized eigenvalue problem HC = eSC.
+    """Compute nuclear gradients of orbital eigenvalues from generalized eigenvalue problem HC = eSC.
 
     Uses the Hellmann-Feynman theorem for eigenvalue derivatives.
 

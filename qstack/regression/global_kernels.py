@@ -12,7 +12,7 @@ from qstack.tools import slice_generator
 
 
 def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
-    """Computes global kernel matrix between two sets of molecular representations.
+    """Compute global kernel matrix between two sets of molecular representations.
 
     Args:
         X (list): List of molecular representations (first set).
@@ -69,7 +69,7 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
 
 
 def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None):
-    """Computes the covariance matrix between two molecules using local kernels.
+    """Compute the covariance matrix between two molecules using local kernels.
 
     Args:
         mol1 (dict): First molecule represented as dictionary of atomic environments by species.
@@ -97,7 +97,7 @@ def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None)
 
 
 def normalize_kernel(kernel, self_x=None, self_y=None, verbose=0):
-    """Normalizes a kernel matrix using self-kernel values.
+    """Normalize a kernel matrix using self-kernel values.
 
     Args:
         kernel (numpy ndarray): Kernel matrix to normalize.
@@ -118,7 +118,7 @@ def normalize_kernel(kernel, self_x=None, self_y=None, verbose=0):
 
 
 def mol_to_dict(mol, species):
-    """Converts molecular representation to a dictionary organized by atomic species.
+    """Convert molecular representation to a dictionary organized by atomic species.
 
     Args:
         mol (numpy ndarray): Molecular representation where each row is [atomic_number, features...].
@@ -136,7 +136,7 @@ def mol_to_dict(mol, species):
 
 
 def sumsq(x):
-    """Computes sum of squares (dot product with itself).
+    """Compute sum of squares (dot product with itself).
 
     Args:
         x (numpy ndarray): Input vector.
@@ -148,7 +148,7 @@ def sumsq(x):
 
 
 def avg_kernel(kernel, _options):
-    """Computes the average kernel value.
+    """Compute the average kernel value.
 
     Args:
         kernel (numpy ndarray): Kernel matrix.
@@ -161,7 +161,7 @@ def avg_kernel(kernel, _options):
 
 
 def rematch_kernel(kernel, options):
-    """Computes the REMatch (Regularized Entropy Match) kernel.
+    """Compute the REMatch (Regularized Entropy Match) kernel.
 
     Uses Sinkhorn algorithm to compute optimal transport-based kernel similarity.
 

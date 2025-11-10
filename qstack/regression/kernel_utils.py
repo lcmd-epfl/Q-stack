@@ -1,7 +1,11 @@
-"""Kernel computation utility functions and defaults."""
+"""Kernel computation utility functions and defaults.
+
+Provides:
+    REGMODULE_PATH: Path to the module.
+    defaults: Default parameters.
+"""
 
 import os
-import argparse
 import warnings
 from types import SimpleNamespace
 import numpy as np
@@ -11,20 +15,6 @@ from .global_kernels import global_kernels_dict, get_global_K
 
 
 REGMODULE_PATH = os.path.dirname(__file__)
-
-
-class ParseKwargs(argparse.Action):
-    def __call__(self, _parser, namespace, values, _option_string=None):
-        setattr(namespace, self.dest, defaults.gdict)
-        for value in values:
-            key, value = value.split('=')
-            for t in [int, float]:
-                try:
-                    value = t(value)
-                    break
-                except ValueError:
-                    continue
-            getattr(namespace, self.dest)[key] = value
 
 
 defaults = SimpleNamespace(
@@ -45,7 +35,7 @@ defaults = SimpleNamespace(
 
 
 def get_local_kernel(arg):
-    """Obtains a local-environment kernel function by name.
+    """Obtain a local-environment kernel function by name.
 
     Args:
         arg (str): Kernel name. Available options include:
@@ -72,7 +62,7 @@ def get_local_kernel(arg):
 
 
 def get_global_kernel(arg, local_kernel):
-    """Creates a global kernel function from a local kernel.
+    """Create a global kernel function from a local kernel.
 
     Args:
         arg (tuple): Tuple of (gkernel_name, options_dict).
@@ -93,7 +83,7 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-    """Returns the appropriate kernel function based on arguments.
+    """Return the appropriate kernel function based on arguments.
 
     Args:
         arg (str): Local kernel name.
@@ -112,7 +102,7 @@ def get_kernel(arg, arg2=None):
 
 def train_test_split_idx(y, idx_test=None, idx_train=None,
                          test_size=defaults.test_size, random_state=defaults.random_state):
-    """ Perfrom test/train data split based on random shuffling or given indices.
+    """Perfrom test/train data split based on random shuffling or given indices.
 
         If neither `idx_test` nor `idx_train` are specified, the splitting
            is done randomly using `random_state`.
@@ -134,6 +124,9 @@ def train_test_split_idx(y, idx_test=None, idx_train=None,
         numpy.1darray(Ntrain, dtype=int) : train indices
         numpy.1darray(Ntest, dtype=float) : test set target property
         numpy.1darray(Ntrain, dtype=float) : train set target property
+
+    Raises:
+        RuntimeError: If test indices are repeated.
     """
     if idx_test is None and idx_train is None:
         idx_train, idx_test = train_test_split(np.arange(len(y)), test_size=test_size, random_state=random_state)
@@ -159,7 +152,7 @@ def train_test_split_idx(y, idx_test=None, idx_train=None,
 
 
 def sparse_regression_kernel(K_train, y_train, sparse_idx, eta):
-    r""" Compute the sparse regression matrix and vector.
+    r"""Compute the sparse regression matrix and vector.
 
         Solution of a sparse regression problem is
         $$ \vec w = \left( \mathbf{K}_{MN} \mathbf{K}_{NM} + \eta \mathbf{1} \right) ^{-1} \mathbf{K}_{MN}\vec y $$

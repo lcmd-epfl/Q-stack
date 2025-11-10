@@ -6,7 +6,7 @@ from .guesses import solveF, get_guess, get_occ, eigenvalue_grad, get_guess_g
 
 
 def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
-    """Computes MO energies and vectors using an initial guess Hamiltonian.
+    """Compute MO energies and vectors using an initial guess Hamiltonian.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -47,7 +47,7 @@ def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
 
 
 def ext_field_generator(mol, field):
-    """Generates external electric field Hamiltonian gradient function.
+    """Generate external electric field Hamiltonian gradient function.
 
     Creates a function that computes derivatives of the external field interaction
     Hamiltonian (H_ext) with respect to nuclear coordinates for each atom.
@@ -79,7 +79,7 @@ def ext_field_generator(mol, field):
 
 
 def get_guess_orbitals_grad(mol, guess, field=None):
-    """Computes guess Hamiltonian eigenvalues and their nuclear/field gradients.
+    """Compute guess Hamiltonian eigenvalues and their nuclear/field gradients.
 
     Calculates orbital energies and their derivatives with respect to both nuclear
     coordinates (for geometry optimization/force calculations) and electric field
@@ -114,7 +114,7 @@ def get_guess_orbitals_grad(mol, guess, field=None):
 
 
 def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
-    """Computes the ε-SPAHM molecular representation.
+    """Compute the ε-SPAHM molecular representation.
 
     Reference:
         A. Fabrizio, K. R. Briling, C. Corminboeuf,
@@ -140,7 +140,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
 
 
 def get_spahm_representation_grad(mol, guess_in, field=None):
-    """Computes SPAHM representation and its nuclear/field gradients for force/response calculations.
+    """Compute SPAHM representation and its nuclear/field gradients for force/response calculations.
 
     Calculates the SPAHM descriptor (occupied orbital energies) along with derivatives
     needed for molecular dynamics, geometry optimization, and response properties.

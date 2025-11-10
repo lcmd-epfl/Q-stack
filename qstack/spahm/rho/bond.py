@@ -17,8 +17,8 @@ def main(args=None):
     Args:
         args (list, optional): Command-line arguments. If None, uses sys.argv. Defaults to None.
 
-    Returns:
-        None: Saves representations to numpy files with names based on --name argument.
+    Output:
+        Saves representations to numpy files with names based on --name argument.
     """
     parser = SpahmParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof', unified=True, bond=True)
     args = parser.parse_args(args=args)

@@ -6,7 +6,7 @@ from qstack.tools import Cursor
 
 
 def c_split(mol, c):
-    """Splits coefficient vector by angular momentum quantum number for each atom.
+    """Split coefficient vector by angular momentum quantum number for each atom.
 
     Organizes expansion coefficients into sublists grouped by angular momentum (l)
     for each atomic basis function.
@@ -29,7 +29,7 @@ def c_split(mol, c):
 
 
 def rotate_c(D, cs):
-    """Rotates coefficient vector using real Wigner D-matrices.
+    """Rotate coefficient vector using real Wigner D-matrices.
 
     Applies angular momentum rotation to each angular momentum block separately.
 
@@ -44,7 +44,7 @@ def rotate_c(D, cs):
 
 
 def new_xy_axis(z):
-    """Constructs orthonormal coordinate system from a given z-axis.
+    """Construct orthonormal coordinate system from a given z-axis.
 
     Finds optimal x' and y' axes that form a right-handed orthonormal system
     with the given z' direction. The algorithm chooses x' to have maximal
@@ -67,7 +67,7 @@ def new_xy_axis(z):
 
 
 def Dmatrix(xyz, lmax, order='xyz'):
-    """Generates real Wigner D-matrices for spatial rotation of spherical harmonics.
+    """Generate real Wigner D-matrices for spatial rotation of spherical harmonics.
 
     Computes rotation matrices D^l for angular momenta l = 0 to lmax, where
     D^l[m1, m2] transforms spherical harmonics under the specified rotation.
@@ -301,7 +301,7 @@ def Dmatrix(xyz, lmax, order='xyz'):
 
 
 def Dmatrix_for_z(z, lmax, order='xyz'):
-    """Generates Wigner D-matrices for rotation that aligns z-axis with given vector.
+    """Generate Wigner D-matrices for rotation that aligns z-axis with given vector.
 
     Wrapper function that combines new_xy_axis() and Dmatrix() to compute
     rotation matrices for a rotation defined only by the target z-direction.
@@ -313,9 +313,6 @@ def Dmatrix_for_z(z, lmax, order='xyz'):
 
     Returns:
         list: List of Wigner D-matrices for l=0 to lmax.
-
-    Raises:
-        NotImplementedError: If lmax > 4.
     """
     return Dmatrix(new_xy_axis(z), lmax, order)
 

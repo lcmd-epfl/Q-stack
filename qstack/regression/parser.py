@@ -2,7 +2,30 @@
 
 import argparse
 from qstack.tools import FlexParser
-from .kernel_utils import defaults, ParseKwargs, local_kernels_dict, global_kernels_dict
+from .kernel_utils import defaults, local_kernels_dict, global_kernels_dict
+
+
+class ParseKwargs(argparse.Action):
+    """Parser for the global kernel parameters."""
+    def __call__(self, _parser, namespace, values, _option_string=None):
+        """Set attributes.
+
+        Args:
+            _parser: Unused (for interface compatibility).
+            namespace (argparse.Namespace): Namespace to set attributes to.
+            values (list[str]): The associated command-line arguments.
+            _option_string: Unused (for interface compatibility).
+        """
+        setattr(namespace, self.dest, defaults.gdict)
+        for value in values:
+            key, value = value.split('=')
+            for t in [int, float]:
+                try:
+                    value = t(value)
+                    break
+                except ValueError:
+                    continue
+            getattr(namespace, self.dest)[key] = value
 
 
 class RegressionParser(FlexParser):
@@ -65,7 +88,7 @@ class RegressionParser(FlexParser):
                                     "L_custompy" is suited to open-shell systems')
         parser.add_argument('--gkernel',       type=str,   dest='gkernel',    default=defaults.gkernel,  choices=global_kernels_dict.keys(),
                             help='global kernel type: "avg" for average, "rem" for REMatch')
-        parser.add_argument('--gdict', action=ParseKwargs, dest='gdict',      default=defaults.gdict,    nargs='*', help='dictionary like input string to initialize global kernel parameters')
+        parser.add_argument('--gdict', action=ParseKwargs, dest='gdict',      default=defaults.gdict,    nargs='*', help='dictionary like input string to initialize global kernel parameters, e.g. "--gdict alpha=2 normalize=0"')
         parser.add_argument('--test',          type=float,          dest='test_size',    default=defaults.test_size,             help='test set fraction')
         parser.add_argument('--train',         type=float,          dest='train_size',   default=defaults.train_size, nargs='+', help='training set fractions')
         parser.add_argument('--ll',            action='store_true', dest='ll',           default=False,                          help='if correct for the numper of threads')

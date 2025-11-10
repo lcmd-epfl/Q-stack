@@ -6,7 +6,7 @@ from . import lowdin
 
 
 def fit(mol, dm, aux_basis, short=False, w_slicing=True, only_i=None):
-    """Creates atomic density representations using Löwdin partitioning and density fitting.
+    """Create atomic density representations using Löwdin partitioning and density fitting.
 
     Decomposes the molecular density matrix into atomic contributions using Löwdin
     orthogonalization, then fits each atomic density onto auxiliary basis set.

@@ -27,7 +27,7 @@ def decompose(mol, dm, auxbasis):
 
 
 def get_integrals(mol, auxmol):
-    """Computes overlap integrals and 2-/3-centers ERI matrices.
+    """Compute overlap integrals and 2-/3-centers ERI matrices.
 
     Args:
         mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
@@ -48,7 +48,7 @@ def get_integrals(mol, auxmol):
 
 
 def get_self_repulsion(mol_or_mf, dm):
-    r"""Computes the self-repulsion of the density.
+    r"""Compute the self-repulsion of the density.
 
     \int \int \rho_DM(r1) 1/|r1-r2| \rho_DM(r2) dr1 dr2
 
@@ -67,7 +67,7 @@ def get_self_repulsion(mol_or_mf, dm):
 
 
 def optimal_decomposition_error(self_repulsion, c, eri2c):
-    r"""Computes the decomposition error for optimal density fitting.
+    r"""Compute the decomposition error for optimal density fitting.
 
     \int \int \rho_DM(r1) 1/|r1-r2| \rho_DF(r2) dr1 dr2
 
@@ -87,7 +87,7 @@ def optimal_decomposition_error(self_repulsion, c, eri2c):
 
 
 def decomposition_error(self_repulsion, c, eri2c, eri3c, dm):
-    r"""Computes the decomposition error for optimal density fitting.
+    r"""Compute the decomposition error for optimal density fitting.
 
     \int \int \rho_DM(r1) 1/|r1-r2| \rho_DF(r2) dr1 dr2
 
@@ -110,7 +110,7 @@ def decomposition_error(self_repulsion, c, eri2c, eri3c, dm):
 
 
 def get_coeff(dm, eri2c, eri3c, slices=None):
-    """Computes the density expansion coefficients.
+    """Compute the density expansion coefficients.
 
     Args:
         dm (numpy ndarray): Density matrix.
@@ -143,7 +143,7 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
 
 
 def _get_inv_metric(mol, metric, v):
-    """Computes the inverse metric applied to a vector.
+    """Compute the inverse metric applied to a vector.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.

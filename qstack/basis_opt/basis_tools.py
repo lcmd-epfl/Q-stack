@@ -6,7 +6,7 @@ from pyscf import df, dft
 
 
 def energy_mol(newbasis, moldata):
-    """Computes loss function (fitting error) for one molecule.
+    """Compute loss function (fitting error) for one molecule.
 
     Args:
         newbasis (dict): Basis set.
@@ -32,7 +32,7 @@ def energy_mol(newbasis, moldata):
 
 
 def gradient_mol(nexp, newbasis, moldata):
-    """Computes loss function and gradient for one molecule.
+    """Compute loss function and gradient for one molecule.
 
     Args:
         nexp (int): Number of exponents.

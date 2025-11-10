@@ -1,5 +1,4 @@
-"""
-NIST physical constants and unit conversion
+"""NIST physical constants and unit conversion.
 
 https://physics.nist.gov/cuu/Constants/
 https://physics.nist.gov/cuu/Constants/Table/allascii.txt

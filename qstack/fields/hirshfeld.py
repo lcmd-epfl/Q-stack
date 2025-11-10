@@ -6,7 +6,7 @@ from .dm import make_grid_for_rho
 
 
 def spherical_atoms(elements, atm_bas):
-    """Computes density matrices for spherically averaged isolated atoms.
+    """Compute density matrices for spherically averaged isolated atoms.
 
     For each element, creates an isolated atom calculation with appropriate spin
     and computes its density matrix using atomic Hartree-Fock initial guess.
@@ -26,7 +26,7 @@ def spherical_atoms(elements, atm_bas):
 
 
 def _hirshfeld_weights(mol, grid_coord, atm_dm, atm_bas, dominant):
-    """Computes Hirshfeld partitioning weights for each atom at grid points.
+    """Compute Hirshfeld partitioning weights for each atom at grid points.
 
     Hirshfeld partitioning divides the molecular density among atoms based on
     their promolecular (free atom) densities. Dominant partitioning assigns
@@ -69,7 +69,7 @@ def _hirshfeld_weights(mol, grid_coord, atm_dm, atm_bas, dominant):
 def hirshfeld_charges(mol, cd, dm_atoms=None, atm_bas=None,
                       dominant=True,
                       occupations=False, grid_level=3):
-    """Computes atomic charges or occupations using Hirshfeld partitioning.
+    """Compute atomic charges or occupations using Hirshfeld partitioning.
 
     Partitions the molecular electron density among atoms using Hirshfeld weights
     based on free atom densities. Can work with either density-fitting coefficients

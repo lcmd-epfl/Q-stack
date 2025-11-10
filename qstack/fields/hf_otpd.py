@@ -6,7 +6,7 @@ from .dm import make_grid_for_rho
 
 
 def hf_otpd(mol, dm, grid_level=3, save_otpd=False, return_all=False):
-    """Computes the Hartree-Fock uncorrelated on-top pair density (OTPD) on a grid.
+    """Compute the Hartree-Fock uncorrelated on-top pair density (OTPD) on a grid.
 
     The on-top pair density is the probability density of finding two electrons
     at the same position. For Hartree-Fock, this is computed as (rho/2)^2.
@@ -38,7 +38,7 @@ def hf_otpd(mol, dm, grid_level=3, save_otpd=False, return_all=False):
 
 
 def save_OTPD(mol, otpd, grid):
-    """Saves on-top pair density computation results to a NumPy compressed file.
+    """Save on-top pair density computation results to a NumPy compressed file.
 
     Creates a .npz file containing the molecular structure, OTPD values,
     grid coordinates, and integration weights for later analysis.
@@ -48,8 +48,8 @@ def save_OTPD(mol, otpd, grid):
         otpd (numpy ndarray): 1D array of on-top pair density values on the grid.
         grid (pyscf Grid): Grid object containing coordinates and weights.
 
-    Returns:
-        None: Creates a file named <elements>_otpd_data.npz on disk.
+    Output:
+        Creates a file named <elements>_otpd_data.npz on disk.
     """
     output = ''.join(mol.elements)+"_otpd_data"
     np.savez(output, atom=mol.atom, rho=otpd, coords=grid.coords, weights=grid.weights)

@@ -24,7 +24,7 @@ class LB2020guess:
 
 
     def renormalize(self, a):
-        r"""Computes renormalization factor for Gaussian basis functions.
+        r"""Compute renormalization factor for Gaussian basis functions.
 
         The auxiliary basis functions are given in charge normalization, thus
         we need to renormalize them to square-integral normalization for use in integrals.
@@ -44,7 +44,7 @@ class LB2020guess:
 
 
     def read_ac(self, fname):
-        """Reads auxiliary basis parameters from file.
+        """Read auxiliary basis parameters from file.
 
         Args:
             fname (str, optional): Path to parameter file. If None, uses default.
@@ -72,13 +72,13 @@ class LB2020guess:
 
 
     def add_caps(self, basis):
-        """Adds cap (diffuse) functions to the auxiliary basis.
+        """Add cap (diffuse) functions to the auxiliary basis.
 
         Args:
             basis (dict): Basis set dictionary to modify in-place.
 
-        Returns:
-            None. Modifies basis in-place.
+        Output:
+            Modifies basis in-place.
         """
         for q in range(1, self.Qmax+1):
             a = self._caps_array[q]
@@ -89,7 +89,7 @@ class LB2020guess:
 
 
     def get_basis(self, fname, parameters):
-        """Initializes auxiliary basis set from file or predefined parameters.
+        """Initialize auxiliary basis set from file or predefined parameters.
 
         Loads basis set from either predefined HF/HFS parameters or custom file,
         then adds cap functions and stores in self.acbasis.
@@ -114,7 +114,7 @@ class LB2020guess:
 
 
     def use_charge(self, mol):
-        """Adjusts basis coefficients based on molecular charge.
+        """Adjust basis coefficients based on molecular charge.
 
         For charged molecules with HF parameters, scales the cap function
         coefficient to account for charge redistribution.
@@ -134,7 +134,7 @@ class LB2020guess:
 
 
     def use_ecp(self, mol, acbasis):
-        """Adjusts basis set to account for effective core potentials (ECP).
+        """Adjust basis set to account for effective core potentials (ECP).
 
         When ECP is present, removes basis functions corresponding to core electrons
         by reducing coefficients proportionally until core charge is accounted for.
@@ -178,7 +178,7 @@ class LB2020guess:
 
 
     def get_auxweights(self, auxmol):
-        """Extracts auxiliary basis weights from the basis.
+        """Extract auxiliary basis weights from the basis.
 
         Collects the coefficients from each auxiliary basis primitive
         into a single array aligned with auxiliary orbital indices.
@@ -216,7 +216,7 @@ class LB2020guess:
 
 
     def get_eri3c(self, mol, auxmol):
-        """Computes 3-center electron repulsion integrals.
+        """Compute 3-center electron repulsion integrals.
 
         Args:
             mol (pyscf.gto.Mole): Main molecule object.
@@ -233,7 +233,7 @@ class LB2020guess:
 
 
     def check_coefficients(self, mol, acbasis):
-        """Validates that auxiliary basis coefficients sum to correct total charge.
+        """Validate that auxiliary basis coefficients sum to correct total charge.
 
         Ensures basis set modifications (charge adjustment, ECP) maintain
         consistency with molecular electronic structure.
@@ -252,7 +252,7 @@ class LB2020guess:
 
 
     def HLB20(self, mol):
-        """Computes the LB2020 effective potential matrix.
+        """Compute the LB2020 effective potential matrix.
 
         Args:
             mol (pyscf.gto.Mole): Molecule object.
@@ -270,7 +270,7 @@ class LB2020guess:
 
 
     def Heff(self, mol):
-        """Constructs one-electron Hamiltonian for initial guess.
+        """Construct one-electron Hamiltonian for initial guess.
 
         Combines standard core Hamiltonian with LB2020 effective potential.
 
@@ -287,7 +287,7 @@ class LB2020guess:
 
 
     def HLB20_ints_generator(self, mol, auxmol):
-        """Creates generator for LB2020 potential gradients.
+        """Create generator for LB2020 potential gradients.
 
         Computes derivative integrals and returns a function that evaluates
         the gradient of LB2020 potential with respect to atomic positions.
@@ -318,7 +318,7 @@ class LB2020guess:
 
 
     def HLB20_generator(self, mol):
-        """Creates generator for LB2020 potential gradient contributions.
+        """Create generator for LB2020 potential gradient contributions.
 
         Args:
             mol (pyscf.gto.Mole): Molecule object.
@@ -339,7 +339,8 @@ class LB2020guess:
 
 
     def init_data(self):
-        """Set parameters:
+        """Set parameters.
+
         - self._caps_array: Diffuse function exponents for each element.
         - self._hf_basis: Predefined HF parameter set for all elements.
         - self._hfs_basis: Predefined HFS parameter set for all elements.

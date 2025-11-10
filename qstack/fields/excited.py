@@ -5,7 +5,7 @@ from . import moments
 
 
 def get_cis(mf, nstates):
-    """Wrapper for CIS (Configuration interaction singles) / TDA (Tamm-Dancoff approximation) computation.
+    """Run a CIS (Configuration interaction singles) / TDA (Tamm-Dancoff approximation) computation.
 
     Args:
         mf: Pyscf mean-field object.
@@ -23,7 +23,7 @@ def get_cis(mf, nstates):
 
 
 def get_cis_tdm(td):
-    """Extracts transition density matrices from TDA/CIS calculation.
+    """Extract transition density matrices from TDA/CIS calculation.
 
     Args:
         td: TDA/CIS calculation object containing excitation amplitudes.
@@ -35,7 +35,7 @@ def get_cis_tdm(td):
 
 
 def get_holepart(mol, x, coeff):
-    """Computes the hole and particle density matrices (in AO basis) for a selected state.
+    """Compute the hole and particle density matrices (in AO basis) for a selected state.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -56,7 +56,7 @@ def get_holepart(mol, x, coeff):
 
 
 def get_transition_dm(mol, x_mo, coeff):
-    """Computes the transition density matrix for a selected state.
+    """Compute the transition density matrix for a selected state.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -72,7 +72,7 @@ def get_transition_dm(mol, x_mo, coeff):
 
 
 def exciton_properties_c(mol, hole, part):
-    """Computes the decomposed/predicted hole-particle distance, the hole size, and the particle size.
+    """Compute the decomposed/predicted hole-particle distance, the hole size, and the particle size.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -95,7 +95,7 @@ def exciton_properties_c(mol, hole, part):
 
 
 def exciton_properties_dm(mol, hole, part):
-    """Computes the ab initio hole-particle distance, the hole size, and the particle size.
+    """Compute the ab initio hole-particle distance, the hole size, and the particle size.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -124,7 +124,7 @@ def exciton_properties_dm(mol, hole, part):
 
 
 def exciton_properties(mol, hole, part):
-    """Computes the ab initio or decomposed/predicted hole-particle distance, the hole size, and the particle size.
+    """Compute the ab initio or decomposed/predicted hole-particle distance, the hole size, and the particle size.
 
     Distance is defined as |<r>_hole - <r>_part|, and size as sqrt(<r^2> - <r>^2).
 

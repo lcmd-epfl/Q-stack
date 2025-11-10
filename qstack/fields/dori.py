@@ -8,7 +8,7 @@ from .dm import make_grid_for_rho
 
 
 def eval_rho_dm(mol, ao, dm, deriv=2):
-    """Calculates electron density and its derivatives from a density matrix.
+    """Compute electron density and its derivatives from a density matrix.
 
     Modified from pyscf/dft/numint.py to return full second derivative matrices
     needed for DORI calculations.
@@ -53,7 +53,7 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
 
 
 def eval_rho_df(ao, c, deriv=2):
-    """Calculates electron density and its derivatives from density-fitting coefficients.
+    """Compute electron density and its derivatives from density-fitting coefficients.
 
     Args:
         ao (numpy ndarray): 3D array of shape (*, ngrids, nao) where:
@@ -83,7 +83,7 @@ def eval_rho_df(ao, c, deriv=2):
 
 
 def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
-    """Wrapper to calculate electron density and derivatives efficiently.
+    """Calculate electron density and derivatives efficiently.
 
     Computes density and its spatial derivatives on a grid from either a density
     matrix or fitting coefficients, with optimizations for numerical stability.
@@ -132,7 +132,7 @@ def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
 
 
 def compute_s2rho(rho, d2rho_dr2, eps=1e-4):
-    """Computes signed density based on second eigenvalue of the density Hessian.
+    """Compute signed density based on second eigenvalue of the density Hessian.
 
     Useful for distinguishing bonding vs. non-bonding regions. The sign of the
     second eigenvalue of the Hessian indicates local density topology.
@@ -153,7 +153,7 @@ def compute_s2rho(rho, d2rho_dr2, eps=1e-4):
 
 
 def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
-    """Computes Density Overlap Regions Indicator (DORI) analytically.
+    """Compute Density Overlap Regions Indicator (DORI) analytically.
 
     Args:
         rho (numpy ndarray): 1D array (ngrids,) of electron density.
@@ -181,7 +181,7 @@ def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
 
 
 def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4, dx=1e-4):
-    """Computes DORI using numerical differentiation (semi-numerical approach).
+    """Compute DORI using numerical differentiation (semi-numerical approach).
 
     Alternative to analytical DORI calculation using finite differences for
     derivatives of k², where k=dρ/dr. Useful for validation or when analytical
@@ -229,7 +229,7 @@ def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4, dx=1e-4):
 
 
 def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1, dx=1e-4, progress=False):
-    """Computes DORI on a user-specified grid with memory management.
+    """Compute DORI on a user-specified grid with memory management.
 
     Main computational function for DORI evaluation. Handles large grids by
     chunking based on available memory.

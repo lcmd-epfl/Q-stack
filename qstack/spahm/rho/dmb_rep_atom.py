@@ -3,7 +3,7 @@
 Implements various models: pure, SAD-diff, occupation-corrected, Löwdin partitioning.
 
 Provides:
-    - models_dict: Dictionary of available models.
+    models_dict: Dictionary of available models.
 """
 
 import numpy as np
@@ -14,7 +14,7 @@ from qstack.tools import slice_generator
 
 
 def get_basis_info(atom_types, auxbasis):
-    """Gathers auxiliary basis information for all atom types.
+    """Gather auxiliary basis information for all atom types.
 
     Computes overlap matrices, basis function indices, and metric matrices
     needed for atomic density fitting.
@@ -43,7 +43,7 @@ def get_basis_info(atom_types, auxbasis):
 
 
 def _make_models_dict():
-    """Creates dictionary of available SPAHM(a) models.
+    """Create a dictionary of available SPAHM(a) models.
 
     Defines density fitting functions for each model.
 
@@ -114,7 +114,7 @@ def _make_models_dict():
 
 
 def get_model(arg):
-    """Returns density fitting and symmetrization functions for specified model.
+    """Return density fitting and symmetrization functions for specified model.
 
     Args:
         arg (str): Model name. Available options:
@@ -130,14 +130,18 @@ def get_model(arg):
     Returns:
         tuple: (density_fitting_function, symmetrization_function, maxlen_function).
             - density_fitting_function (callable): Function performing density fitting.
+
             Args:
                 mol (pyscf Mole): Molecule object.
                 dm (numpy ndarray): Density matrix (2D).
                 auxbasis (str or dict): Auxiliary basis set.
                 only_i (list[int]): List of atom indices to use.
+
             Returns:
                 list: Density fitting coefficients per atom (1D numpy ndarrays).
+
             - symmetrization_function (callable): Function for symmetrizing coefficients.
+
             Args:
                 maxlen (int): Maximum feature length.
                 c (numpy ndarray): Density fitting coefficients (1D).
@@ -147,12 +151,16 @@ def get_model(arg):
                 ao_len (dict): Basis set sizes per element.
                 M (dict): Metric matrices per element (2D numpy ndarrays).
                 only_i (list[int]): List of atom indices to use.
+
             Returns:
                 numpy ndarray: Symmetrized atomic feature vectors.
+
             - maxlen_function (callable): Function computing max. feature size.
+
             Args:
                 idx (dict): Pair indices per element.
                 elements (list[str]): Elements for which representation is computed.
+
             Returns:
                 int: Maximum feature length.
 
@@ -166,7 +174,7 @@ def get_model(arg):
 
 
 def coefficients_symmetrize_MR2021(maxlen, c, atoms, idx, ao, _, _M, only_i):
-    """Symmetrizes density fitting coefficients using MR2021 method.
+    """Symmetrize density fitting coefficients using MR2021 method.
 
     Reference:
         J. T. Margraf, K. Reuter,
@@ -196,7 +204,7 @@ def coefficients_symmetrize_MR2021(maxlen, c, atoms, idx, ao, _, _M, only_i):
 
 
 def coefficients_symmetrize_short(maxlen, c, atoms, idx, ao, _, M, only_i):
-    """Symmetrizes coefficients for each atom.
+    """Symmetrize coefficients for each atom.
 
     For each atom, use contributions from the said atom.
 
@@ -222,7 +230,7 @@ def coefficients_symmetrize_short(maxlen, c, atoms, idx, ao, _, M, only_i):
 
 
 def coefficients_symmetrize_long(maxlen, c_df, atoms, idx, ao, ao_len, M, _):
-    """Symmetrizes coefficients for long Löwdin models.
+    """Symmetrize coefficients for long Löwdin models.
 
     For each atom, use contributions from the said atom as well as all other atoms.
 
