@@ -327,7 +327,7 @@ def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
     dm1   = L.get_bond(i0, i1)
     bname = make_bname(q0, q1)
     cs    = fit_dm(dm1, L.mol, mybasis[bname], r0, r1)
-    lmax  = max([c[0] for c in cs])
+    lmax  = max(c[0] for c in cs)
     v0    = vec_from_cs(+z, cs, lmax, idx[bname])
     v1    = vec_from_cs(-z, cs, lmax, idx[bname])
     return [v0, v1], bname

@@ -103,4 +103,3 @@ def sphericalize_density_matrix(mol, dm):
                         spherical_dm[idx+m,jdx+m] = trace / msize
 
     return spherical_dm
-

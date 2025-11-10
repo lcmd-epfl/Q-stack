@@ -87,7 +87,7 @@ def main():
     """Command-line entry point for computing final prediction errors."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)

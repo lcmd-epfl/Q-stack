@@ -177,7 +177,7 @@ def get_b2r2_a_molecular(ncharges, coords, elements,
             coords_b = coords[j]
             R = np.linalg.norm(coords_b - coords_a)
             if R < rcut:
-                twobodyrep[bag_idx[(ncharge_a, ncharge_b)]] += get_gaussian(grid, R)
+                twobodyrep[bag_idx[ncharge_a, ncharge_b]] += get_gaussian(grid, R)
 
     twobodyrep = 2.0*np.concatenate(twobodyrep)
     return twobodyrep

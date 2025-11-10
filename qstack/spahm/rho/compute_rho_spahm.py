@@ -60,7 +60,7 @@ def spahm_a_b(rep_type, mols, dms,
                                                                          elements=elements, cutoff=cutoff,
                                                                          pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
         qqs = qqs0 if zeros else qqs4q
-        maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
+        maxlen = max(dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements)
     elif rep_type == 'atom':
         if elements is None:
             elements = set()
@@ -146,7 +146,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
     else:
         all_atoms   = [mol.elements for mol in mols]
 
-    spin = np.array(spin) ## a bit dirty but couldn't find a better way to ensure Iterable type!
+    spin = np.array(spin)  # a bit dirty but couldn't find a better way to ensure Iterable type!
     if (spin == None).all():
         omods = [None]
 
@@ -283,6 +283,7 @@ def main(args=None):
                 np.save(args.name_out + '_' + basename + mod_suffix, molvec)
         else:
             np.save(args.name_out + mod_suffix, modvec)
+
 
 if __name__ == "__main__":
     main()

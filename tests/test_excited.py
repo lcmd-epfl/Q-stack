@@ -23,22 +23,22 @@ def test_excited():
     x_ao = fields.excited.get_transition_dm(mol, X[state_id], coeff)
     dip  = fields.moments.first(mol, x_ao)
     dip0 = np.array([ 0.68927353, -2.10714637, -1.53423419])
-    assert(np.allclose(dip, dip0, atol=1e-8))
+    assert (np.allclose(dip, dip0, atol=1e-8))
 
     hole_d, part_d = fields.excited.get_holepart(mol, X[state_id], coeff)
-    assert(np.allclose(hole_d, hole_d0, atol=1e-8))
-    assert(np.allclose(part_d, part_d0, atol=1e-8))
+    assert (np.allclose(hole_d, hole_d0, atol=1e-8))
+    assert (np.allclose(part_d, part_d0, atol=1e-8))
 
     auxmol = compound.make_auxmol(mol, 'ccpvqz jkfit')
     dip    = fields.moments.first(auxmol, x_c)
     dip0 = np.array([-0.68919144,  2.10692116,  1.53399871])
-    assert(np.allclose(dip, dip0, atol=1e-8))
+    assert (np.allclose(dip, dip0, atol=1e-8))
 
     dist, hole_extent, part_extent = fields.excited.exciton_properties(mol, hole_d, part_d)
-    assert(np.allclose([dist, hole_extent, part_extent], [2.59863354, 7.84850017, 5.67617426], atol=1e-7))
+    assert (np.allclose([dist, hole_extent, part_extent], [2.59863354, 7.84850017, 5.67617426], atol=1e-7))
 
     dist, hole_extent, part_extent = fields.excited.exciton_properties(auxmol, hole_c, part_c)
-    assert(np.allclose([dist, hole_extent, part_extent], [2.59940378, 7.8477511,  5.67541635], atol=1e-7))
+    assert (np.allclose([dist, hole_extent, part_extent], [2.59940378, 7.8477511,  5.67541635], atol=1e-7))
 
 
 def test_excited_frag():
@@ -56,8 +56,8 @@ def test_excited_frag():
     else:
         omega_hole_frag0 = np.array([ 4.24698889, 25.1717958 ,  7.80455406, 32.89098877, 29.88567248])
         omega_part_frag0 = np.array([ 1.87258999, 19.98184387, 37.30712212, 36.77858748,  4.05985653])
-    assert(np.linalg.norm(omega_hole_frag-omega_hole_frag0)<1e-8)
-    assert(np.linalg.norm(omega_part_frag-omega_part_frag0)<1e-8)
+    assert (np.linalg.norm(omega_hole_frag-omega_hole_frag0)<1e-8)
+    assert (np.linalg.norm(omega_part_frag-omega_part_frag0)<1e-8)
 
 
 if __name__ == '__main__':

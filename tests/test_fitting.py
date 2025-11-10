@@ -12,7 +12,7 @@ def test_fitting():
     dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
     c0 = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
     _auxmol, c = decomposition.decompose(mol, dm, 'cc-pvdz jkfit')
-    assert(np.linalg.norm(c-c0)<1e-10)
+    assert (np.linalg.norm(c-c0)<1e-10)
 
 
 def test_block_fitting():
@@ -29,7 +29,7 @@ def test_block_fitting():
 
     c0 = decomposition.get_coeff(dm, eri2c0, eri3c)
     c = decomposition.get_coeff(dm, eri2c0, eri3c, slices=atom_bounds)
-    assert(np.linalg.norm(c-c0)<1e-10)
+    assert (np.linalg.norm(c-c0)<1e-10)
 
 
 def test_fitting_error():
@@ -42,9 +42,9 @@ def test_fitting_error():
     _, eri2c, eri3c = decomposition.get_integrals(mol, auxmol)
     self_repulsion = decomposition.get_self_repulsion(mol, dm)
     error = decomposition.optimal_decomposition_error(self_repulsion, c0, eri2c)
-    assert(np.allclose(error, error0))
+    assert (np.allclose(error, error0))
     error = decomposition.decomposition_error(self_repulsion, c0, eri2c, eri3c, dm)
-    assert(np.allclose(error, error0))
+    assert (np.allclose(error, error0))
 
 
 def test_fitting_noe():

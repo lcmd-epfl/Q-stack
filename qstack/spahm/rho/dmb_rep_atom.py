@@ -92,7 +92,6 @@ def _make_models_dict():
         c  = fields.decomposition.correct_N_atomic(auxmol, Q, c0, metric=eri2c)
         return sym.c_split_atom(auxmol, c, only_i=only_i)
 
-
     def maxlen_long(idx, _):
         return sum(len(v) for v in idx.values())
 

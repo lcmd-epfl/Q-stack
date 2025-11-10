@@ -58,7 +58,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     else:
         if read_kernel:
             raise RuntimeError('Cannot do FPS with kernels')
-        sparse_idx = do_fps(X_train)[0][:sparse] # indices within the training set
+        sparse_idx = do_fps(X_train)[0][:sparse]  # indices within the training set
 
     if debug:
         # Ensures reproducibility of the sample selection for each train_size over repetitions (n_rep)
@@ -71,7 +71,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         size_train = int(np.floor(len(y_train)*size)) if size <= 1.0 else size
         maes = []
         for _rep in range(n_rep):
-            train_idx = rng.choice(all_indices_train, size = size_train, replace=False)
+            train_idx = rng.choice(all_indices_train, size=size_train, replace=False)
             y_kf_train = y_train[train_idx]
 
             if not sparse:
@@ -102,7 +102,7 @@ def main():
     """Command-line entry point for computing learning curves."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)

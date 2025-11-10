@@ -31,6 +31,7 @@ def custom_laplacian_kernel(X, Y, gamma):
     """
     if X.shape[1:] != Y.shape[1:]:
         raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
+
     def cdist(X, Y):
         K = np.zeros((len(X),len(Y)))
         for i,x in enumerate(X):
@@ -147,7 +148,7 @@ def local_laplacian_kernel_wrapper(X, Y, gamma):
     X, Y = np.asarray(X), np.asarray(Y)
     if X.shape[1:] != Y.shape[1:]:
         raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
-    if X.ndim==1: # do not extend so the behavior is the same for 'L' and 'L_custom_py'
+    if X.ndim==1:  # do not extend so the behavior is the same for 'L' and 'L_custom_py'
         raise RuntimeError("Dimensionality of X should be > 1")
 
     if X.ndim>2:
