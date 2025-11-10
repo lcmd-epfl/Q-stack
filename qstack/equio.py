@@ -42,7 +42,7 @@ def _get_llist(mol):
 
 
 def _get_tsize(tensor):
-    """Computes the size of a tensor.
+    """Compute the size of a tensor.
 
     Args:
         tensor (metatensor.TensorMap): Tensor.
@@ -54,7 +54,7 @@ def _get_tsize(tensor):
 
 
 def _labels_to_array(labels):
-    """Represents a set of metatensor labels as an array.
+    """Represent a set of metatensor labels as an array.
 
     Args:
         labels (metatensor.Labels): Labels object.
@@ -68,7 +68,7 @@ def _labels_to_array(labels):
 
 
 def vector_to_tensormap(mol, c):
-    """Transforms an vector into a tensor map.
+    """Transform an vector into a tensor map.
 
     Each element of the vector corresponds to an atomic orbital of the molecule.
 
@@ -183,7 +183,7 @@ def tensormap_to_vector(mol, tensor):
 
 
 def matrix_to_tensormap(mol, dm):
-    """Transforms a matrix into a tensor map.
+    """Transform a matrix into a tensor map.
 
     Each element of the matrix corresponds to a pair of atomic orbitals.
 

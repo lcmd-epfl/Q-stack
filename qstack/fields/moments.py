@@ -6,7 +6,7 @@ from qstack.mathutils.array import safe_divide, scatter
 
 
 def first(mol, rho):
-    r"""Wrapper to compute the first moment of a molecular density needed for dipole moments.
+    r"""Compute the first moment of a molecular density needed for dipole moments.
 
     $$\int r \rho(r) dr$$
 
@@ -16,6 +16,9 @@ def first(mol, rho):
 
     Returns:
         numpy ndarray: Electronic dipole moment vector (3 components).
+
+    Raises:
+        RuntimeError: If `rho` is not 1D or 2D.
     """
     if rho.ndim==1:
         return r2_c(mol, rho, moments=(1,))[0]
@@ -26,7 +29,7 @@ def first(mol, rho):
 
 
 def r_dm(mol, dm):
-    """Computes the first moment of a density matrix.
+    """Compute the first moment of a density matrix.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -42,24 +45,25 @@ def r_dm(mol, dm):
 
 
 def r2_c(mol, rho, moments=(0,1,2), per_atom=False):
-    """Compute the zeroth ( :math:`<1>` ), first ( :math:`<r>` ), and second ( :math:`<r^{2}>`) moments of a fitted density.
+    r"""Compute the zeroth ( :math:`<1>` ), first ( :math:`<r>` ), and second ( :math:`<r^{2}>`) moments of a fitted density.
 
     .. math::
 
-        <1> = \\int \\rho d r
-        \\quad
+        <1> = \int \rho d r
+        \quad
         ;
-        \\quad
-        <r> = \\int \\hat{r} \\rho d r
-        \\quad
+        \quad
+        <r> = \\int \hat{r} \rho d r
+        \quad
         ;
-        \\quad
-        <r^{2}> = \\int \\hat{r}^{2} \\rho d r
+        \quad
+        <r^{2}> = \int \hat{r}^{2} \rho d r
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
         rho (numpy ndarray): 1D array of density-fitting coefficients. Can be None to compute AO integrals instead.
         moments (tuple): Moments to compute (0, 1, and/or 2).
+        per_atom (bool): If return AO integrals / moments per atom.
 
     Returns:
         tuple: If rho!=None, values representing the requested moments, possibly containing:
@@ -83,9 +87,12 @@ def r2_c(mol, rho, moments=(0,1,2), per_atom=False):
         0st moment: (mol.natm,)
         1st moment: (3, mol.natm)
         2nd moment: (mol.natm,)
+
+    Raises:
+        NotImplementedError: If a moment > 2 is requested.
     """
     if max(moments)>2:
-        raise RuntimeError('Only moments 0, 1, and 2 are supported.')
+        raise NotImplementedError('Only moments 0, 1, and 2 are supported.')
     ret = {}
 
     (iat, l, _), (a, c) = basis_flatten(mol)

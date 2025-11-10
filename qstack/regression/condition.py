@@ -11,7 +11,7 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
               akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
               test_size=defaults.test_size, idx_test=None, idx_train=None,
               sparse=None, random_state=defaults.random_state):
-    """ Compute kernel matrix condition number
+    """Compute kernel matrix condition number.
 
     Args:
         X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
@@ -29,6 +29,9 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
     Returns:
         float: Condition number.
+
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
     """
     idx_train, _, _, _ = train_test_split_idx(y=np.arange(len(X)), idx_test=idx_test, idx_train=idx_train,
                                               test_size=test_size, random_state=random_state)

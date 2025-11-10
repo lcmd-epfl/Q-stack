@@ -7,7 +7,7 @@ from qstack.reorder import get_mrange
 
 
 def idxl0(ao_i, l, ao):
-    """Returns index of basis function with same L and N quantum numbers but M=0.
+    """Return index of basis function with same L and N quantum numbers but M=0.
 
     Finds the m=0 component of the same angular momentum shell.
 
@@ -26,7 +26,7 @@ def idxl0(ao_i, l, ao):
 
 
 def get_S(q, basis):
-    """Computes overlap matrix and angular momentum info for an atom.
+    """Compute overlap matrix and angular momentum info for an atom.
 
     Creates single-atom molecule and extracts basis function structure.
 
@@ -54,7 +54,7 @@ def get_S(q, basis):
 
 
 def store_pair_indices(ao):
-    """Stores basis function pair indices with matching L and M quantum numbers.
+    """Store basis function pair indices with matching L and M quantum numbers.
 
     Creates list of all (i,j) pairs where basis functions have identical angular momenta.
 
@@ -74,7 +74,7 @@ def store_pair_indices(ao):
 
 
 def store_pair_indices_short(ao, ao_start):
-    """Stores basis function pair indices for m=0 components only.
+    """Store basis function pair indices for m=0 components only.
 
     Creates list of (i,j) pairs using only the first basis function (m=0)
     of each angular momentum shell, for compact representation.
@@ -98,7 +98,7 @@ def store_pair_indices_short(ao, ao_start):
 
 
 def metric_matrix(q, idx, ao, S):
-    """Computes metric matrix for symmetrization of density fitting coefficients.
+    """Compute metric matrix for symmetrization of density fitting coefficients.
 
     Constructs metric matrix from overlap integrals of basis function pairs,
     normalized by angular momentum degeneracy (2l+1). Returns square root
@@ -130,7 +130,7 @@ def metric_matrix(q, idx, ao, S):
 
 
 def metric_matrix_short(idx, ao, S):
-    """Computes metric matrix for symmetrization of short-format coefficients.
+    """Compute metric matrix for symmetrization of short-format coefficients.
 
     Args:
         idx (list): List of [i, j] basis function pair indices.
@@ -222,7 +222,7 @@ def vectorize_c_short(idx, ao, c):
 
 
 def store_pair_indices_z(ao):
-    """Stores basis function pairs with matching |m| quantum numbers.
+    """Store basis function pairs with matching |m| quantum numbers.
 
     Creates list of all (i,j) pairs where basis functions have equal
     absolute values of magnetic quantum number m.
@@ -243,7 +243,7 @@ def store_pair_indices_z(ao):
 
 
 def store_pair_indices_z_only0(ao):
-    """Stores basis function pairs restricted to m=0 components only.
+    """Store basis function pairs restricted to m=0 components only.
 
     Creates list of all (i,j) pairs where both basis functions have m=0.
 
@@ -251,7 +251,8 @@ def store_pair_indices_z_only0(ao):
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
-        list: List of [i, j] index pairs where both m_i = m_j = 0."""
+        list: List of [i, j] index pairs where both m_i = m_j = 0.
+    """
     idx = []
     for i, mi in enumerate(ao['m']):
         if mi!=0:
@@ -264,7 +265,7 @@ def store_pair_indices_z_only0(ao):
 
 
 def metric_matrix_z(idx, ao, S):
-    """Computes metric matrix for z-axis symmetric representations.
+    """Compute metric matrix for z-axis symmetric representations.
 
     Constructs metric matrix accounting for m and -m degeneracy. Matrix
     elements are nonzero only when angular momenta match and m quantum
@@ -276,7 +277,8 @@ def metric_matrix_z(idx, ao, S):
         S (numpy ndarray): Overlap matrix.
 
     Returns:
-        numpy ndarray: Square root of metric matrix for z-symmetric normalization."""
+        numpy ndarray: Square root of metric matrix for z-symmetric normalization.
+    """
     N = len(idx)
     A = np.zeros((N,N))
     for p in range(N):

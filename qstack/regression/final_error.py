@@ -14,7 +14,7 @@ def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                 test_size=defaults.test_size, idx_test=None, idx_train=None,
                 sparse=None, random_state=defaults.random_state,
                 return_pred=False, return_alpha=False):
-    """ Perform prediction on the test set using the full training set.
+    """Perform prediction on the test set using the full training set.
 
     Args:
         X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
@@ -37,6 +37,9 @@ def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         np.1darray(Ntest) : prediction absolute errors on the test set
         np.1darray(Ntest) : (if return_pred is True) predictions on the test set
         np.1darray(Ntrain or sparse) : (if return_alpha is True) regression weights
+
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
     """
     idx_train, idx_test, y_train, y_test = train_test_split_idx(y=y, idx_test=idx_test, idx_train=idx_train,
                                                                 test_size=test_size, random_state=random_state)

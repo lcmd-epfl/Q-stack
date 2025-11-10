@@ -14,7 +14,7 @@ def hyperparameters(X, y,
            sigma=defaults.sigmaarr, eta=defaults.etaarr, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
            test_size=defaults.test_size, splits=defaults.splits, idx_test=None, idx_train=None,
            printlevel=0, adaptive=False, read_kernel=False, sparse=None, random_state=defaults.random_state):
-    """ Performs a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
+    """Perform a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
 
     Args:
         X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
@@ -29,7 +29,7 @@ def hyperparameters(X, y,
         idx_test (numpy.1darray): List of indices for the test set (based on the sequence in X).
         idx_train (numpy.1darray): List of indices for the training set (based on the sequence in X).
         printlevel (int): Controls level of output printing.
-        adaptative (bool): To expand the grid search adaptatively.
+        adaptive (bool): To expand the grid search adaptatively.
         read_kernel (bool): If 'X' is a kernel and not an array of representations.
         sparse (int): The number of reference environnments to consider for sparse regression.
         random_state (int): The seed used for random number generator (controls train/test splitting).
@@ -38,6 +38,9 @@ def hyperparameters(X, y,
         The results of the grid search as a numpy.2darray [Cx(MAE,std,eta,sigma)],
             where C is the number of parameter set and
             the array is sorted according to MAEs (last is minimum)
+
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
     """
     def k_fold_opt(K_all, eta):
         kfold = KFold(n_splits=splits, shuffle=False)

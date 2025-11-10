@@ -14,7 +14,7 @@ from qstack.regression import __path__ as REGMODULE_PATH
 
 
 def custom_laplacian_kernel(X, Y, gamma):
-    """Computes Laplacian kernel between X and Y using Python implementation.
+    """Compute Laplacian kernel between X and Y using Python implementation.
 
     K(x, y) = exp(-gamma * ||x - y||_1)
 
@@ -45,7 +45,7 @@ def custom_laplacian_kernel(X, Y, gamma):
 
 
 def custom_C_kernels(kernel_function, return_distance_function=False):
-    """Creates kernel function wrappers using C implementation for speed.
+    """Create kernel function wrappers using C implementation for speed.
 
     Args:
         kernel_function (str): Kernel type ('L' for Laplacian, 'G' for Gaussian).
@@ -99,7 +99,7 @@ def custom_C_kernels(kernel_function, return_distance_function=False):
 
 
 def dot_kernel_wrapper(x, y, *_kargs, **_kwargs):
-    """Wrapper for linear (dot product) kernel.
+    """Compute linear (dot product) kernel.
 
     Args:
         x (numpy ndarray): First set of samples.
@@ -114,7 +114,7 @@ def dot_kernel_wrapper(x, y, *_kargs, **_kwargs):
 
 
 def cosine_similarity_wrapper(x, y, *_kargs, **_kwargs):
-    """Wrapper for cosine similarity kernel.
+    """Compute cosine similarity kernel.
 
     Args:
         x (numpy ndarray): First set of samples.
@@ -129,8 +129,9 @@ def cosine_similarity_wrapper(x, y, *_kargs, **_kwargs):
 
 
 def local_laplacian_kernel_wrapper(X, Y, gamma):
-    """ Wrapper that acts as a generic Laplacian kernel function.
-    It decides which kernel implementation to call.
+    """Decide which kernel implementation to call.
+
+    Wrapper that acts as a generic Laplacian kernel function.
 
     Args:
         X (numpy ndarray): First set of samples (can be multi-dimensional).

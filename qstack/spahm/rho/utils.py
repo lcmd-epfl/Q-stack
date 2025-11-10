@@ -29,7 +29,7 @@ defaults = SimpleNamespace(
 
 
 def get_chsp(fname, n):
-    """Loads charge and spin information from file.
+    """Load charge and spin information from file.
 
     Reads a file containing charge/spin values, converting 'None' strings to None objects.
 
@@ -61,7 +61,7 @@ def get_chsp(fname, n):
 
 
 def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None, progress=False, srcdir=None):
-    """Loads molecules from XYZ files and creates pyscf Mole objects.
+    """Load molecules from XYZ files and creates pyscf Mole objects.
 
     Args:
         xyzlist (list): List of XYZ filenames.
@@ -97,7 +97,7 @@ def load_mols(xyzlist, charge, spin, basis, printlevel=0, units='ANG', ecp=None,
 
 
 def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, printlevel=0):
-    """Computes or loads guess density matrices for a list of molecules.
+    """Compute or loads guess density matrices for a list of molecules.
 
     Args:
         mols (list): List of pyscf Mole objects.
@@ -153,7 +153,7 @@ def dm_open_mod(dm, omod):
     elif dm.ndim == 2:
         raise RuntimeError('Density matrix is closed-shell (2D) but omod is not None')
     if omod not in omod_fns_dict:
-        raise ValueError(f'unknown open-shell mode: must be in {list(omod_fns_dict.keys())}, None if the system is closed-shell')
+        raise NotImplementedError(f'unknown open-shell mode: must be in {list(omod_fns_dict.keys())}, None if the system is closed-shell')
     return omod_fns_dict[omod](dm)
 
 
@@ -206,20 +206,23 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
               file_format=None):
     """Load representations from disk.
 
-       Args:
-           f_in (str): Path to the input file.
-           from_list (bool): If the input file is a text file containing a list of paths to the representations.
-           srcdir (str) : The path prefix to be at the begining of each file in `f_in`. Defaults to current working directory.
-           with_labels (bool): If return atom type labes along with the representations.
-           local (bool): If the representations are local (per-atom) or global (per-molecule).
-           sum_local (bool): Sums the local components into a global representation, only if local=True.
-           printlevel (int): Verbosity level.
-           progress (bool): If shows a progress bar.
-           file_format (dict): Structure of the input data, with keys=('is_labeled;, 'is_single').
-               Defaults to structure auto determination (for "experienced users" only).
+    Args:
+        f_in (str): Path to the input file.
+        from_list (bool): If the input file is a text file containing a list of paths to the representations.
+        srcdir (str) : The path prefix to be at the begining of each file in `f_in`. Defaults to current working directory.
+        with_labels (bool): If return atom type labes along with the representations.
+        local (bool): If the representations are local (per-atom) or global (per-molecule).
+        sum_local (bool): Sums the local components into a global representation, only if local=True.
+        printlevel (int): Verbosity level.
+        progress (bool): If shows a progress bar.
+        file_format (dict): Structure of the input data, with keys=('is_labeled;, 'is_single').
+            Defaults to structure auto determination (for "experienced users" only).
 
-       Returns:
-           np.array with shape (N_representations, N_features), or a tuple containing a list of atomic labels and said np.array.
+    Returns:
+        np.array with shape (N_representations, N_features), or a tuple containing a list of atomic labels and said np.array.
+
+    Raises:
+        RuntimeError: In case of shape mismatch.
     """
     if file_format is None:  # Do not use mutable data structures for argument defaults
         file_format = {'is_labeled':None, 'is_single':None}

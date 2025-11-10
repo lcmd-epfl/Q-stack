@@ -8,7 +8,7 @@ from .parser import RegressionParser
 
 
 def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
-    """ Computes a kernel between sets A and B (or A and A) using their representations.
+    """Compute a kernel between sets A and B (or A and A) using their representations.
 
     Args:
         X (numpy.ndarray): Representation of A.

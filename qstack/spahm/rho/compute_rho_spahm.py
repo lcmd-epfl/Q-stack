@@ -15,7 +15,7 @@ def spahm_a_b(rep_type, mols, dms,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          auxbasis=defaults.auxbasis, model=defaults.model,
          pairfile=None, dump_and_exit=False, same_basis=False, only_z=None):
-    """Computes SPAHM(a) or SPAHM(b) representations for a set of molecules.
+    """Compute SPAHM(a) or SPAHM(b) representations for a set of molecules.
 
     Reference:
         K. R. Briling, Y. Calvino Alonso, A. Fabrizio, C. Corminboeuf,
@@ -105,7 +105,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              auxbasis=defaults.auxbasis, model=defaults.model,
              with_symbols=False, only_z=None, merge=True):
-    """Computes and reshapes SPAHM(a) or SPAHM(b) representations with flexible output formats.
+    """Compute and reshapes SPAHM(a) or SPAHM(b) representations with flexible output formats.
 
     High-level interface that handles density matrix computation, representation generation,
     and output formatting including splitting, symbol labeling, and merging options.
@@ -231,8 +231,8 @@ def main(args=None):
     Args:
         args (list, optional): Command-line arguments. If None, uses sys.argv. Defaults to None.
 
-    Returns:
-        None: Saves representations to numpy files based on --name argument and options.
+    Output:
+        Saves representations to numpy files based on --name argument and options.
     """
     parser = SpahmParser(description='This program computes the SPAHM(a,b) representations for a given molecular system or a list thereof', unified=True, atom=True, bond=True)
     parser.add_argument('--rep',  dest='rep',  type=str, choices=['atom', 'bond'], required=True, help='the type of representation')

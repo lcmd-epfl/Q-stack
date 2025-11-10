@@ -4,7 +4,7 @@ import numpy as np
 
 
 def _Rz(a):
-    """Computes the rotation matrix around laboratory z-axis.
+    """Compute the rotation matrix around laboratory z-axis.
 
     Args:
         a (float): Rotation angle in radians.
@@ -21,7 +21,7 @@ def _Rz(a):
 
 
 def _Ry(b):
-    """Computes the rotation matrix around laboratory y-axis.
+    """Compute the rotation matrix around laboratory y-axis.
 
     Args:
         b (float): Rotation angle in radians.
@@ -38,7 +38,7 @@ def _Ry(b):
 
 
 def _Rx(g):
-    """Computes the rotation matrix around laboratory x-axis.
+    """Compute the rotation matrix around laboratory x-axis.
 
     Args:
         g (float): Rotation angle in radians.
@@ -55,7 +55,7 @@ def _Rx(g):
 
 
 def rotate_euler(a, b, g, rad=False):
-    """Computes the rotation matrix given Cardan angles (x-y-z)
+    """Compute the rotation matrix given Cardan angles (x-y-z).
 
     Args:
         a (float): Alpha Euler angle.

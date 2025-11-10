@@ -8,7 +8,7 @@ from . import moments
 
 
 def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, margin=3.0):
-    """Saves the electron density to a cube file.
+    """Save the electron density to a cube file.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -20,8 +20,8 @@ def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, m
         resolution (float): Grid spacing in Bohr. Defaults to 0.1.
         margin (float): Extra space around molecule in Bohr. Defaults to 3.0.
 
-    Returns:
-        None: Creates a file named <cubename>.cube on disk.
+    Output:
+        Creates a file named <cubename>.cube on disk.
     """
     grid = Cube(mol, nx, ny, nz, resolution, margin)
     coords = grid.get_coords()
@@ -32,15 +32,15 @@ def coeffs_to_cube(mol, coeffs, cubename, nx=80, ny=80, nz=80, resolution=0.1, m
 
 
 def coeffs_to_molden(mol, coeffs, moldenname):
-    """Saves the electron density to a MOLDEN file.
+    """Save the electron density to a MOLDEN file.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
         coeffs (numpy ndarray): 1D array of density expansion coefficients.
         moldenname (str): Output filename for the MOLDEN file.
 
-    Returns:
-        None: Creates a file named <moldenname>.molden on disk.
+    Output:
+        Creates a file named <moldenname>.molden on disk.
     """
     with open(moldenname, 'w') as f:
         N = moments.r2_c(mol, coeffs, moments=[0])[0]

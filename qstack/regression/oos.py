@@ -12,7 +12,7 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
         akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
         test_size=defaults.test_size, idx_test=None, idx_train=None,
         sparse=None, random_state=defaults.random_state):
-    """ Perform prediction on an out-of-sample (OOS) set.
+    """Perform prediction on an out-of-sample (OOS) set.
 
     Args:
         X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.

@@ -18,7 +18,7 @@ class Lowdin_split:
         dmL (numpy ndarray): Löwdin-orthogonalized density matrix.
     """
     def __init__(self, mol, dm):
-        """Initializes Löwdin split with molecule and density matrix.
+        """Initialize Löwdin split with molecule and density matrix.
 
         Args:
             mol (pyscf Mole): pyscf Mole object.
@@ -34,7 +34,7 @@ class Lowdin_split:
         self.dmL  = S12 @ dm @ S12
 
     def sqrtm(self, m):
-        """Computes matrix square root and inverse square root via eigendecomposition.
+        """Compute matrix square root and inverse square root via eigendecomposition.
 
         Args:
             m (numpy ndarray): Symmetric positive-definite matrix.
@@ -49,7 +49,7 @@ class Lowdin_split:
         return (sm+sm.T)*0.5, (sm1+sm1.T)*0.5
 
     def get_bond(self, at1idx, at2idx):
-        """Extracts bond density matrix for an atom pair.
+        """Extract bond density matrix for an atom pair.
 
         Isolates the density matrix components corresponding to interactions
         between two atoms, transforming back to AO basis.

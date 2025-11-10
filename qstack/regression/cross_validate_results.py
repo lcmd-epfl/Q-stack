@@ -16,7 +16,7 @@ def cv_results(X, y,
             adaptive=False, read_kernel=False, n_rep=defaults.n_rep, save=False,
             preffix='unknown', save_pred=False, progress=False, sparse=None,
             seed0=0):
-    """ Computes various learning curves (LC) ,with random sampling, and returns the average performance.
+    """Compute various learning curves (LC) ,with random sampling, and returns the average performance.
 
     Args:
         X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
@@ -30,7 +30,7 @@ def cv_results(X, y,
         train_size (list): List of training set size fractions used to evaluate the points on the LC.
         splits (int): K number of splits for the Kfold cross-validation.
         printlevel (int): Controls level of output printing.
-        adaptative (bool): To expand the grid for optimization adaptatively.
+        adaptive (bool): To expand the grid for optimization adaptatively.
         read_kernel (bool): If 'X' is a kernel and not an array of representations.
         n_rep (int): The number of repetition for each point (using random sampling).
         save (bool): Wheather to save intermediate LCs (.npy).

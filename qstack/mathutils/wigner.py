@@ -18,7 +18,7 @@ zx,zy,zz = symbols('zx zy zz')
 
 
 def real_Y_correct_phase(l, m, theta, phi):
-    """Returns real spherical harmonic in Condon--Shortley phase convention.
+    """Return real spherical harmonic in Condon--Shortley phase convention.
 
     Note: sympy's Znm uses a different convention.
 
@@ -42,7 +42,7 @@ def real_Y_correct_phase(l, m, theta, phi):
 
 
 def get_polynom_Y(l, m):
-    """Rewrites a real spherical harmonic as a polynomial of x, y, z.
+    """Rewrite a real spherical harmonic as a polynomial of x, y, z.
 
     Args:
         l (int): Orbital angular momentum quantum number.
@@ -68,7 +68,7 @@ def get_polynom_Y(l, m):
 
 
 def xyzint_wrapper(knm, integrals_xyz_dict):
-    """Wrapper for xyz integrals with caching.
+    """Compute xyz integrals with caching.
 
     Computes the integral of x^k * y^n * z^m over the unit sphere.
     Integral is zero if any power is odd.
@@ -91,7 +91,7 @@ def xyzint_wrapper(knm, integrals_xyz_dict):
 
 
 def product_Y(Y1,Y2):
-    """Computes the product of two spherical harmonics.
+    """Compute the product of two spherical harmonics.
 
     Args:
         Y1 (sympy.Expr): First spherical harmonic polynomial.
@@ -122,8 +122,7 @@ def print_wigner(D):
 
 
 def compute_wigner(lmax):
-    """Compute Wigner D matrices for real spherical harmonics
-       up to a maximum angular momentum.
+    """Compute Wigner D matrices for real spherical harmonics up to a maximum angular momentum.
 
     Args:
         lmax (int): Maximum angular momentum quantum number.

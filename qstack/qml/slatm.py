@@ -1,7 +1,7 @@
 """Spectrum of London and Axilrod-Teller-Muto potential (SLATM) representation.
 
 Provides:
-    - defaults: Default parameters for SLATM representation.
+    defaults: Default parameters for SLATM representation.
 """
 
 import itertools
@@ -15,7 +15,7 @@ defaults = SimpleNamespace(sigma2=0.05, r0=0.1, rcut=4.8, dgrid2=0.03, theta0=20
 
 
 def get_mbtypes(qs, qml=False):
-    """Generates many-body types (elements, pairs, triples) for SLATM representation.
+    """Generate many-body types (elements, pairs, triples) for SLATM representation.
 
     Args:
         qs (list): List of atomic number arrays for all molecules.
@@ -54,7 +54,7 @@ def get_mbtypes(qs, qml=False):
 def get_two_body(i, mbtype, q, dist,
                  r0=defaults.r0, rcut=defaults.rcut,
                  sigma=defaults.sigma2, dgrid=defaults.dgrid2):
-    """Computes two-body London dispersion contribution for atom i.
+    """Compute two-body London dispersion contribution for atom i.
 
     Evaluates the two-body term from pairwise 1/r^6 London dispersion interactions,
     projected onto a radial grid with Gaussian broadening of interatomic distances.
@@ -72,7 +72,6 @@ def get_two_body(i, mbtype, q, dist,
     Returns:
         numpy.ndarray: Two-body contribution on radial grid (ngrid,).
     """
-
     ngrid = int((rcut - r0)/dgrid) + 1
     rgrid = np.linspace(r0, rcut, ngrid)
 
@@ -104,7 +103,7 @@ def get_two_body(i, mbtype, q, dist,
 def get_three_body(j, mbtype, q, r, dist,
                    rcut=defaults.rcut, theta0=defaults.theta0,
                    sigma=defaults.sigma3, dgrid=defaults.dgrid3):
-    """Computes three-body Axilrod-Teller-Muto contribution for atom j.
+    """Compute three-body Axilrod-Teller-Muto contribution for atom j.
 
     Evaluates the three-body ATM term from triple-dipole interactions,
     projected onto an angular grid with Gaussian broadening of bond angles.
@@ -125,7 +124,7 @@ def get_three_body(j, mbtype, q, r, dist,
     """
 
     def get_cos(a, b, c):
-        """Computes cosine of angle abc from atomic positions.
+        """Compute cosine of angle abc from atomic positions.
 
         Args:
             a (int): Index of first atom.
@@ -177,7 +176,7 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
               global_repr=False,
               r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
               theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
-    """Computes SLATM representation for a single molecule.
+    """Compute SLATM representation for a single molecule.
 
     Constructs the SLATM (Spectrum of London and Axilrod-Teller-Muto potential)
     representation by combining one-body (nuclear charges), two-body (London dispersion),
@@ -271,7 +270,7 @@ def get_slatm_for_dataset(molecules,
                           qml_mbtypes=True, qml_compatible=True, stack_all=True,
                           r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
                           theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
-    """Computes the (a)SLATM representation for a set of molecules.
+    """Compute the (a)SLATM representation for a set of molecules.
 
     Generates SLATM descriptors for molecular datasets, automatically determining
     many-body types from all molecules.
@@ -326,7 +325,7 @@ def get_slatm_for_dataset(molecules,
 def get_slatm_rxn(reactions, progress=False, qml_mbtypes=True,
                   r0=defaults.r0, rcut=defaults.rcut, sigma2=defaults.sigma2, dgrid2=defaults.dgrid2,
                   theta0=defaults.theta0, sigma3=defaults.sigma3, dgrid3=defaults.dgrid3):
-    """Computes the SLATM_d representation for chemical reactions.
+    """Compute the SLATM_d representation for chemical reactions.
 
     Calculates reaction representations as the difference between product and reactant
     SLATM descriptors (ΔR = R_products - R_reactants), suitable for predicting

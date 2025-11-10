@@ -6,7 +6,7 @@ import sys
 
 
 def xyz(n, m, k):
-    """Computes the integral of x^2k y^2n z^2m over a unit sphere.
+    """Compute the integral of x^2k y^2n z^2m over a unit sphere.
 
     Args:
         n (int): Half of power of y.
@@ -48,7 +48,7 @@ def I23(n,m,k):
 
 
 def trinomial(k1, k2, k3):
-    """Computes the trinomial coefficient (k1+k2+k3)! / (k1! * k2! * k3!).
+    """Compute the trinomial coefficient (k1+k2+k3)! / (k1! * k2! * k3!).
 
     Args:
         k1 (int)

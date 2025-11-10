@@ -1,6 +1,7 @@
 """Utility functions and classes for Q-stack.
 
-Provides decorators, argument parsers, and helper functions for command-line tools."""
+Provides decorators, argument parsers, and helper functions for command-line tools.
+"""
 
 import os
 import time
@@ -9,7 +10,7 @@ import argparse
 
 
 def unix_time_decorator(func):
-    """Decorator to measure and print execution time statistics for a function.
+    """Measure and print execution time statistics for a function.
 
     Measures real, user, and system time for the decorated function.
     Thanks to https://gist.github.com/turicas/5278558
@@ -33,7 +34,7 @@ def unix_time_decorator(func):
 
 
 def unix_time_decorator_with_tvalues(func):
-    """Decorator to measure execution time statistics and return them along with function result.
+    """Measure execution time statistics and return them along with function result.
 
     Measures real, user, and system time for the decorated function and returns timing dict.
     Thanks to https://gist.github.com/turicas/5278558
@@ -74,7 +75,7 @@ class FlexParser(argparse.ArgumentParser):
 
     """
     def remove_argument(self, arg):
-        """Removes an argument from the parser.
+        """Remove an argument from the parser.
 
         Utility method for customizing parsers by removing unwanted arguments
         from the pre-configured set. Useful when deriving specialized parsers.
@@ -82,8 +83,8 @@ class FlexParser(argparse.ArgumentParser):
         Args:
             arg (str): Option destination name.
 
-        Returns:
-            None: Modifies parser in place.
+        Output:
+            Modifies parser in place.
         """
         for action in self._actions:
             opts = action.option_strings

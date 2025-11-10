@@ -13,7 +13,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
                random_state=defaults.random_state, idx_test=None, idx_train=None,
                sparse=None, debug=False, save_pred=False):
-    """ Produces learning curves (LC) data, for various training sizes, using kernel ridge regression and the user specified parameters
+    """Produce learning curves (LC) data using kernel ridge regression.
 
     Args:
         X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
@@ -37,6 +37,9 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     Returns:
         The computed LC, as a list containing all its points (train size, MAE, std)
         If save_pres is True, a tuple with (results, (target values, predicted values))
+
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
     """
     idx_train, idx_test, y_train, y_test = train_test_split_idx(y=y, idx_test=idx_test, idx_train=idx_train,
                                                                 test_size=test_size, random_state=random_state)

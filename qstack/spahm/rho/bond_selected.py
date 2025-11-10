@@ -12,7 +12,7 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
                          readdm=None, guess=defaults.guess, xc=defaults.xc, spin=None,
                          cutoff=defaults.cutoff, printlevel=0, omods=defaults.omod,
                          bpath=defaults.bpath, only_m0=False, same_basis=False):
-    """Computes SPAHM(b) representations for specific bonds in molecules.
+    """Compute SPAHM(b) representations for specific bonds in molecules.
 
     Generates bond-centered representations for user-specified atom pairs across
     a dataset of molecules, useful for targeted bond analysis.
@@ -69,8 +69,8 @@ def main():
     Args:
         None: Parses command-line arguments.
 
-    Returns:
-        None: Saves bond representations to numpy files in specified directory.
+    Output:
+        Saves bond representations to numpy files in specified directory.
     """
     parser = SpahmParser(description='This program computes the SPAHM(b) representation for a list of bonds', bond=True)
     parser.remove_argument('elements')

@@ -27,7 +27,7 @@ def scatter(values, indices):
 
 
 def safe_divide(a, b):
-    """Wrapper for numpy divide that avoids division by zero.
+    """Divide numpy arrays avoiding division by zero.
 
     Args:
         a (numpy.ndarray): Numerator array.

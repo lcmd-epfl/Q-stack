@@ -1,7 +1,7 @@
 """Bond-based reaction representation (B2R2) for chemical reactions.
 
 Provides:
-    - defaults: default parameters for B2R2 computation.
+    defaults: default parameters for B2R2 computation.
 """
 
 import itertools
@@ -15,7 +15,7 @@ defaults = SimpleNamespace(rcut=3.5, gridspace=0.03)
 
 
 def get_bags(unique_ncharges):
-    """Generates all unique element pair combinations including self-interactions.
+    """Generate all unique element pair combinations including self-interactions.
 
     Args:
         unique_ncharges (array-like): Array of unique atomic charges/numbers.
@@ -47,7 +47,7 @@ def get_mu_sigma(R):
 
 
 def get_gaussian(x, R):
-    """Computes Gaussian function values for a given interatomic distance.
+    """Compute Gaussian function values for a given interatomic distance.
 
     Args:
         x (numpy ndarray): Grid points to evaluate the Gaussian.
@@ -63,7 +63,7 @@ def get_gaussian(x, R):
 
 
 def get_skew_gaussian_l_both(x, R, Z_I, Z_J):
-    """Computes skewed Gaussian distributions for B2R2_l representation.
+    """Compute skewed Gaussian distributions for B2R2_l representation.
 
     Args:
         x (numpy ndarray): Grid points to evaluate the functions.
@@ -89,7 +89,7 @@ def get_skew_gaussian_l_both(x, R, Z_I, Z_J):
 
 
 def get_skew_gaussian_n_both(x, R, Z_I, Z_J):
-    """Computes combined skewed Gaussian distribution for B2R2_n representation.
+    """Compute combined skewed Gaussian distribution for B2R2_n representation.
 
     Args:
         x (numpy ndarray): Grid points to evaluate the function.
@@ -116,7 +116,7 @@ def get_skew_gaussian_n_both(x, R, Z_I, Z_J):
 
 def get_b2r2_n_molecular(ncharges, coords, elements,
                          rcut=defaults.rcut, gridspace=defaults.gridspace):
-    """Computes B2R2_n representation for a single molecule.
+    """Compute B2R2_n representation for a single molecule.
 
     Args:
         ncharges (array-like): Atomic numbers for all atoms in the molecule.
@@ -148,7 +148,7 @@ def get_b2r2_n_molecular(ncharges, coords, elements,
 
 def get_b2r2_a_molecular(ncharges, coords, elements,
                          rcut=defaults.rcut, gridspace=defaults.gridspace):
-    """Computes B2R2_a representation for a single molecule.
+    """Compute B2R2_a representation for a single molecule.
 
     Args:
         ncharges (array-like): Atomic numbers for all atoms in the molecule.
@@ -185,7 +185,7 @@ def get_b2r2_a_molecular(ncharges, coords, elements,
 
 def get_b2r2_l_molecular(ncharges, coords, elements,
                          rcut=defaults.rcut, gridspace=defaults.gridspace):
-    """Computes B2R2_l representation for a single molecule.
+    """Compute B2R2_l representation for a single molecule.
 
     Args:
         ncharges (array-like): Atomic numbers for all atoms in the molecule.
@@ -270,7 +270,7 @@ def get_b2r2_inner(reactions,
                    progress=False,
                    rcut=defaults.rcut, gridspace=defaults.gridspace,
                    get_b2r2_molecular=None, combine=None):
-    """Computes the B2R2 representations for a list of reactions.
+    """Compute the B2R2 representations for a list of reactions.
 
     Internal implementation function that computes B2R2 representations using
     provided molecular representation function and combination strategy.

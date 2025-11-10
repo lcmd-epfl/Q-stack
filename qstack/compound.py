@@ -26,7 +26,7 @@ _re_float = re.compile(r'[+-]?[0-9]*?([0-9]\.|\.[0-9]|[0-9])[0-9]*?([eEdD][+-]?[
 
 
 def xyz_comment_line_parser(line):
-    """Reads the 'comment' line of a XYZ file and tries to infer its meaning.
+    """Read the 'comment' line of a XYZ file and tries to infer its meaning.
 
     Args:
         line (str): Comment line from XYZ file.
@@ -90,7 +90,7 @@ def xyz_comment_line_parser(line):
 
 
 def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False):
-    """Reads a molecular file in xyz format and returns a pyscf Mole object.
+    """Read a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
         inp (str): Path of the xyz file to read, or xyz file contents.
@@ -169,7 +169,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
 
 
 def mol_to_xyz(mol, fout, fmt="xyz"):
-    """Converts a pyscf Mole object into a molecular file in xyz format.
+    """Convert a pyscf Mole object into a molecular file in xyz format.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
@@ -198,7 +198,7 @@ def mol_to_xyz(mol, fout, fmt="xyz"):
 
 
 def make_auxmol(mol, basis, copy_ecp=False):
-    """Builds an auxiliary Mole object given a basis set and a pyscf Mole object.
+    """Build an auxiliary Mole object given a basis set and a pyscf Mole object.
 
     Args:
         mol (pyscf.gto.Mole): Original pyscf Mole object.
@@ -244,7 +244,7 @@ def rotate_molecule(mol, a, b, g, rad=False):
 
 
 def fragments_read(frag_file):
-    """Loads fragment definition from a file.
+    """Load fragment definition from a file.
 
     Args:
         frag_file (str): Path to the fragment file containing space-separated atom indices (1-based).
@@ -258,7 +258,7 @@ def fragments_read(frag_file):
 
 
 def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
-    """Computes the contribution of each fragment.
+    """Compute the contribution of each fragment.
 
     Args:
         fragments (list): Fragment definition as list of numpy arrays.
@@ -303,7 +303,7 @@ def make_atom(q, basis, ecp=None):
 
 
 def singleatom_basis_enumerator(basis):
-    """Enumerates the different tensors of atomic orbitals within a 1-atom basis set.
+    """Enumerate the different tensors of atomic orbitals within a 1-atom basis set.
 
     Each tensor is a 2l+1-sized group of orbitals that share a radial function and l value.
 
@@ -342,7 +342,7 @@ def singleatom_basis_enumerator(basis):
 
 
 def basis_flatten(mol, return_both=True):
-    """Flattens a basis set definition for AOs.
+    """Flatten a basis set definition for AOs.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
