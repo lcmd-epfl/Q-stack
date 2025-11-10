@@ -50,12 +50,14 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     cond = np.linalg.cond(K_solve)
     return cond
 
-
-def main():
+def _get_arg_parser():
     parser = RegressionParser(description='This program computes the condition number for the kernel matrix.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')
-    args = parser.parse_args()
+    return parser
+
+def main():
+    args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):
         correct_num_threads()

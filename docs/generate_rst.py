@@ -67,12 +67,17 @@ class ClassInfo:
     methods: list[FunctionInfo] = field(default_factory=list)
 
 @dataclass
+class CommandLineInfo:
+    funcname: str
+
+@dataclass
 class ModuleInfo:
     name: str
     path: Path
     doc: str | None
     classes: list[ClassInfo]
     functions: list[FunctionInfo]
+    cmd: CommandLineInfo | None
 
 
 def format_signature(args: ast.arguments) -> str:
@@ -145,6 +150,7 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
     mdoc = ast.get_docstring(tree)
     classes: list[ClassInfo] = []
     functions: list[FunctionInfo] = []
+    cmd: CommandLineInfo | None = None
 
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
@@ -156,13 +162,16 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
                     methods.append(FunctionInfo(n.name, n.lineno, sig, ast.get_docstring(n)))
             classes.append(ClassInfo(node.name, node.lineno, cdoc, sorted(methods, key=lambda m: m.lineno)))
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            sig = safe_sig(node)
-            functions.append(FunctionInfo(node.name, node.lineno, sig, ast.get_docstring(node)))
+            if node.name == '_get_arg_parser':
+                cmd = CommandLineInfo(node.name)
+            else:
+                sig = safe_sig(node)
+                functions.append(FunctionInfo(node.name, node.lineno, sig, ast.get_docstring(node)))
 
     classes.sort(key=lambda c: c.lineno)
     functions.sort(key=lambda f: f.lineno)
 
-    return ModuleInfo(module_name, py_path, mdoc, classes, functions)
+    return ModuleInfo(module_name, py_path, mdoc, classes, functions, cmd)
 
 
 def safe_sig(fn: ast.AST) -> str:
@@ -223,9 +232,14 @@ def render_module_rst(mi: ModuleInfo) -> str:
                 for m in c.methods:
                     out.append(title(rst_escape_heading(f"{m.name} {m.signature}"), 4))
                     out.append(format_docstring(m.doc) if m.doc else "(No docstring.)\n\n")
+    if mi.cmd:
+        out.append(title("Command-line use", 1))
+        out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {mi.name}\n')
+        out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
 
-    # Footer hint
-    out.append(".. note::\n   Generated statically from source by gen_rst.py; no imports performed.\n")
+    else:
+        # Footer hint
+        out.append(".. note::\n   Generated statically from source by gen_rst.py; no imports performed.\n")
     return "".join(out)
 
 
@@ -301,4 +315,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

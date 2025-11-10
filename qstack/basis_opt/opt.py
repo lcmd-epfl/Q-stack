@@ -166,7 +166,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
     return newbasis
 
-def main():
+def _get_arg_parser():
     import argparse
 
     parser = argparse.ArgumentParser(description='Optimize a density fitting basis set.')
@@ -177,7 +177,10 @@ def main():
     parser.add_argument('--method',    type=str,   dest='method',    default='CG', help='minimization algoritm')
     parser.add_argument('--print',     type=int,   dest='print',     default=2,    help='printing level')
     parser.add_argument('--check', action='store_true', dest='check', default=False, help='check the gradient and exit')
-    args = parser.parse_args()
+    return parser
+
+def main():
+    args = _get_arg_parser().parse_args()
 
     result = optimize_basis(args.elements, args.basis, args.molecules, args.gtol, args.method, check=args.check, printlvl=args.print)
     if args.check is False:

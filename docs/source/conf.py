@@ -21,10 +21,11 @@ release = '1.0.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+        'sphinxarg.ext',
         'sphinx.ext.autodoc', 
         'sphinx.ext.napoleon', 
         'myst_parser',
-        'sphinx.ext.todo'
+        'sphinx.ext.todo',
         ]
 
 todo_include_todos = False

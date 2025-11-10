@@ -130,12 +130,14 @@ def hyperparameters(X, y,
         print('next iteration:', work_sigma, flush=True)
     return errors
 
-
-def main():
+def _get_arg_parser():
     parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
     parser.remove_argument("random_state")
     parser.remove_argument("train_size")
-    args = parser.parse_args()
+    return parser
+
+def main():
+    args = _get_arg_parser().parse_args()
     if(args.readk):
         args.sigma = [np.nan]
     print(vars(args))
