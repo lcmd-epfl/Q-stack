@@ -120,7 +120,7 @@ def exciton_properties_dm(mol, hole, part):
     dist = np.linalg.norm(hole_r-part_r)
     hole_extent = np.sqrt(hole_r2-hole_r@hole_r)
     part_extent = np.sqrt(part_r2-part_r@part_r)
-    return(dist, hole_extent, part_extent)
+    return dist, hole_extent, part_extent
 
 
 def exciton_properties(mol, hole, part):

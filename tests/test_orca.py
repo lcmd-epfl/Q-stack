@@ -32,9 +32,9 @@ def test_orca_density_reader():
     dm421 = qstack.orcaio.read_density(mol, 'H2O.orca421', directory=path+'/data/orca/', version=421, openshell=True)
     dm504 = qstack.orcaio.read_density(mol, 'H2O.orca504', directory=path+'/data/orca/', version=504, openshell=True)
 
-    assert(np.linalg.norm(dm-dm400)<1e-4)
-    assert(np.linalg.norm(dm400-dm421)<1e-10)
-    assert(np.linalg.norm(dm504-dm421)<5e-3)
+    assert (np.linalg.norm(dm-dm400)<1e-4)
+    assert (np.linalg.norm(dm400-dm421)<1e-10)
+    assert (np.linalg.norm(dm504-dm421)<5e-3)
 
 
 def test_orca_gbw_reader():
@@ -45,6 +45,7 @@ def test_orca_gbw_reader():
     c = mf.mo_coeff
     e = mf.mo_energy
     occ = mf.mo_occ
+
     def compare_MO(c0, c1):
         for s in range(c0.shape[0]):
             for i in range(c0.shape[-1]):

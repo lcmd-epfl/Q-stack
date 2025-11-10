@@ -77,8 +77,8 @@ def SAD(mol, xc):
     else:
         fock = hc + vhf[0]
         if not np.array_equal(vhf[0], vhf[1]):
-          msg = f'The effective potential ({xc}) returned different alpha and beta matrix components from atomicHF DM'
-          warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            msg = f'The effective potential ({xc}) returned different alpha and beta matrix components from atomicHF DM'
+            warnings.warn(msg, RuntimeWarning, stacklevel=2)
     return fock
 
 
@@ -264,6 +264,7 @@ def LB_grad(mf):
     """
     hcore_grad = mf.hcore_generator(mf.mol)
     HLB_grad   = LB20().HLB20_generator(mf.mol)
+
     def H_grad(iat):
         return hcore_grad(iat) + HLB_grad(iat)
     return H_grad

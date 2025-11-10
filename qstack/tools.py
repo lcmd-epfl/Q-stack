@@ -150,7 +150,7 @@ class Cursor:
         self.actions_dict = {'slicer': self._slicer, 'ranger': self._ranger}
 
     def add(self, di):
-        """Advances the cursor and returns the current range or slice.
+        """Advance the cursor and return the current range or slice.
 
         Args:
             di: Element to determine increment size.

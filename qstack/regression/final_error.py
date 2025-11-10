@@ -82,7 +82,7 @@ def main():
     parser.add_argument('--save-alpha', type=str,   dest='save_alpha',  default=None,  help='file to write the regression coefficients to')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)

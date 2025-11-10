@@ -12,13 +12,12 @@ def test_avg_kernel():
     mols = [np.load(f, allow_pickle=True) for f in mollist]
     K = kernel.kernel(mols, akernel='L', gkernel='avg', sigma=1.0)
 
-    true_K = np.array(  [[1.       ,  1.       ,  0.79179528], \
-                        [1.        , 1.        , 0.79179528] , \
+    true_K = np.array(  [[1.       ,  1.       ,  0.79179528],
+                        [1.        , 1.        , 0.79179528] ,
                         [0.79179528, 0.79179528, 1.        ]])
 
-
-    assert(K.shape == (3,3))
-    assert(np.abs(np.sum(K-true_K)) < 1e-05)
+    assert (K.shape == (3,3))
+    assert (np.abs(np.sum(K-true_K)) < 1e-05)
 
 
 def test_rem_kernel():
@@ -28,12 +27,12 @@ def test_rem_kernel():
     mols = [np.load(f, allow_pickle=True) for f in mollist]
     K = kernel.kernel(mols, akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1, 'verbose':0})
 
-    true_K = np.array(  [[1.      , 0.6528238, 1.      ], \
-                        [0.6528238,1.        ,0.6528238], \
+    true_K = np.array(  [[1.      , 0.6528238, 1.      ],
+                        [0.6528238,1.        ,0.6528238],
                         [1.       ,0.6528238 ,1.       ]])
 
-    assert(K.shape == (3,3))
-    assert(np.abs(np.sum(K-true_K)) < 1e-05)
+    assert (K.shape == (3,3))
+    assert (np.abs(np.sum(K-true_K)) < 1e-05)
 
 
 def test_rem_kernel_not_self():
@@ -43,12 +42,12 @@ def test_rem_kernel_not_self():
     mols = [np.load(f, allow_pickle=True) for f in mollist]
     K = kernel.kernel(mols, Y=np.copy(mols), akernel='L', gkernel='rem', sigma=1.0, gdict={'alpha':1.0, 'normalize':1, 'verbose':0})
 
-    true_K = np.array(  [[1.      , 0.6528238, 1.      ], \
-                        [0.6528238,1.        ,0.6528238], \
+    true_K = np.array(  [[1.      , 0.6528238, 1.      ],
+                        [0.6528238,1.        ,0.6528238],
                         [1.       ,0.6528238 ,1.       ]])
 
-    assert(K.shape == (3,3))
-    assert(np.abs(np.sum(K-true_K)) < 1e-05)
+    assert (K.shape == (3,3))
+    assert (np.abs(np.sum(K-true_K)) < 1e-05)
 
 
 if __name__ == '__main__':

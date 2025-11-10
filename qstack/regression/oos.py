@@ -54,7 +54,7 @@ def main():
     parser.add_argument('--alpha',  type=str, dest='alpha',  required=True,  help='path to the regression weights file')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X       = np.load(args.repr)
     X_oos   = np.load(args.x_oos)

@@ -44,7 +44,7 @@ def eval_rho_dm(mol, ao, dm, deriv=2):
         if deriv==2:
             DM_dAO_dr_i = 2 * _dot_ao_dm(mol, dAO_dr[i], dm, None, None, None)
             for j in range(i, 3):
-                d2rho_dr2[i,j] = _contract_rho(dAO_dr[j], DM_dAO_dr_i) + 2.0*np.einsum('ip,ip->i', d2AO_dr2[triu_idx[(i,j)]], DM_AO)
+                d2rho_dr2[i,j] = _contract_rho(dAO_dr[j], DM_dAO_dr_i) + 2.0*np.einsum('ip,ip->i', d2AO_dr2[triu_idx[i,j]], DM_AO)
                 d2rho_dr2[j,i] = d2rho_dr2[i,j]
 
     if deriv==1:

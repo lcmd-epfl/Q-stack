@@ -79,8 +79,8 @@ def cv_results(X, y,
         np.save(f"{preffix}_{n_rep}-lc-runs.npy", lc_runs)
     if save_pred:
         np_pred = np.array(predictions_n)
-        ##### Can not take means !!! Test-set varies with run !
-        ##### pred_mean = np.concatenate([np_pred.mean(axis=0),np_pred.std(axis=0)[1].reshape((1,-1))], axis=0)
+        # Can not take means !!! Test-set varies with run !
+        # pred_mean = np.concatenate([np_pred.mean(axis=0),np_pred.std(axis=0)[1].reshape((1,-1))], axis=0)
         pred_mean = np.concatenate([*np_pred.reshape((n_rep, 2, -1))], axis=0)
         np.savetxt(f"{preffix}_{n_rep}-predictions.txt", pred_mean.T)
     return lc
@@ -95,14 +95,14 @@ def main():
     parser.add_argument('--save-pred',  action='store_true', dest='save_pred', default=False,           help='if save test-set prediction')
 
     args = parser.parse_args()
-    if(args.readk):
+    if args.readk:
         args.sigma = [np.nan]
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
+    print(vars(args))
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)
-    print(vars(args))
     final = cv_results(X, y, sigmaarr=args.sigma, etaarr=args.eta,
                        gdict=args.gdict, gkernel=args.gkernel, akernel=args.akernel,
                        read_kernel=args.read_kernel,

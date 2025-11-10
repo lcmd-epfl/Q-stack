@@ -142,7 +142,7 @@ def metric_matrix(q, idx, ao, S):
             i1, j1 = idx[p1]
             l  = ao['l'][i]
             l1 = ao['l'][i1]
-            if(l!=l1):
+            if l!=l1:
                 continue
             A[p1,p] = A[p,p1] = 1.0/(2*l+1) \
                                 * S[idxl0(i, l, ao[q]), idxl0(i1, l, ao[q])] \
@@ -169,7 +169,7 @@ def metric_matrix_short(idx, ao, S):
             i1,j1 = idx[p1]
             l  = ao['l'][i]
             l1 = ao['l'][i1]
-            if(l!=l1):
+            if l!=l1:
                 continue
             A[p1,p] = A[p,p1] = S[i,i1] * S[j,j1] / (2*l+1)
     return sqrtm(A)

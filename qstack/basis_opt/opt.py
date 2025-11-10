@@ -43,7 +43,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             E += qbbt.energy_mol(newbasis, m)
         return E
 
-
     def gradient(x):
         """Compute total loss function (fitting error) and gradient for given exponents.
 
@@ -76,7 +75,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         dE_dx = dE_da * exponents
         return E, dE_dx
 
-
     def gradient_only(x):
         """Compute only the gradient of the loss function (wrapper for optimization algorithms).
 
@@ -87,7 +85,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             numpy.ndarray: Gradient with respect to log(exponents).
         """
         return gradient(x)[1]
-
 
     def read_bases(basis_files):
         """Read basis set definitions from files or dicts.
@@ -117,7 +114,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
                 basis.update(i)
         return basis
 
-
     def make_bf_start():
         """Create basis function index bounds for each element.
 
@@ -130,7 +126,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             start = sum(nbf[0:i])
             bf_bounds[q] = [start, start+nbf[i]]
         return bf_bounds
-
 
     def make_moldata(fname):
         """Create molecular data dictionary from file or dict.

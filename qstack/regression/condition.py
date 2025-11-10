@@ -62,7 +62,7 @@ def main():
     parser.remove_argument('train_size')
     args = parser.parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X = np.load(args.repr)
     c = condition(X, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,

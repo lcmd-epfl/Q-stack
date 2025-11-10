@@ -85,6 +85,7 @@ def test_dori_df():
     dori2, _, _, _, _ = dori(mol, c=c, grid_type='cube', resolution=0.5, alg='num')
     assert np.allclose(dori0, dori2)
 
+
 if __name__ == '__main__':
     test_derivatives()
     test_dori_deriv()

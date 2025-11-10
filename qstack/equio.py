@@ -28,7 +28,6 @@ matrix_label_names = SimpleNamespace(
 _molid_name = 'mol_id'
 
 
-
 def _get_llist(mol):
     """Get list of angular momentum quantum numbers for basis functions of each element of a molecule.
 
@@ -50,7 +49,7 @@ def _get_tsize(tensor):
     Returns:
         int: Total size of the tensor (total number of elements).
     """
-    return sum([np.prod(tensor.block(key).values.shape) for key in tensor.keys])
+    return sum(np.prod(tensor.block(key).values.shape) for key in tensor.keys)
 
 
 def _labels_to_array(labels):
@@ -120,11 +119,11 @@ def vector_to_tensormap(mol, c):
         if llists[q]==sorted(llists[q]):
             for l in set(llists[q]):
                 msize = 2*l+1
-                nsize = blocks[(l,q)].shape[-1]
+                nsize = blocks[l,q].shape[-1]
                 cslice = c[i(nsize*msize)].reshape(nsize,msize).T
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
                     cslice = cslice[pyscf2gpr_l1_order]
-                blocks[(l,q)][iq[q],:,:] = cslice
+                blocks[l,q][iq[q],:,:] = cslice
         else:
             il = dict.fromkeys(range(max(llists[q]) + 1), 0)
             for l in llists[q]:
@@ -132,7 +131,7 @@ def vector_to_tensormap(mol, c):
                 cslice = c[i(msize)]
                 if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
                     cslice = cslice[pyscf2gpr_l1_order]
-                blocks[(l,q)][iq[q],:,il[l]] = cslice
+                blocks[l,q][iq[q],:,il[l]] = cslice
                 il[l] += 1
         iq[q] += 1
 
@@ -256,7 +255,7 @@ def matrix_to_tensormap(mol, dm):
                         dmslice = np.transpose(dmslice, axes=[1,3,0,2]).reshape(msize1,msize2,-1)
                         block = tensor_blocks[tm_label_vals.index((l1,l2,q1,q2))]
                         at_p = block.samples.position((iat1,iat2))
-                        blocks[(l1,l2,q1,q2)][at_p,:,:,:] = dmslice
+                        blocks[l1,l2,q1,q2][at_p,:,:,:] = dmslice
                     iq2[q2] += 1
             iq1[q1] += 1
     else:
@@ -275,7 +274,7 @@ def matrix_to_tensormap(mol, dm):
                         block = tensor_blocks[tm_label_vals.index((l1, l2, q1, q2))]
                         at_p = block.samples.position((iat1, iat2))
                         n_p = block.properties.position((il1[l1], il2[l2]))
-                        blocks[(l1,l2,q1,q2)][at_p,:,:,n_p] = dmslice
+                        blocks[l1,l2,q1,q2][at_p,:,:,n_p] = dmslice
                         il2[l2] += 1
                     iq2[q2] += 1
                 il1[l1] += 1
@@ -486,7 +485,7 @@ def split(tensor):
                 continue
             sampleidx = [t[0] for t in samples]
             samplelbl = [t[1] for t in samples]
-            #sampleidx = [block.samples.position(lbl) for lbl in samplelbl]
+            # sampleidx = [block.samples.position(lbl) for lbl in samplelbl]
 
             blocks[key] = block.values[sampleidx]
             block_samp_labels[key] = metatensor.Labels(tensor.sample_names[1:], np.array(samplelbl)[:,1:])

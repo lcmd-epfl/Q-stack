@@ -91,7 +91,6 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     else:
         dm = np.fromfile(path[0], offset=8, count=mol.nao*mol.nao*nspin).reshape((nspin,mol.nao,mol.nao))
 
-
     is_def2 = 'def2' in pyscf.gto.basis._format_basis_name(mol.basis)
     has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
     if is_def2 and has_3d:
@@ -277,4 +276,3 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
     if reorder_dest is not None:
         reorder_coeff_inplace(c, mol, reorder_dest, ls if (ls and sort_l) else None)
     return c, e, occ
-

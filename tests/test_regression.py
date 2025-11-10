@@ -23,7 +23,7 @@ def test_hyperparameters():
                     [5.18262767e-01,3.00473746e-01,1.00000000e-10,3.16227766e+01],
                     [5.10592542e-01,3.38247735e-01,1.00000000e+00,3.16227766e+01]]
 
-    assert(np.allclose(hyper, true_hyper))
+    assert (np.allclose(hyper, true_hyper))
 
 
 def test_regression():
@@ -38,7 +38,7 @@ def test_regression():
                (6, 0.24018169400891018, 0.08584295185009833),
                (8, 0.2708852104417901, 7.021666937153402e-17)]
 
-    assert(np.allclose(lc, true_lc))
+    assert (np.allclose(lc, true_lc))
 
 
 def test_regression_sparse():
@@ -52,7 +52,7 @@ def test_regression_sparse():
                (4, 0.4803773474666784, 0.19356070353924582),
                (6, 0.333707374435793, 0.13803898307368923),
                (8, 0.4501685644789055, 8.95090418262362e-17)]
-    assert(np.allclose(lc, true_lc))
+    assert (np.allclose(lc, true_lc))
 
 
 def test_regression_idx():
@@ -106,6 +106,7 @@ def test_oos():
     pred3 = oos.oos(X, X[idx_train], weights, sigma=3.162278e+01, random_state=666)
     assert np.allclose(pred3, y[idx_train])
 
+
 def test_cross_validate_results():
     path = os.path.dirname(os.path.realpath(__file__))
     X = np.load(os.path.join(path, 'data/mols/X_lb.npy'))
@@ -116,8 +117,7 @@ def test_cross_validate_results():
                (4, 0.7336549 , 0.59839317),
                (6, 0.7288867 , 0.50714861),
                (8, 0.72604955, 0.48307486)]
-    assert(np.allclose(lc, true_lc))
-
+    assert (np.allclose(lc, true_lc))
 
 
 if __name__ == '__main__':

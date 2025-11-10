@@ -64,10 +64,11 @@ def ext_field_generator(mol, field):
     """
     shls_slice = (0, mol.nbas, 0, mol.nbas)
     with mol.with_common_orig((0,0,0)):
-        int1e_irp = mol.intor('int1e_irp', shls_slice=shls_slice).reshape(3, 3, mol.nao, mol.nao) # ( | rc nabla | )
+        int1e_irp = mol.intor('int1e_irp', shls_slice=shls_slice).reshape(3, 3, mol.nao, mol.nao)  # ( | rc nabla | )
     aoslices = mol.aoslice_by_atom()[:,2:]
     if field is None:
         field = (0,0,0)
+
     def field_deriv(iat):
         p0, p1 = aoslices[iat]
         dmu_dr = np.zeros_like(int1e_irp)  # dim(mu)×dim(r)×nao×nao

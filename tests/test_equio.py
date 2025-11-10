@@ -3,6 +3,7 @@
 import os
 import tempfile
 import filecmp
+from itertools import starmap
 import numpy as np
 from qstack import compound, equio
 import metatensor
@@ -27,9 +28,10 @@ def test_equio_vector():
     ctensor = equio.array_to_tensormap(mol, c)
     tmpfile = tempfile.mktemp() + MTS_EXT
     metatensor.save(tmpfile, ctensor)
-    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.mts', tmpfile))
+    assert (filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.mts', tmpfile))
     c1 = equio.tensormap_to_array(mol, ctensor)
-    assert(np.linalg.norm(c-c1)==0)
+    assert (np.linalg.norm(c-c1)==0)
+
 
 def test_equio_matrix():
     path = os.path.dirname(os.path.realpath(__file__))
@@ -38,9 +40,10 @@ def test_equio_matrix():
     dtensor = equio.array_to_tensormap(mol, dm)
     tmpfile = tempfile.mktemp() + MTS_EXT
     metatensor.save(tmpfile, dtensor)
-    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.dm.mts', tmpfile))
+    assert (filecmp.cmp(path+'/data/H2O_dist.ccpvdz.dm.mts', tmpfile))
     dm1 = equio.tensormap_to_array(mol, dtensor)
-    assert(np.linalg.norm(dm-dm1)==0)
+    assert (np.linalg.norm(dm-dm1)==0)
+
 
 def test_equio_joinsplit():
     path = os.path.dirname(os.path.realpath(__file__))
@@ -54,12 +57,12 @@ def test_equio_joinsplit():
 
     tmpfile = tempfile.mktemp() + MTS_EXT
     metatensor.save(tmpfile, ctensor_big)
-    assert(filecmp.cmp(path+'/data/H2O_dist_CH3OH.ccpvdz.ccpvdzjkfit.mts', tmpfile))
+    assert (filecmp.cmp(path+'/data/H2O_dist_CH3OH.ccpvdz.ccpvdzjkfit.mts', tmpfile))
 
     ctensors = equio.split(ctensor_big)
-    c11, c22 = [equio.tensormap_to_array(mol, t) for mol,t in zip([mol1,mol2], ctensors, strict=True)]
-    assert(np.linalg.norm(c11-c1)==0)
-    assert(np.linalg.norm(c22-c2)==0)
+    c11, c22 = [*starmap(equio.tensormap_to_array, zip([mol1, mol2], ctensors, strict=True))]
+    assert (np.linalg.norm(c11-c1)==0)
+    assert (np.linalg.norm(c22-c2)==0)
 
 
 if __name__ == '__main__':

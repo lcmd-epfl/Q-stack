@@ -61,7 +61,7 @@ def new_xy_axis(z):
     i     = np.argmin(abs(z))      # find the axis with the minimal projection of the vector z
     x     = -z[i] * z
     x[i] += 1.0                    # create a vector orthogonal to z with dominant component i
-    x    /= np.sqrt(1.0-z[i]*z[i]) # normalize
+    x    /= np.sqrt(1.0-z[i]*z[i])  # normalize
     y     = np.cross(z,x)
     return np.array([x,y,z])
 
@@ -113,7 +113,7 @@ def Dmatrix(xyz, lmax, order='xyz'):
         D[1][l+  1,l+ -1] = xy
         D[1][l+  1,l+  0] = xz
         D[1][l+  1,l+  1] = xx
-    elif order=='xyz': # 1 -1 0
+    elif order=='xyz':  # 1 -1 0
         D[1][ 0, 0] = xx
         D[1][ 0, 1] = xy
         D[1][ 0, 2] = xz
@@ -315,4 +315,3 @@ def Dmatrix_for_z(z, lmax, order='xyz'):
         list: List of Wigner D-matrices for l=0 to lmax.
     """
     return Dmatrix(new_xy_axis(z), lmax, order)
-
