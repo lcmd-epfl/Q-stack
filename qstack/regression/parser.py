@@ -1,5 +1,20 @@
 import argparse
-from .kernel_utils import defaults, ParseKwargs, local_kernels_dict, global_kernels_dict
+from . import GlobalKernelsDict, LocalKernelsDict, defaults
+
+
+class ParseKwargs(argparse.Action):
+    def __call__(self, _parser, namespace, values, _option_string=None):
+        setattr(namespace, self.dest, defaults.gdict)
+        for value in values:
+            key, value = value.split('=')
+            for t in [int, float]:
+                try:
+                    value = t(value)
+                    break
+                except ValueError:
+                    continue
+            getattr(namespace, self.dest)[key] = value
+
 
 class RegressionParser(argparse.ArgumentParser):
     def __init__(self, hyperparameters_set=None, **kwargs):
@@ -16,11 +31,11 @@ class RegressionParser(argparse.ArgumentParser):
         elif hyperparameters_set=='array':
             parser.add_argument('--eta',       type=float, dest='eta',        default=defaults.etaarr,   nargs='+', help='eta array')
             parser.add_argument('--sigma',     type=float, dest='sigma',      default=defaults.sigmaarr, nargs='+', help='sigma array')
-        parser.add_argument('--akernel',       type=str,   dest='akernel',    default=defaults.kernel,   choices=local_kernels_dict.keys(),
+        parser.add_argument('--akernel',       type=str,   dest='akernel',    default=defaults.kernel,   choices=LocalKernelsDict().keys(),
                             help='local kernel type: "G" for Gaussian, "L" for Laplacian, "dot" for dot products, "cosine" for cosine similarity. \
                                     "G_{sklearn,custom_c}", "L_{sklearn,custom_c,custom_py}" for specific implementations. \
                                     "L_custompy" is suited to open-shell systems')
-        parser.add_argument('--gkernel',       type=str,   dest='gkernel',    default=defaults.gkernel,  choices=global_kernels_dict.keys(),
+        parser.add_argument('--gkernel',       type=str,   dest='gkernel',    default=defaults.gkernel,  choices=GlobalKernelsDict().keys(),
                             help='global kernel type: "avg" for average, "rem" for REMatch')
         parser.add_argument('--gdict', action=ParseKwargs, dest='gdict',      default=defaults.gdict,    nargs='*', help='dictionary like input string to initialize global kernel parameters')
         parser.add_argument('--test',          type=float,          dest='test_size',    default=defaults.test_size,             help='test set fraction')

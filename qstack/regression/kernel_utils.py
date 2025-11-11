@@ -1,43 +1,9 @@
 import os
-import argparse
 import warnings
-from types import SimpleNamespace
 import numpy as np
+from . import defaults
 from .local_kernels import local_kernels_dict
 from .global_kernels import global_kernels_dict, get_global_K
-
-REGMODULE_PATH = os.path.dirname(__file__)
-
-
-class ParseKwargs(argparse.Action):
-    def __call__(self, _parser, namespace, values, _option_string=None):
-        setattr(namespace, self.dest, defaults.gdict)
-        for value in values:
-            key, value = value.split('=')
-            for t in [int, float]:
-                try:
-                    value = t(value)
-                    break
-                except ValueError:
-                    continue
-            getattr(namespace, self.dest)[key] = value
-
-
-defaults = SimpleNamespace(
-  sigma=32.0,
-  eta=1e-5,
-  kernel='L',
-  gkernel=None,
-  gdict={'alpha':1.0, 'normalize':1, 'verbose':0},
-  test_size=0.2,
-  n_rep=5,
-  splits=5,
-  train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
-  etaarr=np.logspace(-10, 0, 5).tolist(),
-  sigmaarr=np.logspace(0,6, 13).tolist(),
-  sigmaarr_mult=np.logspace(0,2, 5).tolist(),
-  random_state=0,
-  )
 
 
 def get_local_kernel(arg):

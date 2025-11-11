@@ -3,6 +3,7 @@ import warnings
 import numpy as np
 import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
 from qstack.regression import __path__ as REGMODULE_PATH
+from . import LocalKernelsDict
 
 
 def custom_laplacian_kernel(X, Y, gamma):
@@ -107,7 +108,7 @@ def local_laplacian_kernel_wrapper(X, Y, gamma):
     return kern(X, Y, gamma)
 
 
-local_kernels_dict = {
+local_kernels_dict = LocalKernelsDict({
         'G'          : _SKLEARN_PAIRWISE.rbf_kernel,
         'L'          : local_laplacian_kernel_wrapper,
 
@@ -120,7 +121,7 @@ local_kernels_dict = {
         'L_sklearn'  : _SKLEARN_PAIRWISE.laplacian_kernel,
         'L_custom_c' : custom_C_kernels('L'),
         'L_custom_py': custom_laplacian_kernel,
-        }
+        })
 # legacy kernel names
 local_kernels_dict['myG']     = local_kernels_dict['G_custom_c']
 local_kernels_dict['myL']     = local_kernels_dict['L_custom_py']

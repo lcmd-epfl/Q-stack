@@ -4,6 +4,36 @@ import resource
 import numpy as np
 
 
+class FrozenKeysDict:
+    def __init__(self, keys=None, dictionary=None):
+        if keys is not None:
+            self._dictionary = dict.fromkeys(keys)
+            if dictionary is not None:
+                for key in dictionary:
+                    self.__setitem__(key, dictionary[key])
+        elif dictionary is not None:
+            self._dictionary = {key: value for key, value in dictionary.items()}
+        else:
+            raise ValueError('Either keys or dictionary must be provided')
+
+    def keys(self):
+        return self._dictionary.keys()
+
+    def __setitem__(self, key, item):
+        if key not in self._dictionary:
+            raise KeyError(f'The key {key} is not defined by {self.__class__.__name__}')
+        self._dictionary[key] = item
+
+    def __getitem__(self, key):
+        return self._dictionary[key]
+
+    def __str__(self):
+        return str(self._dictionary)
+
+    def __repr__(self):
+        return repr(self._dictionary)
+
+
 def _orca2gpr_idx(mol):
     """Given a molecule returns a list of reordered indices to tranform orca AO ordering into SA-GPR.
 
