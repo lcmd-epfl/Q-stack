@@ -12,7 +12,7 @@ class FrozenKeysDict:
                 for key in dictionary:
                     self.__setitem__(key, dictionary[key])
         elif dictionary is not None:
-            self._dictionary = {key: value for key, value in dictionary.items()}
+            self._dictionary = dict(dictionary.items())  #  copy
         else:
             raise ValueError('Either keys or dictionary must be provided')
 
@@ -23,6 +23,9 @@ class FrozenKeysDict:
         if key not in self._dictionary:
             raise KeyError(f'The key {key} is not defined by {self.__class__.__name__}')
         self._dictionary[key] = item
+
+    def __contains__(self, key):
+        return key in self._dictionary
 
     def __getitem__(self, key):
         return self._dictionary[key]
