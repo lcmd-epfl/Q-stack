@@ -13,6 +13,8 @@ def get_git_version_hash():
         return VERSION + "+unknown"
     version = p.communicate()[0]
     print(version)
+    if len(version.strip()) == 0:
+        return VERSION + '+unknown'
     return VERSION+'+'+version.strip().decode()
 
 

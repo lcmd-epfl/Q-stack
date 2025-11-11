@@ -2,7 +2,6 @@ import os
 import numpy as np
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults
-from .parser import RegressionParser
 
 
 def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
@@ -27,6 +26,7 @@ def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=def
 
 
 def _get_arg_parser():
+    from qstack.regression.parser import RegressionParser
     parser = RegressionParser(description='This program computes kernel.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('test_size')

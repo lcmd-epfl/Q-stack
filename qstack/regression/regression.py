@@ -3,7 +3,6 @@ import scipy
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
-from .parser import RegressionParser
 
 
 def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
@@ -85,6 +84,7 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     return maes_all if not save_pred else (maes_all, (y_test, y_kf_predict))
 
 def _get_arg_parser():
+    from qstack.regression.parser import RegressionParser, defaults
     parser = RegressionParser(description='This program computes the learning curve.', hyperparameters_set='single')
     parser.add_argument('--splits',  type=int,            dest='splits',    default=defaults.n_rep, help='number of splits')
     parser.add_argument('--name',    type=str,            dest='nameout',   default=None,           help='the name of the output file containting the LC data (.txt)')

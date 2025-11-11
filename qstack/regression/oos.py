@@ -3,7 +3,6 @@ import numpy as np
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults, train_test_split_idx
-from .parser import RegressionParser
 
 
 def oos(X, X_oos, alpha, sigma=defaults.sigma,
@@ -42,6 +41,7 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
     return y
 
 def _get_arg_parser():
+    from qstack.regression.parser import RegressionParser
     parser = RegressionParser(description='This program makes prediction for OOS.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')

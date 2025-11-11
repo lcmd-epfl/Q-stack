@@ -4,7 +4,6 @@ import scipy
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
-from .parser import RegressionParser
 
 
 def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
@@ -71,6 +70,7 @@ def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
 
 
 def _get_arg_parser():
+    from qstack.regression.parser import RegressionParser
     parser = RegressionParser(description='This program computes the full-training error for each molecule.', hyperparameters_set='single')
     parser.remove_argument('train_size')
     parser.add_argument('--save-alpha', type=str,   dest='save_alpha',  default=None,  help='file to write the regression coefficients to')

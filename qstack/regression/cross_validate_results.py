@@ -4,7 +4,6 @@ from qstack.tools import correct_num_threads
 from .kernel_utils import defaults
 from .hyperparameters import hyperparameters
 from .regression import regression
-from .parser import RegressionParser
 
 
 def cv_results(X, y,
@@ -84,6 +83,7 @@ def cv_results(X, y,
     return lc
 
 def _get_arg_parser():
+    from qstack.regression.parser import RegressionParser, defaults
     parser = RegressionParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search included).', hyperparameters_set='array')
     parser.remove_argument('random_state')
     parser.add_argument('--n',          type=int,            dest='n_rep',     default=defaults.n_rep,  help='the number of repetition for each point')
