@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'Q-stack'
-copyright = '2023, LCMD'
+copyright = '2025, LCMD'
 author = 'LCMD'
 release = '1.0.0'
 
@@ -22,8 +22,8 @@ release = '1.0.0'
 
 extensions = [
         'sphinxarg.ext',
-        'sphinx.ext.autodoc', 
-        'sphinx.ext.napoleon', 
+        'sphinx.ext.autodoc',
+        'sphinx.ext.napoleon',
         'myst_parser',
         'sphinx.ext.todo',
         ]
