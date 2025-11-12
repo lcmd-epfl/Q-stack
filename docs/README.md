@@ -8,7 +8,7 @@ pip install -r requirements.txt
 
 ```bash
 make clean clean-src
-make html
+make docs
 ```
 
 You can access the documenation on `Q-stack/docs/build/html/index.html`

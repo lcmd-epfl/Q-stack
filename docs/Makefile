@@ -9,14 +9,19 @@ BUILDDIR      = build
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+docs:
+	make build-src
+	make html
 
 clean-src:
 	@rm -rfv source/qstack/
+
+build-src:
+	@python generate_rst.py ../qstack/ -o source/ --project "Qstack" --package-root-name qstack
 
 .PHONY: help Makefile
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	@python generate_rst.py ../qstack/ -o source/ --project "Qstack" --package-root-name qstack
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

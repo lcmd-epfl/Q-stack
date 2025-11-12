@@ -1,0 +1,27 @@
+name: Test documentation build
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install requirements
+        run: pip install -r docs/requirements.txt
+      - name: Build documentation src
+        run: make build-src -C docs/
+      - name: Build documentation html
+        run: make html -C docs/
