@@ -2,17 +2,17 @@ attrs==21.4.0
 certifi==2021.10.8
 h5py==3.11.0
 iniconfig==1.1.1
-packaging==21.3
+packaging==25.0
 pluggy==1.0.0
 py==1.11.0
-pyparsing==3.0.6
+pyparsing==3.2.5
 pyscf==2.5.0
 pytest==6.2.5
 numpy==2.3.*
-scipy==1.10
+scipy==1.16.3
 toml==0.10.2
-scikit-learn==1.5.0
-ase==3.22
+scikit-learn==1.7.2
+ase==3.26
 tqdm==4.66
-metatensor-core==0.1.8
-cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2
+metatensor-core==0.1.17
+cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@40b3237

@@ -53,7 +53,7 @@ equio-itself = ["metatensor-core >= 0.1.8, == 0.1.*"]
 equio = ["qstack[pyscf,equio-itself]"]
 spahm = ["qstack[pyscf]"]
 docs-build = ["sphinx", "sphinx-argparse", "sphinx-autobuild", "myst-parser", "furo"]
-all = ["qstack[pyscf,qml,regression,wigner,equio,gmol]"]
+all = ["qstack[pyscf,qml,regression,wigner,equio,gmol,cell2mol]"]
 
 [project.urls]
 Repository = "https://github.com/lcmd-epfl/Q-stack.git"
