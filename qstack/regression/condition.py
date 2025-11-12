@@ -2,6 +2,7 @@ import numpy as np
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
+from .parser import RegressionParser
 
 
 def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
@@ -50,7 +51,6 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     return cond
 
 def _get_arg_parser():
-    from qstack.regression.parser import RegressionParser
     parser = RegressionParser(description='This program computes the condition number for the kernel matrix.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')

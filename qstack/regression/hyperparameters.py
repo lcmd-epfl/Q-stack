@@ -5,6 +5,7 @@ from sklearn.model_selection import KFold
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
+from .parser import RegressionParser
 
 
 def hyperparameters(X, y,
@@ -130,7 +131,6 @@ def hyperparameters(X, y,
     return errors
 
 def _get_arg_parser():
-    from qstack.regression.parser import RegressionParser
     parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
     parser.remove_argument("random_state")
     parser.remove_argument("train_size")

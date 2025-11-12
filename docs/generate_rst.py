@@ -69,7 +69,6 @@ class ClassInfo:
 @dataclass
 class CommandLineInfo:
     funcname: str
-    parser: argparse.ArgumentParser
 
 @dataclass
 class ModuleInfo:
@@ -164,11 +163,7 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
             classes.append(ClassInfo(node.name, node.lineno, cdoc, sorted(methods, key=lambda m: m.lineno)))
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             if node.name == '_get_arg_parser':
-                gg = globals().copy()
-                gg.update(locals())
-                exec(ast.unparse(node), None, gg)
-                parser = gg['_get_arg_parser']()
-                cmd = CommandLineInfo(node.name, parser)
+                cmd = CommandLineInfo(node.name)
             else:
                 sig = safe_sig(node)
                 functions.append(FunctionInfo(node.name, node.lineno, sig, ast.get_docstring(node)))
@@ -239,14 +234,8 @@ def render_module_rst(mi: ModuleInfo) -> str:
                     out.append(format_docstring(m.doc) if m.doc else "(No docstring.)\n\n")
     if mi.cmd:
         out.append(title("Command-line use", 1))
-        if False:  # if we use argparse to get prettier stuff in exchange for needing to import everything
-            out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {mi.name}\n')
-            out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
-        else:
-            out.append('The output of the script\'s help message is as follows::\n\n')
-            for line in mi.cmd.parser.format_help().split('\n'):
-                out.append(f'   {line}\n')
-            out.append('\n')
+        out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {mi.name}\n')
+        out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
 
     else:
         # Footer hint
