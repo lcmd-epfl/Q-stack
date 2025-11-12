@@ -2,5 +2,3 @@ sphinx
 myst-parser
 sphinx-autobuild
 alabaster
-sphinx-argparse
-numpy

@@ -19,8 +19,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from collections.abc import Iterable
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+'/../'))
-
 # --------------------------- Utilities ---------------------------------
 
 def rel_module_name(py_path: Path, package_root: Path, package_root_name: str | None) -> str:
