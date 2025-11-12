@@ -6,6 +6,8 @@
 import os
 import sys
 import shutil
+import inspect
+import importlib
 from pathlib import Path
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -22,11 +24,15 @@ release = '1.0.0'
 
 extensions = [
         'sphinxarg.ext',
+        "sphinx.ext.autosummary",
         'sphinx.ext.autodoc',
         'sphinx.ext.napoleon',
         'myst_parser',
-        'sphinx.ext.todo',
+        #'sphinx.ext.todo',
+        'sphinx.ext.linkcode',
         ]
+
+autosummary_generate = True
 
 todo_include_todos = False
 todo_emit_warnings = False
@@ -43,12 +49,25 @@ suppress_warnings = [ 'ref.myst']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
+html_theme = 'sphinx_rtd_theme'
 html_theme = 'alabaster'
+
+
+#html_context = {
+#    "display_github": True,
+#    "github_user": "lcmd-epfl",
+#    "github_repo": "Q-stack",
+#    "github_version": "master",
+#    "conf_py_path": "/docs/",
+#}
+
 html_theme_options = {
         "logo": "../images/logo.png",
+        "display_version": True,
         "logo_name": False,
         "description": "Codes for pre- and post-processing tasks for QML.",
         "logo_text_align": True,
+        "display_github": True,
         "github_button": True,
         "github_repo": "Q-stack",
         "github_user": "lcmd-epfl",
@@ -96,3 +115,27 @@ def _copy_readme_images(app, exception):
 def setup(app):
     app.connect("build-finished", _copy_readme_images)
 
+
+def linkcode_resolve(domain, info):
+    if domain != 'py' or not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    try:
+        mod = importlib.import_module(info['module'])
+    except ImportError:
+        return None
+
+    url = f"https://github.com/lcmd-epfl/Q-stack/tree/master/{filename}.py"
+
+    obj = mod
+    for part in info["fullname"].split("."):
+        obj = getattr(obj, part, None)
+        if obj is None:
+            break
+    try:
+        _, line = inspect.getsourcelines(obj)
+        url += f"#L{line}"
+    except Exception:
+        pass
+
+    return url

@@ -246,6 +246,14 @@ def format_docstring(doc: str | None) -> str:
     return "::\n\n" + textwrap.indent(d + "\n", "    ") + "\n"
 
 
+def auto_docstring(name):
+    return f""".. automodule:: {name}
+   :members:
+   :show-inheritance:
+   :undoc-members:
+"""
+
+
 def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
     out: list[str] = []
     if mi.name.endswith('.__init__'):
@@ -253,9 +261,16 @@ def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
     else:
         name = mi.name
     out.append(title(rst_escape_heading(name), 0))
-    out.append(format_docstring(mi.doc))
+    out.append(auto_docstring(mi.name))
+
+    if mi.cmd:
+        out += ['\n\n']
+        out.append(title("Command-line use", 1))
+        out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {mi.name}\n')
+        out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
 
     if mi.children:
+        out += ['\n\n']
         out.append(".. toctree::\n   :caption: Submodules\n\n")
         for mch in sorted(mi.children, key=lambda m: m.name):
             rel = (
@@ -266,38 +281,34 @@ def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
             out.append(f"   {rel.as_posix()}\n")
         out.append("\n")
 
-    if mi.functions:
-        out.append(title("Functions", 1))
-        for f in mi.functions:
-            out.append(title(rst_escape_heading(f"{f.name} {f.signature}"), 2))
-            out.append(format_docstring(f.doc) if f.doc else "(No docstring.)\n\n")
+    #if mi.functions:
+    #    out.append(title("Functions", 1))
+    #    for f in mi.functions:
+    #        out.append(title(rst_escape_heading(f"{f.name} {f.signature}"), 2))
+    #        out.append(format_docstring(f.doc) if f.doc else "(No docstring.)\n\n")
 
-    if mi.classes:
-        out.append(title("Classes", 1))
-        for c in mi.classes:
-            out.append(title(rst_escape_heading(c.name), 2))
-            out.append(format_docstring(c.doc) if c.doc else "(No docstring.)\n\n")
-            if c.methods:
-                out.append(title("Methods", 3))
-                for m in c.methods:
-                    out.append(title(rst_escape_heading(f"{m.name} {m.signature}"), 4))
-                    out.append(format_docstring(m.doc) if m.doc else "(No docstring.)\n\n")
-    if mi.cmd:
-        out.append(title("Command-line use", 1))
-        out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {mi.name}\n')
-        out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
+    #if mi.classes:
+    #    out.append(title("Classes", 1))
+    #    for c in mi.classes:
+    #        out.append(title(rst_escape_heading(c.name), 2))
+    #        out.append(format_docstring(c.doc) if c.doc else "(No docstring.)\n\n")
+    #        if c.methods:
+    #            out.append(title("Methods", 3))
+    #            for m in c.methods:
+    #                out.append(title(rst_escape_heading(f"{m.name} {m.signature}"), 4))
+    #                out.append(format_docstring(m.doc) if m.doc else "(No docstring.)\n\n")
 
     else:
         pass
         # Footer hint
         #out.append(".. note::\n   Generated statically from source by gen_rst.py; no imports performed.\n")
-    return "".join(out)
 
+    return "".join(out)
 
 
 def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> str:
     out: list[str] = []
-    heading = f"Welcome to {project} Documentation"
+    heading = f"Welcome to {project} documentation"
     out.append(title(heading, 0))
 
     out.append(".. include:: ../../README.md\n   :parser: myst_parser.sphinx_\n\n")
@@ -312,9 +323,7 @@ def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> 
         rel = (out_path_for_module(mi, out_dir).relative_to(out_dir)).with_suffix("")
         out.append(f"   {rel.as_posix()}\n")
 
-    out.append("\n")
     return "".join(out)
-
 
 
 def out_path_for_module(mi: ModuleInfo, out_dir: Path) -> Path:
