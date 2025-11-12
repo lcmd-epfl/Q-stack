@@ -288,8 +288,9 @@ def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
         out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
 
     else:
+        pass
         # Footer hint
-        out.append(".. note::\n   Generated statically from source by gen_rst.py; no imports performed.\n")
+        #out.append(".. note::\n   Generated statically from source by gen_rst.py; no imports performed.\n")
     return "".join(out)
 
 
