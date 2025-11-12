@@ -48,8 +48,34 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install documentation requirements
+        shell: bash -l {0}
         run: pip install -r docs/requirements.txt
+
       - name: Build documentation src
+        shell: bash -l {0}
         run: make build-src -C docs/
-      - name: Build documentation html
+
+      - name: Build HTML
+        shell: bash -l {0}
         run: make html -C docs/
+
+      - name: Upload artifacts
+        #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build/html/
+
+  deploy:
+    #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy
+        uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
