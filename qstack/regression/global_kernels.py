@@ -2,7 +2,6 @@ import math
 from collections import Counter
 import numpy as np
 from tqdm import tqdm
-from . import GlobalKernelsDict
 
 
 def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
@@ -155,7 +154,8 @@ def rematch_kernel(kernel, options):
     K_rem = np.sum(np.multiply(p_alpha, kernel))
     return K_rem
 
-global_kernels_dict = GlobalKernelsDict({
+
+global_kernels_dict = {
         'avg': avg_kernel,
         'rem': rematch_kernel,
-        })
+        }

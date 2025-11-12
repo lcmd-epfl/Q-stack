@@ -17,4 +17,4 @@ all: manh.so
 	$(CC) $(OMPFLAG) $(W) $^ -c --std=gnu11 -O2 -fPIC -o $@
 
 clean:
-	rm -vf manh.*so
+	rm -vf manh.so
