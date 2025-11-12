@@ -3,6 +3,7 @@ import numpy as np
 import scipy
 from pyscf import dft, scf
 from .LB2020guess import LB2020guess as LB20
+from . import GuessesDict
 
 
 def hcore(mol, *_):
@@ -118,6 +119,7 @@ def get_guess(arg):
   Returns:
     The function of the selected method.
   """
+  guesses_dict = GuessesDict({'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS})
   arg = arg.lower()
   if arg not in guesses_dict:
       raise RuntimeError(f'Unknown guess. Available guesses: {list(guesses_dict.keys())}')
@@ -225,4 +227,3 @@ def eigenvalue_grad(mol, e, c, s1, h1):
     return de_dr
 
 
-guesses_dict = {'core':hcore, 'sad':SAD, 'sap':SAP, 'gwh':GWH, 'lb':LB, 'huckel':'huckel', 'lb-hfs':LB_HFS}

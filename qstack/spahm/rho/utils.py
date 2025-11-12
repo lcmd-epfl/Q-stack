@@ -1,23 +1,11 @@
 import os
 import warnings
 import numpy as np
-from types import SimpleNamespace
 from tqdm import tqdm
 import qstack.spahm.compute_spahm as spahm
 from qstack.spahm import guesses
 from qstack import compound
-
-defaults = SimpleNamespace(
-    guess='LB',
-    model='Lowdin-long-x',
-    basis='minao',
-    auxbasis='ccpvdzjkfit',
-    omod=['alpha', 'beta'],
-    elements=["H", "C", "N", "O", "S"],
-    cutoff=5.0,
-    xc='hf',
-    bpath=os.path.dirname(__file__)+'/basis_opt',
-  )
+from . import defaults, OmodFnsDict
 
 
 def get_chsp(fname, n):
@@ -80,9 +68,16 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
 
 
 def dm_open_mod(dm, omod):
-    omod_fns_dict[None] = lambda dm: dm
+    omod_fns_dict = OmodFnsDict({
+            'sum':   lambda dm: dm[0]+dm[1],
+            'diff':  lambda dm: dm[0]-dm[1],
+            'alpha': lambda dm: dm[0],
+            'beta':  lambda dm: dm[1],
+            })
     if omod in omod_fns_dict:
         return omod_fns_dict[omod](dm)
+    elif omod is None:
+        return dm
     else:
         raise ValueError(f'unknown open-shell mod: must be in {list(omod_fns_dict.keys())}, None if the system is closed-shell')
 
@@ -203,11 +198,3 @@ def regroup_symbols(file_list, print_level=0, trim_reps=False):
     if print_level > 0:
         print([(k, len(v)) for k, v in atoms_set.items()])
     return atoms_set
-
-
-omod_fns_dict = {
-        'sum':   lambda dm: dm[0]+dm[1],
-        'diff':  lambda dm: dm[0]-dm[1],
-        'alpha': lambda dm: dm[0],
-        'beta':  lambda dm: dm[1],
-        }

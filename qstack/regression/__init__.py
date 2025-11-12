@@ -10,16 +10,16 @@ import numpy as np
 from qstack.tools import FrozenKeysDict
 
 
-_global_kernels_dict_names = ['avg', 'rem']
-_local_kernels_dict_names = ['G', 'L', 'dot', 'cosine', 'G_sklearn', 'G_custom_c', 'L_sklearn', 'L_custom_c', 'L_custom_py', 'myG', 'myL', 'myLfast']
 
 class GlobalKernelsDict(FrozenKeysDict):
     def __init__(self, dictionary=None):
-        super().__init__(_global_kernels_dict_names, dictionary)
+        _global_kernels_names = ('avg', 'rem')
+        super().__init__(_global_kernels_names, dictionary)
 
 class LocalKernelsDict(FrozenKeysDict):
     def __init__(self, dictionary=None):
-        super().__init__(_local_kernels_dict_names, dictionary)
+        _local_kernels_names = ('G', 'L', 'dot', 'cosine', 'G_sklearn', 'G_custom_c', 'L_sklearn', 'L_custom_c', 'L_custom_py', 'myG', 'myL', 'myLfast')
+        super().__init__(_local_kernels_names, dictionary)
 
 defaults = SimpleNamespace(
   sigma=32.0,
