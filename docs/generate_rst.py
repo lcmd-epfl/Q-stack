@@ -306,7 +306,7 @@ def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> 
     #out.append(".. todolist::\n\n")
 
     #out.append(".. toctree::\n   :maxdepth: 1\n   :caption: Modules\n\n")
-    out.append(".. toctree::\n   :caption: Modules\n\n")
+    out.append(".. toctree::\n   :caption: Modules\n   :hidden:\n\n")
 
     for mi in sorted(modules, key=lambda m: m.name):
         rel = (out_path_for_module(mi, out_dir).relative_to(out_dir)).with_suffix("")

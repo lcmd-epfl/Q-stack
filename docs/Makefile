@@ -14,7 +14,7 @@ docs:
 	make html
 
 clean-src:
-	@rm -rfv source/qstack/
+	@rm -rfv source/qstack/ source/index.rst
 
 build-src:
 	@python generate_rst.py ../qstack/ -o source/ --project "Qstack" --package-root-name qstack
