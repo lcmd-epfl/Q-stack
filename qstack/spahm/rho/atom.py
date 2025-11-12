@@ -1,17 +1,15 @@
 import numpy as np
 from qstack import compound
 from .compute_rho_spahm import get_repr
+from .parser import SpahmParser
 
-def _get_arg_parser():
-    from qstack.spahm.rho.parser import SpahmParser
+
+def main(args=None):
     parser = SpahmParser(description='This program computes the SPAHM(a) representation for a given molecular system', atom=True)
     parser.add_argument('--mol',       dest='mol',           required=True,                        type=str, help="the path to the xyz file with the molecular structure")
     parser.add_argument('--charge',    dest='charge',        default=0,                            type=int, help='total charge of the system (default: 0)')
     parser.add_argument('--spin',      dest='spin',          default=None,                         type=int, help='number of unpaired electrons (default: None) (use 0 to treat a closed-shell system in a UHF manner)')
-    return parser
-
-def main(args=None):
-    args = _get_arg_parser().parse_args(args=args)
+    args = parser.parse_args(args=args)
     if args.print>0:
         print(vars(args))
 
