@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import textwrap
+from typing import Self
 from dataclasses import dataclass, field
 from pathlib import Path
 from collections.abc import Iterable
@@ -78,6 +79,7 @@ class ModuleInfo:
     classes: list[ClassInfo]
     functions: list[FunctionInfo]
     cmd: CommandLineInfo | None
+    children: list[Self]
 
 
 def format_signature(args: ast.arguments) -> str:
@@ -145,7 +147,7 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
     try:
         tree = ast.parse(src)
     except SyntaxError:
-        return ModuleInfo(module_name, py_path, None, [], [])
+        return ModuleInfo(module_name, py_path, None, [], [], None, [],)
 
     mdoc = ast.get_docstring(tree)
     classes: list[ClassInfo] = []
@@ -171,7 +173,7 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
     classes.sort(key=lambda c: c.lineno)
     functions.sort(key=lambda f: f.lineno)
 
-    return ModuleInfo(module_name, py_path, mdoc, classes, functions, cmd)
+    return ModuleInfo(module_name, py_path, mdoc, classes, functions, cmd, [])
 
 
 def safe_sig(fn: ast.AST) -> str:
@@ -181,6 +183,39 @@ def safe_sig(fn: ast.AST) -> str:
     except Exception:
         pass
     return "(...)"
+
+def modules_maketree(modules: list[ModuleInfo]) -> ModuleInfo:
+    # to make a tree: isolate the non-leaf nodes, and sort nodes by depth (at the same time)
+    leaves_per_depth = {}
+    branches_per_depth = {}
+    for module in modules:
+        parts = module.path.parts
+        if parts[-1] == '__init__.py':
+            module.path = module.path.parent
+            branches_per_depth.setdefault(len(parts), []).append(module)
+        else:
+            leaves_per_depth.setdefault(len(parts), []).append(module)
+
+    depth = max(leaves_per_depth.keys())
+    while len(branches_per_depth.get(depth, [])):
+        child_i = 0
+        while len(branches_per_depth[depth]):
+            parent = branches_per_depth[depth][0]
+            child_i = 0
+            while child_i < len(leaves_per_depth[depth]):
+                child = leaves_per_depth[depth][child_i]
+                if child.path.is_relative_to(parent.path):
+                    parent.children.append(child)
+                    del leaves_per_depth[depth][child_i]
+                else:
+                    child_i +=1
+            leaves_per_depth.setdefault(depth-1, []).append(parent)
+            del branches_per_depth[depth][0]
+        depth -=1
+    res = leaves_per_depth[depth]
+    assert len(res) == 1
+    return res[0]
+
 
 # --------------------------- RST rendering ------------------------------
 
@@ -211,10 +246,25 @@ def format_docstring(doc: str | None) -> str:
     return "::\n\n" + textwrap.indent(d + "\n", "    ") + "\n"
 
 
-def render_module_rst(mi: ModuleInfo) -> str:
+def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
     out: list[str] = []
-    out.append(title(rst_escape_heading(mi.name), 0))
+    if mi.name.endswith('.__init__'):
+        name = mi.name[:-9]
+    else:
+        name = mi.name
+    out.append(title(rst_escape_heading(name), 0))
     out.append(format_docstring(mi.doc))
+
+    if mi.children:
+        out.append(".. toctree::\n   :caption: Submodules\n\n")
+        for mch in sorted(mi.children, key=lambda m: m.name):
+            rel = (
+                out_path_for_module(mch, out_dir)
+                .relative_to(out_path_for_module(mi,out_dir).parent)
+                .with_suffix("")
+            )
+            out.append(f"   {rel.as_posix()}\n")
+        out.append("\n")
 
     if mi.functions:
         out.append(title("Functions", 1))
@@ -254,7 +304,8 @@ def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> 
     #out.append("To do List\n==========\n\n")
     #out.append(".. todolist::\n\n")
 
-    out.append(".. toctree::\n   :maxdepth: 1\n   :caption: Modules\n\n")
+    #out.append(".. toctree::\n   :maxdepth: 1\n   :caption: Modules\n\n")
+    out.append(".. toctree::\n   :caption: Modules\n\n")
 
     for mi in sorted(modules, key=lambda m: m.name):
         rel = (out_path_for_module(mi, out_dir).relative_to(out_dir)).with_suffix("")
@@ -298,15 +349,17 @@ def main(argv: list[str] | None = None) -> int:
         mi = extract_module_info(py, mod_name)
         modules.append(mi)
 
+    head_module = modules_maketree(modules)
+
     # Write each module page
     for mi in modules:
         out_path = out_path_for_module(mi, out_dir)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        out_path.write_text(render_module_rst(mi), encoding="utf-8")
+        out_path.write_text(render_module_rst(mi, out_dir), encoding="utf-8")
 
     # Write package-level index
     index_path = out_dir / "index.rst"
-    index_path.write_text(render_index_rst(args.project, modules, out_dir), encoding="utf-8")
+    index_path.write_text(render_index_rst(args.project, [head_module], out_dir), encoding="utf-8")
 
     print(f"Wrote {len(modules)} module pages under {out_dir}")
     print(f"Index: {index_path}")
