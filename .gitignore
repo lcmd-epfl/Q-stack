@@ -77,6 +77,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/build/
+docs/source/qstack
 
 # PyBuilder
 target/
