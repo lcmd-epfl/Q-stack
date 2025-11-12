@@ -1,7 +1,6 @@
 import numpy as np
 import pyscf
 from qstack import compound, fields
-from . import ModelsDict
 from . import sym, atomic_density, lowdin
 
 
@@ -50,16 +49,14 @@ def _make_models_dict():
         c  = fields.decomposition.correct_N_atomic(auxmol, Q, c0, metric=eri2c)
         return c
 
-    models_dict = ModelsDict({
-                   'pure'          : [df_pure,            coefficients_symmetrize_short ],
+    models_dict = {'pure'          : [df_pure,            coefficients_symmetrize_short ],
                    'sad-diff'      : [df_sad_diff,        coefficients_symmetrize_short ],
                    'occup'         : [df_occup,           coefficients_symmetrize_short ],
                    'lowdin-short'  : [df_lowdin_short,    coefficients_symmetrize_short ],
                    'lowdin-long'   : [df_lowdin_long,     coefficients_symmetrize_long  ],
                    'lowdin-short-x': [df_lowdin_short_x,  coefficients_symmetrize_short ],
                    'lowdin-long-x' : [df_lowdin_long_x,   coefficients_symmetrize_long  ],
-                   'mr2021'        : [df_pure,            coefficients_symmetrize_MR2021],
-                   })
+                   'mr2021'        : [df_pure,            coefficients_symmetrize_MR2021]}
     return models_dict
 
 

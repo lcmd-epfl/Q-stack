@@ -1,6 +1,7 @@
 import argparse
-from . import defaults, OmodFnsDict, ModelsDict
-from .. import GuessesDict
+from .utils import defaults, omod_fns_dict
+from .dmb_rep_atom import models_dict
+from ..guesses import guesses_dict
 
 
 class SpahmParser(argparse.ArgumentParser):
@@ -11,7 +12,7 @@ class SpahmParser(argparse.ArgumentParser):
             parser.add_argument('--mol',           dest='filename',      required=True,                            type=str,     help='path to an xyz file / to a list of molecular structures in xyz format')
             parser.add_argument('--charge',        dest='charge',        default="None",                           type=str,     help='charge / path to a file with a list of thereof')
             parser.add_argument('--spin',          dest='spin',          default="None",                           type=str,     help='number of unpaired electrons / path to a file with a list of thereof')
-        parser.add_argument('--guess',     dest='guess', default=defaults.guess, choices=GuessesDict().keys(),      type=str,     help="the initial guess Hamiltonian to be used")
+        parser.add_argument('--guess',     dest='guess', default=defaults.guess, choices=guesses_dict.keys(),      type=str,     help="the initial guess Hamiltonian to be used")
         parser.add_argument('--basis',             dest='basis',         default=defaults.basis,                   type=str,     help="basis set for computing density matrix")
         parser.add_argument('--xc',                dest='xc',            default=defaults.xc,                      type=str,     help='DFT functional for the SAD guess')
         parser.add_argument('--ecp',               dest='ecp',           default=None,                             type=str,     help='effective core potential to use')
@@ -19,7 +20,7 @@ class SpahmParser(argparse.ArgumentParser):
         parser.add_argument('--units', dest='units', default='Angstrom', choices=('Angstrom', 'Bohr'),             type=str,     help="the units of the input coordinates")
         parser.add_argument('--elements',          dest='elements',      default=None, nargs='+',                  type=str,     help="the elements contained in the database")
         parser.add_argument('--only-z',            dest='only_z',        default=None, nargs='+',                  type=str,     help="restrict the representation to one or several atom types")
-        parser.add_argument('--omod', dest='omod', default=defaults.omod, choices=OmodFnsDict().keys(), nargs='+', type=str,     help='model(s) for open-shell systems (alpha, beta, sum, diff')
+        parser.add_argument('--omod', dest='omod', default=defaults.omod, choices=omod_fns_dict.keys(), nargs='+', type=str,     help='model(s) for open-shell systems (alpha, beta, sum, diff')
         parser.add_argument('--name',              dest='name_out',      default=None,                             type=str,     help='name of the output representations file.')
         parser.add_argument('--split',             dest='split',         default=0,      action='count',                         help='split into molecules (use twice to also split the output in one file per molecule)')
         parser.add_argument('--nomerge',           dest='merge',         action='store_false',                                   help='merge different omods')
@@ -27,7 +28,7 @@ class SpahmParser(argparse.ArgumentParser):
         parser.add_argument('--print',             dest='print',         default=0,                                type=int,     help='printing level')
         if atom:
             parser.add_argument('--aux-basis',     dest='auxbasis',      default=defaults.auxbasis,                type=str,     help="auxiliary basis set for density fitting")
-            parser.add_argument('--model',       dest='model', default=defaults.model, choices=ModelsDict().keys(), type=str,     help='model for the atomic density fitting')
+            parser.add_argument('--model',       dest='model', default=defaults.model, choices=models_dict.keys(), type=str,     help='model for the atomic density fitting')
         if bond:
             parser.add_argument('--cutoff',        dest='cutoff',        default=defaults.cutoff,                  type=float,   help='bond length cutoff in Å')
             parser.add_argument('--bpath',         dest='bpath',         default=defaults.bpath,                   type=str,     help='directory with basis sets')
