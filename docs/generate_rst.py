@@ -257,21 +257,26 @@ def auto_docstring(name):
 def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
     out: list[str] = []
     if mi.name.endswith('.__init__'):
-        name = mi.name[:-9]
+        module_name = mi.name[:-9]
+        cmd_name = mi.name[:-9]
+    elif mi.name.endswith('.__main__'):
+        module_name = mi.name
+        cmd_name = mi.name[:-9]
     else:
-        name = mi.name
-    out.append(title(rst_escape_heading(name), 0))
+        module_name = mi.name
+        cmd_name = mi.name
+    out.append(title(rst_escape_heading(module_name), 0))
     out.append(auto_docstring(mi.name))
 
     if mi.cmd:
         out += ['\n\n']
         out.append(title("Command-line use", 1))
-        out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {mi.name}\n')
+        out.append(f'.. argparse::\n   :module: {mi.name}\n   :func: _get_arg_parser\n   :prog: python3 -m {cmd_name}\n')
         out.append('.. note::\n   If you built those docs yourself and the command-line section is empty, please make sure you have installed the right components of qstack.\n\n')
 
     if mi.children:
         out += ['\n\n']
-        out.append(".. toctree::\n   :caption: Submodules\n\n")
+        out.append(".. toctree::\n   :caption: Submodules\n   :maxdepth: 1\n\n")
         for mch in sorted(mi.children, key=lambda m: m.name):
             rel = (
                 out_path_for_module(mch, out_dir)
@@ -323,6 +328,7 @@ def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> 
         rel = (out_path_for_module(mi, out_dir).relative_to(out_dir)).with_suffix("")
         out.append(f"   {rel.as_posix()}\n")
 
+    print(out)
     return "".join(out)
 
 
@@ -369,7 +375,8 @@ def main(argv: list[str] | None = None) -> int:
 
     # Write package-level index
     index_path = out_dir / "index.rst"
-    index_path.write_text(render_index_rst(args.project, [head_module], out_dir), encoding="utf-8")
+    print(index_path)
+    index_path.write_text(render_index_rst(args.project, head_module.children, out_dir), encoding="utf-8")
 
     print(f"Wrote {len(modules)} module pages under {out_dir}")
     print(f"Index: {index_path}")
