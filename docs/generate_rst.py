@@ -277,7 +277,7 @@ def render_module_rst(mi: ModuleInfo, out_dir: Path) -> str:
     if mi.children:
         out += ['\n\n']
         out.append(".. toctree::\n   :caption: Submodules\n   :maxdepth: 1\n\n")
-        for mch in sorted(mi.children, key=lambda m: m.name):
+        for mch in sorted(mi.children, key=lambda m: (len(m.children)==0, m.name.lower())):
             rel = (
                 out_path_for_module(mch, out_dir)
                 .relative_to(out_path_for_module(mi,out_dir).parent)
@@ -324,11 +324,17 @@ def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> 
     #out.append(".. toctree::\n   :maxdepth: 1\n   :caption: Modules\n\n")
     out.append(".. toctree::\n   :caption: Modules\n   :hidden:\n\n")
 
-    for mi in sorted(modules, key=lambda m: m.name):
+
+    module_order = ['spahm', 'fields', 'qml', 'regression'] + ['compound', 'c2mio', 'equio', 'orcaio']
+    def key(m):
+        name = m.name.split('.')[1]
+        i = module_order.index(name) if name in module_order else len(module_order)
+        return (len(m.children)==0, i, m.name)
+
+    for mi in sorted(modules, key=key):
         rel = (out_path_for_module(mi, out_dir).relative_to(out_dir)).with_suffix("")
         out.append(f"   {rel.as_posix()}\n")
 
-    print(out)
     return "".join(out)
 
 

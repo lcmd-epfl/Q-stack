@@ -2,4 +2,4 @@ sphinx
 myst-parser
 sphinx-autobuild
 sphinx-argparse
-alabaster
+furo
