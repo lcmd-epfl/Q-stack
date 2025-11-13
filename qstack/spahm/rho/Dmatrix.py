@@ -36,7 +36,7 @@ def rotate_c(D, cs):
     Applies angular momentum rotation to each angular momentum block separately.
 
     Args:
-        D (list): List of Wigner D-matrices (numpy ndarray of shape (2l+1,(2l+1) indexed by angular momentum l.
+        D (list): List of Wigner D-matrices (numpy ndarray of shape (2l+1,2l+1) indexed by angular momentum l.
         cs (list): List of [l, coefficients] pairs from c_split().
 
     Returns:

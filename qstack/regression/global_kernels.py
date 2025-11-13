@@ -167,6 +167,11 @@ def rematch_kernel(kernel, options):
 
     Uses Sinkhorn algorithm to compute optimal transport-based kernel similarity.
 
+    Reference:
+        S. De, A. P. Bartók, G. Csányi, M. Ceriotti,
+        "Comparing molecules and solids across structural and alchemical space",
+        Phys. Chem. Chem. Phys. 18, 13754 (2016), doi:10.1039/C6CP00415F
+
     Args:
         kernel (numpy ndarray): Local kernel matrix.
         options (dict): Options dictionary containing 'alpha' parameter for regularization.

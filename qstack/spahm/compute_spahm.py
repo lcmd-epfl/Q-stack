@@ -119,7 +119,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
     Reference:
         A. Fabrizio, K. R. Briling, C. Corminboeuf,
         "SPAHM: the spectrum of approximated Hamiltonian matrices representations",
-        Digital Discovery 1 286-294 (2022), doi:10.1039/d1dd00050k.
+        Digital Discovery 1 286-294 (2022), doi:10.1039/d1dd00050k
 
     Args:
         mol (pyscf Mole): pyscf Mole object.

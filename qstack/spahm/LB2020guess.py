@@ -11,7 +11,7 @@ class LB2020guess:
     Reference:
         D. N. Laikov, K. R. Briling,
         "Atomic effective potentials for starting molecular electronic structure calculations",
-        Theor. Chem. Acc. 139, 17 (2020), doi:10.1007/s00214-019-2521-3.
+        Theor. Chem. Acc. 139, 17 (2020), doi:10.1007/s00214-019-2521-3
 
     Implements the atomic effective potential method for initial guess generation.
     See https://github.com/briling/aepm for a C implementation.

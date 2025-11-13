@@ -290,7 +290,7 @@ def dori(mol, dm=None, c=None,
     Reference:
         P. de Silva, C. Corminboeuf,
         "Simultaneous visualization of covalent and noncovalent interactions using regions of density overlap",
-        J. Chem. Theory Comput. 10, 3745–3756 (2014), doi:10.1021/ct500490b.
+        J. Chem. Theory Comput. 10, 3745–3756 (2014), doi:10.1021/ct500490b
 
     Computes the Density Overlap Regions Indicator (DORI).
     Automatically generates appropriate grids and optionally saves results

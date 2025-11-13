@@ -32,7 +32,7 @@ def energy_mol(newbasis, moldata):
 
 
 def gradient_mol(nexp, newbasis, moldata):
-    """Computes loss function and gradient for one molecule.
+    """Computes loss function and gradient for one molecule with respect to basis exponents.
 
     Args:
         nexp (int): Number of exponents.

@@ -312,9 +312,9 @@ def singleatom_basis_enumerator(basis):
 
     Returns:
         tuple: A tuple containing:
-        - l_per_bas (list): Angular momentum quantum number l for each basis function.
-        - n_per_bas (list): Radial function counter n (starting at 0) for each basis function.
-        - ao_starts (list): Starting index in AO array for each basis function.
+        - l_per_bas (list): Angular momentum quantum number l for each basis shell.
+        - n_per_bas (list): Radial function counter n (starting at 0) for each basis shell.
+        - ao_starts (list): Starting index in AO array for each basis shell.
     """
     ao_starts = []
     l_per_bas = []

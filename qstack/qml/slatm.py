@@ -186,7 +186,7 @@ def get_slatm(q, r, mbtypes, qml_compatible=True, stack_all=True,
     Reference:
         B. Huang, O. A. von Lilienfeld,
         "Quantum machine learning using atom-in-molecule-based fragments selected on the fly",
-        Nat. Chem. 12, 945–951 (2020), doi:10.1038/s41557-020-0527-z.
+        Nat. Chem. 12, 945–951 (2020), doi:10.1038/s41557-020-0527-z
 
     Args:
         q (numpy.ndarray): Array of atomic numbers (natom,).
@@ -335,7 +335,7 @@ def get_slatm_rxn(reactions, progress=False, qml_mbtypes=True,
     Reference:
         P. van Gerwen, A. Fabrizio, M. D. Wodrich, C. Corminboeuf,
         "Physics-based representations for machine learning properties of chemical reactions",
-        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a.
+        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a
 
     Args:
         reactions (List[rxn]): List of reaction objects with attributes:

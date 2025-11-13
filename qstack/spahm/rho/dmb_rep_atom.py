@@ -148,7 +148,7 @@ def coefficients_symmetrize_MR2021(c, mol, idx, ao, ao_len, _M, _):
     Reference:
         J. T. Margraf, K. Reuter,
         "Pure non-local machine-learned density functional theory for electron correlation",
-        Nat. Commun. 12, 344 (2021), doi:10.1038/s41467-020-20471-y.
+        Nat. Commun. 12, 344 (2021), doi:10.1038/s41467-020-20471-y
 
     Args:
         c (numpy ndarray): Concatenated density fitting coefficients.

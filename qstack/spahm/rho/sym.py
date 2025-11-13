@@ -6,23 +6,23 @@ from qstack.mathutils.matrix import sqrtm
 from qstack.reorder import get_mrange
 
 
-def idxl0(i, l, ao):
+def idxl0(ao_i, l, ao):
     """Returns index of basis function with same L and N quantum numbers but M=0.
 
     Finds the m=0 component of the same angular momentum shell.
 
     Args:
-        i (int): Basis function index.
+        ao_i (int): Basis function (atomic orbital) index.
         l (int): Angular momentum quantum number.
-        ao (dict): Angular momentum info dict with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
         int: Index of corresponding m=0 basis function.
     """
     if l != 1:
-        return i - ao['m'][i]+l
+        return ao_i - ao['m'][ao_i]+l
     else:
-        return i + [0, 2, 1][ao['m'][i]]
+        return ao_i + [0, 2, 1][ao['m'][ao_i]]
 
 
 def get_S(q, basis):
@@ -59,7 +59,7 @@ def store_pair_indices(ao):
     Creates list of all (i,j) pairs where basis functions have identical angular momenta.
 
     Args:
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
         list: List of [i, j] index pairs with matching (l, m).
@@ -80,7 +80,7 @@ def store_pair_indices_short(ao, ao_start):
     of each angular momentum shell, for compact representation.
 
     Args:
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO
         ao_start (list): Starting indices for each angular momentum shell.
 
     Returns:
@@ -133,8 +133,8 @@ def metric_matrix_short(idx, ao, S):
     """Computes metric matrix for symmetrization of short-format coefficients.
 
     Args:
-        idx (list): List of basis function pair indices.
-        ao (dict): Angular momentum info.
+        idx (list): List of [i, j] basis function pair indices.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         S (numpy ndarray): Overlap matrix.
 
     Returns:
@@ -178,14 +178,14 @@ def vectorize_c_MR2021(idx_pair, ao, c):
     Reference:
         J. T. Margraf, K. Reuter,
         "Pure non-local machine-learned density functional theory for electron correlation",
-        Nat. Commun. 12, 344 (2021), doi:10.1038/s41467-020-20471-y.
+        Nat. Commun. 12, 344 (2021), doi:10.1038/s41467-020-20471-y
 
     Computes simplified rotationally invariant representation by contracting coefficients
     within each angular momentum shell.
 
     Args:
         idx_pair (list): List of [i, j] basis function pair indices.
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         c (numpy ndarray): 1D array of density fitting coefficients.
 
     Returns:
@@ -207,7 +207,7 @@ def vectorize_c_short(idx, ao, c):
 
     Args:
         idx (list): List of [i, j] basis function pair indices (shell starts).
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         c (numpy ndarray): 1D array of density fitting coefficients.
 
     Returns:
@@ -228,7 +228,7 @@ def store_pair_indices_z(ao):
     absolute values of magnetic quantum number m.
 
     Args:
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
         list: List of [i, j] index pairs with |m_i| = |m_j|.
@@ -248,7 +248,7 @@ def store_pair_indices_z_only0(ao):
     Creates list of all (i,j) pairs where both basis functions have m=0.
 
     Args:
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
         list: List of [i, j] index pairs where both m_i = m_j = 0."""
@@ -272,7 +272,7 @@ def metric_matrix_z(idx, ao, S):
 
     Args:
         idx (list): List of [i, j] basis function pair indices.
-        ao (dict): Angular momentum info with 'l' and 'm' keys.
+        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         S (numpy ndarray): Overlap matrix.
 
     Returns:

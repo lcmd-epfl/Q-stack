@@ -227,7 +227,7 @@ def get_b2r2(reactions, variant='l', progress=False, rcut=defaults.rcut, gridspa
     Reference:
         P. van Gerwen, A. Fabrizio, M. D. Wodrich, C. Corminboeuf,
         "Physics-based representations for machine learning properties of chemical reactions",
-        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a.
+        Mach. Learn.: Sci. Technol. 3, 045005 (2022), doi:10.1088/2632-2153/ac8f1a
 
     Args:
         reactions (List[rxn]): List of reaction objects with attributes:

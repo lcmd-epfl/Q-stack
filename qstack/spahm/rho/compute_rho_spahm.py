@@ -20,7 +20,7 @@ def spahm_a_b(rep_type, mols, dms,
     Reference:
         K. R. Briling, Y. Calvino Alonso, A. Fabrizio, C. Corminboeuf,
         "SPAHM(a,b): Encoding the density information from guess Hamiltonian in quantum machine learning representations",
-        J. Chem. Theory Comput. 20 1108–1117 (2024), doi:10.1021/acs.jctc.3c01040.
+        J. Chem. Theory Comput. 20 1108–1117 (2024), doi:10.1021/acs.jctc.3c01040
 
     Args:
         rep_type (str): Representation type: 'atom' for SPAHM(a) or 'bond' for SPAHM(b).

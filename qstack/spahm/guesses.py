@@ -34,7 +34,7 @@ def GWH(mol, *_):
     Reference:
         M. Wolfsberg, L. Helmholtz,
         "The spectra and electronic structure of the tetrahedral ions MnO4-, CrO4--, and ClO4-",
-        J. Chem. Phys. 20 837-843 (1952), doi:10.1063/1.1700580.
+        J. Chem. Phys. 20 837-843 (1952), doi:10.1063/1.1700580
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -56,6 +56,19 @@ def SAD(mol, xc):
 
     Constructs the Fock matrix from atomic Hartree-Fock density matrices
     summed together as an initial guess for molecular calculations.
+
+    References:
+        J. Almlöf, K. Faegri Jr, K. Korsell,
+        "Principles for a direct SCF approach to LICAO–MO ab-initio calculations",
+        J. Comput. Chem. 3, 385–399 (1982), doi:10.1002/jcc.540030314
+
+        L. Amat, R. Carbó-Dorca,
+        "Use of promolecular ASA density functions as a general algorithm to obtain starting MO in SCF calculations",
+        Int. J. Quantum Chem. 87, 59–67 (2001), doi:10.1002/qua.10068
+
+        J. H. Van Lenthe, R. Zwaans, H. J. J. Van Dam and M. F. Guest,
+        "Starting SCF calculations by superposition of atomic densities",
+        J. Comput. Chem. 27, 926–932 (2006), doi:10.1002/jcc.20393
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -87,6 +100,12 @@ def SAP(mol, *_):
 
     Constructs initial Hamiltonian from kinetic energy plus summed atomic potentials.
 
+    Reference:
+        S. Lehtola,
+        "Assessment of initial guesses for self-consistent field calculations.
+         Superposition of atomic potentials: Simple yet efficient",
+        J. Chem. Theory Comput. 15, 1593 (2019), doi:10.1021/acs.jctc.8b01089
+
     Args:
         mol (pyscf Mole): pyscf Mole object.
         *_: Unused positional arguments (for interface compatibility).
@@ -104,6 +123,11 @@ def SAP(mol, *_):
 def LB(mol, *_):
     """Computes guess Hamiltonian using Laikov-Briling 2020 model with HF parameters.
 
+    Reference:
+        D. N. Laikov, K. R. Briling,
+        "Atomic effective potentials for starting molecular electronic structure calculations",
+        Theor. Chem. Acc. 139, 17 (2020), doi:10.1007/s00214-019-2521-3
+
     Args:
         mol (pyscf Mole): pyscf Mole object.
         *_: Unused positional arguments (for interface compatibility).
@@ -116,6 +140,11 @@ def LB(mol, *_):
 
 def LB_HFS(mol, *_):
     """Computes guess Hamiltonian using Laikov-Briling 2020 model with HFS parameters.
+
+    Reference:
+        D. N. Laikov, K. R. Briling,
+        "Atomic effective potentials for starting molecular electronic structure calculations",
+        Theor. Chem. Acc. 139, 17 (2020), doi:10.1007/s00214-019-2521-3
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
