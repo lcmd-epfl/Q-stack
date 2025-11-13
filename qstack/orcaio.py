@@ -50,7 +50,8 @@ def read_input(fname, basis, ecp=None):
     return mol
 
 
-def read_density(mol, basename, directory='./', version=500, openshell=False, reorder_dest='pyscf'):
+def read_density(mol, basename, directory='./', version=500, openshell=False, reorder_dest='pyscf',
+                 sort_l=True, ls=None):
     """Read densities from an ORCA output.
 
     Tested on Orca versions 4.0, 4.2, and 5.0.
@@ -62,13 +63,23 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
         version (int): ORCA version (400 for 4.0, 421 for 4.2, 500 for 5.0). Defaults to 500.
         openshell (bool): Whether to read spin density in addition to electron density. Defaults to False.
         reorder_dest (str): Which AO ordering convention to use. Defaults to 'pyscf'.
+        sort_l (bool): Whether to sort basis functions wrt angular momenta.
+            Has to be True for reorder_dest != None. Defaults to True.
+        ls (dict): Dictionary mapping atom index to list of basis function angular momenta
+            in Orca order for atoms whose basis functions are NOT sorted wrt angular momenta. Defaults to None.
+            Can be obtained from read_gbw(return_ls=True) or made manually.
+            If None, automatic detection is attempted for selected basis sets.
 
     Returns:
         numpy.ndarray: 2D array containing density matrix (openshell=False) or
             3D array containing density and spin density matrices (openshell=True).
 
     Raises:
-        RuntimeError: If density matrix reordering is compromised for def2 basis with 3d elements.
+        RuntimeError: If density matrix reordering is compromised:
+            - Both reorder_dest and sort_l=False are set.
+            - ls is provided and sort_l=False.
+            - Basis set name is unknown, sort_l=True, and ls is not provided.
+        NotImplementedError: If a def2-family basis set is used for which the order is not hardcoded, and ls is not provided.
     """
     path = directory+'/'+basename
     if version < 500:
@@ -91,20 +102,53 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     else:
         dm = np.fromfile(path[0], offset=8, count=mol.nao*mol.nao*nspin).reshape((nspin,mol.nao,mol.nao))
 
+    if reorder_dest is not None and sort_l is False:
+        msg = f'{path}: cannot both reorder the orbitals to {reorder_dest} and keep the basis set unsorted wrt angular momenta.'
+        raise RuntimeError(msg)
+
+    if ls is not None and sort_l is False:
+        msg = f'{path}: {sort_l=} is incompatible with ls!=None.'
+        raise RuntimeError(msg)
+
     if isinstance(mol.basis, str):
-        is_def2 = 'def2' in pyscf.gto.basis._format_basis_name(mol.basis)
+        basis_name = pyscf.gto.basis._format_basis_name(mol.basis)
+        is_def2 = 'def2' in basis_name
     else:
         msg = f'\n{path}:\nUnknown basis set. Orbital order can be compromised.\nBetter use a gbw file.'
         warnings.warn(msg, RuntimeWarning, stacklevel=2)
         is_def2 = False
-
-    has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
-    if is_def2 and has_3d:
-        msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
-        warnings.warn(msg, RuntimeWarning, stacklevel=2)
-        if reorder_dest is not None:
-            msg = f'\nDensity matrix reordering for ORCA to {reorder_dest} is compromised.'
+        if sort_l is True and ls is None:
+            msg = f'\n{path}:\nCannot sort the AO wrt angular momenta.\nBetter use a gbw file.'
             raise RuntimeError(msg)
+
+    iat_3d = np.nonzero(np.array([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements]))[0]
+
+    if ls is None:
+        msg = f'\n{path}:\nUsing automatic sorting of AO wrt angular momenta.\nBetter use a gbw file.'
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
+        if is_def2:
+            if basis_name == 'def2svp':
+                ls_3d = [0]*5 + [1]*2 + [2]*1 + [1, 2, 3]
+            elif basis_name == 'def2tzvp':
+                ls_3d = [0]*6 + [1]*3 + [2]*3 + [1, 2, 3]
+            else:
+                msg = f'\n{path}:\nCannot determine AO order for 3d elements with {basis_name} basis.\nBetter use a gbw file.'
+                raise NotImplementedError(msg)
+            ls = dict.fromkeys(iat_3d, ls_3d)
+        else:
+            ls = {}
+    else:
+        msg = f'\n{path}:\nUsing provided angular momenta list to sort the AO wrt angular momenta.\nBetter use a gbw file.'
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
+
+    if sort_l:
+        idx = _get_indices(mol, ls)
+        idx = np.ix_(idx,idx)
+        dm[:,:,:] = dm[:,*idx]
+    else:
+        if is_def2 and len(iat_3d)>0:
+            msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
+            warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
     if reorder_dest is not None:
         dm = np.array([reorder_ao(mol, i, src='orca', dest=reorder_dest) for i in dm])
@@ -211,10 +255,8 @@ def _get_indices(mol, ls_from_orca):
     ao_limits = mol.offset_ao_by_atom()[:,2:]
     indices_full = np.arange(mol.nao)
     for iat, ls in ls_from_orca.items():
-        indices = []
         i = Cursor(action='ranger')
-        for il, l in enumerate(ls):
-            indices.append((l, il, i(2*l+1)))
+        indices = [(l, il, i(2*l+1)) for il, l in enumerate(ls)]
         indices = sorted(indices, key=lambda x: (x[0], x[1]))
         indices = np.array([j for i in indices for j in i[2]])
         atom_slice = np.s_[ao_limits[iat][0]:ao_limits[iat][1]]
@@ -247,7 +289,7 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
         _reorder_coeff(c_full[i])
 
 
-def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
+def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True, return_ls=False):
     """Read orbitals from an ORCA output.
 
     Tested on Orca versions 4.2 and 5.0.
@@ -259,6 +301,8 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
         reorder_dest (str): Which AO ordering convention to use. Defaults to 'pyscf'.
         sort_l (bool): Whether to sort basis functions wrt angular momenta.
             PySCF requires them sorted. Defaults to True.
+        return_ls (bool): Whether to return the dictionary mapping atom index to list of basis function
+            angular momenta for atoms whose basis functions are NOT sorted wrt angular momenta. Defaults to False.
 
     Returns:
         tuple: A tuple containing:
@@ -282,4 +326,7 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
 
     if reorder_dest is not None:
         reorder_coeff_inplace(c, mol, reorder_dest, ls if (ls and sort_l) else None)
-    return c, e, occ
+    if return_ls:
+        return c, e, occ, ls
+    else:
+        return c, e, occ
