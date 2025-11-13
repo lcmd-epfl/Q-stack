@@ -91,7 +91,13 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     else:
         dm = np.fromfile(path[0], offset=8, count=mol.nao*mol.nao*nspin).reshape((nspin,mol.nao,mol.nao))
 
-    is_def2 = 'def2' in pyscf.gto.basis._format_basis_name(mol.basis)
+    if isinstance(mol.basis, str):
+        is_def2 = 'def2' in pyscf.gto.basis._format_basis_name(mol.basis)
+    else:
+        msg = f'\n{path}:\nUnknown basis set. Orbital order can be compromised.\nBetter use a gbw file.'
+        warnings.warn(msg, RuntimeWarning, stacklevel=2)
+        is_def2 = False
+
     has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
     if is_def2 and has_3d:
         msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
@@ -231,11 +237,12 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
     def _reorder_coeff(c):
         # In ORCA, at least def2-SVP and def2-TZVP for 3d metals
         # are not sorted wrt angular momenta
-        idx = _get_indices(mol, ls_from_orca)
+        idx_from_l = _get_indices(mol, ls_from_orca)
+        idx, sign = reorder_ao(mol, None, src='orca', dest=reorder_dest)
         for i in range(len(c)):
-            if idx is not None:
-                c[:,i] = c[idx,i]
-            c[:,i] = reorder_ao(mol, c[:,i], src='orca', dest=reorder_dest)
+            if idx_from_l is not None:
+                c[:,i] = c[idx_from_l,i]
+            c[:,i] = c[idx,i]*sign
     for i in range(c_full.shape[0]):
         _reorder_coeff(c_full[i])
 

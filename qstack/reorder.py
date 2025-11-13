@@ -88,11 +88,13 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         vector (numpy.ndarray): Vector (nao,) or matrix (mol.nao,mol.nao) to reorder.
+            If None, returns the indices to reorder and sign multipliers for an 1D vector
+            to use as `x = x[idx]*sign`.
         src (str): Current convention. Defaults to 'pyscf'.
         dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca'). Defaults to 'gpr'.
 
     Returns:
-        numpy.ndarray: Reordered vector or matrix.
+        numpy.ndarray: Reordered vector or matrix, or tuple of (idx (numpy.ndarray), sign (numpy.ndarray)) if vector is None.
 
     Raises:
         NotImplementedError: If the specified convention is not implemented.
@@ -119,6 +121,13 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
     idx_src, sign_src  = get_idx(l_shells, m, src)
     idx_dest, sign_dest = get_idx(l_shells, m, dest)
 
+    if vector is None:
+        idx = np.arange(mol.nao)
+        idx[idx_dest] = idx[idx_src]
+        sign = np.ones_like(idx)
+        sign[idx_dest] = (sign_src*sign)[idx_src] * sign_dest[idx_dest]
+        return idx, sign
+
     if vector.ndim == 2:
         sign_src  = np.einsum('i,j->ij', sign_src, sign_src)
         sign_dest = np.einsum('i,j->ij', sign_dest, sign_dest)
@@ -129,7 +138,6 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         raise ValueError(errstr)
 
     newvector = np.zeros_like(vector)
-    newvector[idx_dest] = (sign_src*vector)[idx_src]
-    newvector *= sign_dest
+    newvector[idx_dest] = (sign_src*vector)[idx_src] * sign_dest[idx_dest]
 
     return newvector
