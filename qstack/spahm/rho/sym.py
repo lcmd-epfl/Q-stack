@@ -3,7 +3,6 @@
 import numpy as np
 from qstack import compound
 from qstack.mathutils.matrix import sqrtm
-from qstack.reorder import get_mrange
 
 
 def c_split_atom(mol, c, only_i=None):
@@ -63,14 +62,8 @@ def get_S(q, basis):
     """
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
-
-    l_per_bas, _n_per_bas, ao_start = compound.singleatom_basis_enumerator(mol._basis[q])
-
-    ao = {'l': [], 'm': []}
-    for l in l_per_bas:
-        ao['l'].extend([l]*(2*l+1))
-        ao['m'].extend(get_mrange(l))
-
+    (_, l, m), ao_start = compound.basis_flatten(mol, return_both=False, return_shells=True)
+    ao = {'l': l, 'm': m}
     return S, ao, ao_start
 
 

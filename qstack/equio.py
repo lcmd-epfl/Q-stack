@@ -4,11 +4,10 @@ import itertools
 from functools import reduce
 from types import SimpleNamespace
 import numpy as np
-from pyscf import data
 import metatensor
 from qstack.tools import Cursor
 from qstack.reorder import get_mrange, pyscf2gpr_l1_order
-from qstack.compound import singleatom_basis_enumerator
+from qstack.compound import basis_flatten
 
 
 vector_label_names = SimpleNamespace(
@@ -37,7 +36,12 @@ def _get_llist(mol):
     Returns:
         dict: Dictionary with atom numbers as keys and List of angular momentum quantum numbers for each basis function as values.
     """
-    return {int(q): singleatom_basis_enumerator(mol._basis[data.elements.ELEMENTS[q]])[0] for q in np.unique(mol.atom_charges())}
+    ao, ao_start = basis_flatten(mol, return_both=False, return_shells=True)
+    iat_shells, l_shells, _ = ao[:,ao_start]
+    llist = {}
+    for q, iat in zip(*np.unique(mol.atom_charges(), return_index=True), strict=True):
+        llist[q] = l_shells[np.where(iat_shells==iat)].tolist()
+    return llist
 
 
 def _get_tsize(tensor):
