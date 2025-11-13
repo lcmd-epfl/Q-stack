@@ -15,6 +15,13 @@ def test_reader():
     assert np.linalg.norm(mol.atom_coords()-check_atom_coord) < 1e-8
 
 
+def test_reader_ignore():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol = compound.xyz_to_mol(path+'/data/dori/H6CN____monA_0012.xyz', ignore=True)
+    assert mol.charge == -1
+    assert mol.spin == 0
+
+
 def test_makeauxmol():
     path = os.path.dirname(os.path.realpath(__file__))
     mol = compound.xyz_to_mol(path+'/data/H2O.xyz', 'def2svp', charge=0, spin=0)
@@ -55,6 +62,7 @@ def test_commentline():
 
 if __name__ == '__main__':
     test_reader()
+    test_reader_ignore()
     test_makeauxmol()
     test_rotate_molecule()
     test_mol_to_xyz()

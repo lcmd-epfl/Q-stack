@@ -7,7 +7,7 @@ import numpy as np
 from pyscf import gto, data
 from qstack import constants
 from qstack.reorder import get_mrange
-from qstack.mathutils.array import stack_padding
+from qstack.mathutils.array import stack_padding, loadtxtvar
 from qstack.mathutils.rotation_matrix import rotate_euler
 from qstack.tools import Cursor
 
@@ -144,8 +144,9 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     if ignore:
         if charge not in (0, None) or spin not in (0, None):
             warnings.warn("Spin and charge values are overwritten", RuntimeWarning, stacklevel=2)
+        atoms = [int(q) if q.isdigit() else data.elements.ELEMENTS_PROTON[q] for q in loadtxtvar(molxyz, dtype='str', usecols=0)]
         mol.spin = 0
-        mol.charge = - sum(mol.atom_charges())%2
+        mol.charge = -(sum(atoms)%2)
     else:
         if charge is not None:
             mol.charge = charge

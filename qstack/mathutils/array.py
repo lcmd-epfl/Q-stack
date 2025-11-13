@@ -1,5 +1,6 @@
 """Array manipulation utility functions."""
 
+from io import StringIO
 import numpy as np
 from qstack.tools import slice_generator
 
@@ -94,3 +95,19 @@ def vstack_padding(xs):
         slices = (s0, *(np.s_[0:s] for s in x.shape[1:]))
         X[slices] = x
     return X
+
+
+def loadtxtvar(var, *kargs, **kwargs):
+    """Load a numpy array from a string variable.
+
+    Args:
+        var (str): String variable containing the data.
+        *kargs: Additional positional arguments for numpy.loadtxt.
+        **kwargs: Additional keyword arguments for numpy.loadtxt.
+
+    Returns:
+        numpy.ndarray: Loaded array.
+    """
+    with StringIO(var) as f:
+        x = np.loadtxt(f, *kargs, **kwargs)
+    return x
