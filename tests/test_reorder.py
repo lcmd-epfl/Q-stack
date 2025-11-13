@@ -21,6 +21,13 @@ def test_reorder_pyscf_gpr():
     c2 = reorder.reorder_ao(auxmol, c1, src='gpr', dest='pyscf')
     assert (np.linalg.norm(c-c2)==0)
 
+    idx, sign = reorder.reorder_ao(auxmol, None, src='pyscf', dest='gpr')
+    c3 = c[idx]*sign
+    assert (np.linalg.norm(c1-c3)==0)
+    idx, sign = reorder.reorder_ao(auxmol, None, src='gpr', dest='pyscf')
+    c4 = c3[idx]*sign
+    assert (np.linalg.norm(c-c4)==0)
+
 
 def test_reorder_pyscf_gpr_orca():
     path = os.path.dirname(os.path.realpath(__file__))
