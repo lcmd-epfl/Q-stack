@@ -90,8 +90,44 @@ def xyz_comment_line_parser(line):
     return props
 
 
+def xyz_to_mol_all(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False):
+    """Read xyz file containing multiple molecules.
+
+    Args:
+        inp (str): Path of the xyz file to read.
+        basis (str or dict): Basis set. Defaults to "def2-svp".
+        charge (list[int]): Provide/override charge of the molecule. Defaults to None.
+        spin (list[int]): Provide/override spin of the molecule (alpha electrons - beta electrons). Defaults to None.
+        ignore (bool): If True, assume molecule is closed-shell and assign charge either 0 or -1. Defaults to False.
+        unit (str): Provide/override units (Ang or Bohr). Defaults to None.
+        ecp (str): ECP to use. Defaults to None.
+        parse_comment (bool): Whether to parse the comment line for properties. Defaults to False.
+
+    Returns:
+        list[pyscf.gto.Mole]: pyscf Mole object containing the molecule information.
+    """
+    with open(inp) as f:
+        lines = f.read().strip().split('\n')
+
+    xyzs = []
+    cursor = Cursor(action='slicer')
+    while cursor.i < len(lines):
+        natm = int(lines[cursor.i].strip())
+        xyzs.append("\n".join(lines[cursor.add(natm+2)]))
+
+    if charge is None:
+        charge = [None]*len(xyzs)
+    if spin is None:
+        spin = [None]*len(xyzs)
+
+    mols = []
+    for xyz, ch, sp in zip(xyzs, charge, spin, strict=True):
+        mols.append(xyz_to_mol(xyz, basis=basis, charge=ch, spin=sp, ignore=ignore, unit=unit, ecp=ecp, parse_comment=parse_comment))
+    return mols
+
+
 def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False):
-    """Read a molecular file in xyz format and returns a pyscf Mole object.
+    """Read a molecular file in xyz format and return a pyscf Mole object.
 
     Args:
         inp (str): Path of the xyz file to read, or xyz file contents.
