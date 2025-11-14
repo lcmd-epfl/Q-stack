@@ -2,6 +2,9 @@
 
 Provides:
     local_kernels_dict: Dictionary mapping kernel names to their implementations.
+    RAM_BATCHING_SIZE: Max. RAM (in bytes) that can be used for batched compuation
+        of Manhattan distance matrix for L_custom_py kernel. Can be modified before call
+        using `local_kernels.RAM_BATCHING_SIZE = ...`.
 """
 
 import os
@@ -14,8 +17,10 @@ from qstack.regression import __path__ as REGMODULE_PATH
 
 
 RAM_BATCHING_SIZE = 1024**3 * 5  # 5GiB
-def compute_distance_matrix(R1,R2):
-    """Compute the manhattan-distance matrix.
+
+
+def compute_distance_matrix(R1, R2):
+    """Compute the Manhattan-distance matrix.
 
     This computes (||r_1 - r_2||_1) between the samples of R1 and R2,
     using a batched python/numpy implementation,
@@ -37,7 +42,6 @@ def compute_distance_matrix(R1,R2):
     if R1.ndim != R2.ndim or R1.shape[1:] != R2.shape[1:]:
         raise RuntimeError(f'incompatible shapes for R1 ({R1.shape:r}) and R2 ({R2.shape:r})')
 
-
     # determine batch size (batch should divide the larger dimention)
     if R1.shape[0] < R2.shape[0]:
         transpose_flag = True
@@ -55,7 +59,7 @@ def compute_distance_matrix(R1,R2):
 
     if min(R1.shape[0],R2.shape[0]) == 0 or batch_size >= R1.shape[0]:
         dists = R1[:,None]-R2[None,:]
-        #np.pow(dists, 2, out=dists)
+        #np.pow(dists, 2, out=dists)  # For Euclidean distance
         np.abs(dists, out=dists)
         out = np.sum(dists, axis=tuple(range(2,dists.ndim)))
     else:
@@ -74,6 +78,7 @@ def compute_distance_matrix(R1,R2):
     if transpose_flag:
         out = out.T
     return out
+
 
 def custom_laplacian_kernel(X, Y, gamma):
     """Compute Laplacian kernel between X and Y using Python implementation.
