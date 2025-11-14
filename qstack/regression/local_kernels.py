@@ -11,6 +11,7 @@ import os
 import ctypes
 import sysconfig
 import warnings
+import itertools
 import numpy as np
 import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
 from qstack.regression import __path__ as REGMODULE_PATH
@@ -61,19 +62,17 @@ def compute_distance_matrix(R1, R2):
         dists = R1[:,None]-R2[None,:]
         #np.pow(dists, 2, out=dists)  # For Euclidean distance
         np.abs(dists, out=dists)
-        out = np.sum(dists, axis=tuple(range(2,dists.ndim)))
+        np.sum(dists, out=out, axis=tuple(range(2,dists.ndim)))
     else:
-        n_batches = int(np.ceil(R1.shape[0] / batch_size))
-        dists = np.zeros( (batch_size, *R2.shape), dtype=dtype )
-        for batch_i in range(n_batches):
-            batch_start = batch_i*batch_size
-            this_batch_size = min(batch_size, R1.shape[0]-batch_start)
-
-            R1_view = R1[batch_start : batch_start + this_batch_size, None, ...]
-            np.subtract(R1_view, R2[None,:], out=dists[:this_batch_size])
-            #np.pow(dists[:this_batch_size], 2, out=dists[:this_batch_size])  # For Euclidean distance
-            np.abs(dists[:this_batch_size], out=dists[:this_batch_size])
-            np.sum(dists[:this_batch_size], out=out[batch_start : batch_start+this_batch_size], axis=tuple(range(2,dists.ndim)))
+        dists = np.zeros((batch_size, *R2.shape), dtype=dtype)
+        batch_limits = np.minimum(np.arange(0, R1.shape[0]+batch_size, step=batch_size), R1.shape[0])
+        for batch_start, batch_end in itertools.pairwise(batch_limits):
+            dists_view = dists[:batch_end-batch_start]
+            R1_view = R1[batch_start:batch_end, None, ...]
+            np.subtract(R1_view, R2[None,:], out=dists_view)
+            #np.pow(dists_view, 2, out=dists_view)  # For Euclidean distance
+            np.abs(dists_view, out=dists_view)
+            np.sum(dists_view, out=out[batch_start:batch_end], axis=tuple(range(2,dists.ndim)))
 
     if transpose_flag:
         out = out.T
