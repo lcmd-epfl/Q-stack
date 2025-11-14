@@ -15,7 +15,9 @@ from qstack.regression import __path__ as REGMODULE_PATH
 
 RAM_BATCHING_SIZE = 1024**3 * 5  # 5GiB
 def compute_distance_matrix(R1,R2):
-    f"""Computes the manhattan-distance matrix (||r_1 - r_2||_1) between the samples of R1 and R2,
+    """Compute the manhattan-distance matrix.
+
+    This computes (||r_1 - r_2||_1) between the samples of R1 and R2,
     using a batched python/numpy implementation.
 
     Args:
@@ -64,13 +66,9 @@ def compute_distance_matrix(R1,R2):
 
             R1_view = R1[batch_start : batch_start + this_batch_size, None, ...]
             np.subtract(R1_view, R2[None,:], out=dists[:this_batch_size])
-            assert not (dists[:this_batch_size]==0).all()
             #np.pow(dists[:this_batch_size], 2, out=dists[:this_batch_size])  # For Euclidean distance
             np.abs(dists[:this_batch_size], out=dists[:this_batch_size])
-            assert not (dists[:this_batch_size]==0).all()
             np.sum(dists[:this_batch_size], out=out[batch_start : batch_start+this_batch_size], axis=tuple(range(2,dists.ndim)))
-            if batch_i == n_batches-1:
-                assert batch_start + this_batch_size == R1.shape[0]
 
     if transpose_flag:
         out = out.T

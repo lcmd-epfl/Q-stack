@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from time import perf_counter
 import numpy as np
 from qstack.regression import kernel, local_kernels
 
