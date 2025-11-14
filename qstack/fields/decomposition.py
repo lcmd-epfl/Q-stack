@@ -2,9 +2,10 @@
 
 import numpy as np
 import scipy
-from pyscf import scf, gto
+from pyscf import scf, gto, dft
 from qstack import compound
 from . import moments
+from .dm import make_grid_for_rho
 
 
 def decompose(mol, dm, auxbasis):
@@ -109,6 +110,33 @@ def decomposition_error(self_repulsion, c, eri2c, eri3c, dm):
     return self_repulsion + c @ eri2c @ c - 2.0 * c @ projection
 
 
+def _solve(A, v, slices=None):
+    """Solve the linear system Ac = v, possibly in blocks.
+
+    Args:
+        A (numpy ndarray): Coefficient matrix.
+        v (numpy ndarray): Right-hand side vector.
+        slices (optional numpy ndarray): Assume that A is bloc-diagonal, by giving the boundaries of said blocks.
+
+    Returns:
+        numpy ndarray: Solution vector c.
+
+    Raises:
+        RuntimeError: If the `slices` argument is incorrectly formatted or inconsistent with the matrix
+    """
+    if slices is not None:
+        if not (slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2) or\
+           not (slices[0,0] == 0 and slices[-1,1] == v.shape[0]):
+            raise RuntimeError(f"Wrong argument {slices=}")
+
+        c = np.empty_like(v)
+        for s0,s1 in slices:
+            c[s0:s1] = scipy.linalg.solve(A[s0:s1,s0:s1], v[s0:s1], assume_a='pos')
+    else:
+        c = scipy.linalg.solve(A, v, assume_a='pos')
+    return c
+
+
 def get_coeff(dm, eri2c, eri3c, slices=None):
     """Compute the density expansion coefficients.
 
@@ -120,26 +148,11 @@ def get_coeff(dm, eri2c, eri3c, slices=None):
 
     Returns:
         A numpy ndarray containing the expansion coefficients of the density onto the auxiliary basis.
-
-    Raises:
-        RuntimeError: If the `slices` argument is incorrectly formatted or inconsistent with the auxiliary basis size.
     """
     # Compute the projection of the density onto auxiliary basis using a Coulomb metric
     projection = np.einsum('ijp,ij->p', eri3c, dm)
-
     # Solve Jc = projection to get the coefficients
-    if slices is not None:
-        if not (slices.ndim==2 and slices.shape[0]>0 and slices.shape[1]==2) or\
-           not (slices[0,0] == 0 and slices[-1,1] == projection.shape[0]):
-            raise RuntimeError(f"Wrong argument {slices=}")
-
-        c = np.empty_like(projection)
-        for s0,s1 in slices:
-            c[s0:s1] = scipy.linalg.solve(eri2c[s0:s1,s0:s1], projection[s0:s1], assume_a='pos')
-    else:
-        c = scipy.linalg.solve(eri2c, projection, assume_a='pos')
-
-    return c
+    return _solve(eri2c, projection, slices=slices)
 
 
 def _get_inv_metric(mol, metric, v):
@@ -217,3 +230,52 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
         la  = (N - N0) / (q @ O1q)
         c   = c0 + la * O1q
     return c
+
+
+def get_integrals_overlap(mol, auxmol, dm, grid_level=3):
+    """Numerially compute overlap integrals.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object used for the computation of the density matrix.
+        auxmol (pyscf Mole): pyscf Mole object of the same molecule with an auxiliary basis set.
+        dm (2D numpy array): Density matrix.
+        grid_level (int): Level of the grid used to compute the numerical overlap integrals.
+
+    Returns:
+        Tuple containing:
+        - float: self-overlap of the density,
+        - 2D numpy array: overlap matrix (auxmol.nao,auxmol.nao) for the auxiliary basis,
+        - 1D numpy array: projection of the density onto the auxiliary basis.
+    """
+    grid = make_grid_for_rho(mol, grid_level=grid_level)
+    ao  = dft.numint.eval_ao(mol, grid.coords)
+    rho = dft.numint.eval_rho(mol, ao, dm)
+    auxao = dft.numint.eval_ao(auxmol, grid.coords).T
+    auxao_w = np.einsum('px,x->px', auxao, grid.weights)
+    proj    = np.einsum('px,x->p', auxao_w, rho)
+    S       = np.einsum('px,qx->pq', auxao_w, auxao)
+    self_S  = (rho*rho) @ grid.weights
+    return self_S, S, proj
+
+
+def decompose_overlap(mol, dm, auxbasis, slices=None, grid_level=3):
+    """Fit molecular density onto an atom-centered basis using overlap metric.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole objec used for the computation of the density matrix.
+        dm (2D numpy array): Density matrix.
+        auxbasis (string / pyscf basis dictionary): Atom-centered basis to decompose on.
+        slices (optional numpy ndarray): Assume that eri2c is bloc-diagonal, by giving the boundaries of said blocks.
+        grid_level (int): Level of the grid used to compute the numerical overlap integrals.
+
+    Returns:
+        Tuple containing:
+        - copy of the pyscf Mole object with the auxbasis basis in a pyscf Mole object,
+        - 1D numpy array containing the decomposition coefficients.
+        - float: decomposition error in the overlap metric.
+    """
+    auxmol = compound.make_auxmol(mol, auxbasis)
+    self_S, S, projection = get_integrals_overlap(mol, auxmol, dm, grid_level=grid_level)
+    c = _solve(S, projection, slices=slices)
+    err = self_S - c@projection
+    return auxmol, c, err

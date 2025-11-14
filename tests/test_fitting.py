@@ -56,8 +56,20 @@ def test_fitting_noe():
     assert np.allclose(N,N0)
 
 
+def test_overlap_fitting():
+    path = os.path.dirname(os.path.realpath(__file__))
+    mol  = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'cc-pvdz', charge=0, spin=0)
+    dm = np.load(path+'/data/H2O_dist.ccpvdz.dm.npy')
+    c0 = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.overlap.npy')
+    error0 = 0.0015512389169600738
+    _auxmol, c, error = decomposition.decompose_overlap(mol, dm, 'cc-pvdz jkfit')
+    assert np.allclose(c, c0, atol=1e-10)
+    assert np.allclose(error, error0)
+
+
 if __name__ == '__main__':
     test_fitting()
     test_block_fitting()
     test_fitting_error()
     test_fitting_noe()
+    test_overlap_fitting()
