@@ -18,7 +18,11 @@ def compute_distance_matrix(R1,R2):
     """Compute the manhattan-distance matrix.
 
     This computes (||r_1 - r_2||_1) between the samples of R1 and R2,
-    using a batched python/numpy implementation.
+    using a batched python/numpy implementation,
+    designed to be more memory-efficient than a single numpy call and faster than a simple python for loop.
+
+    This function is a batched-over-R1 implementation of the following code:
+    `return np.sum( (R1[:,None, ...]-R2[None,:, ...])**2, axis=tuple(range(2, R1.ndim)))`
 
     Args:
         R1 (numpy ndarray): First set of samples (can be multi-dimensional).
@@ -32,10 +36,7 @@ def compute_distance_matrix(R1,R2):
     """
     if R1.ndim != R2.ndim or R1.shape[1:] != R2.shape[1:]:
         raise RuntimeError(f'incompatible shapes for R1 ({R1.shape:r}) and R2 ({R2.shape:r})')
-    # this function is a memory-efficient implementation of the following code
-    # R1v = R1.reshape(R1.shape[0], -1)
-    # R2v = R2.reshape(R2.shape[0], -1)
-    # return np.sum( (R1v[:,None]-R2v[None,:])**2 , axis=2)
+
 
     # determine batch size (batch should divide the larger dimention)
     if R1.shape[0] < R2.shape[0]:
@@ -92,16 +93,6 @@ def custom_laplacian_kernel(X, Y, gamma):
     """
     if X.shape[1:] != Y.shape[1:]:
         raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
-    def cdist(X, Y):
-        K = np.zeros((len(X),len(Y)))
-        for i,x in enumerate(X):
-            x = np.array([x] * len(Y))
-            d = np.abs(x-Y)
-            d = np.sum(d, axis=tuple(range(1, len(d.shape))))
-            K[i,:] = d
-        return K
-    # if not np.allclose(compute_distance_matrix(X,Y), cdist(X, Y)):
-    #     import pdb; pdb.set_trace()
     K = -gamma * compute_distance_matrix(X,Y)
     np.exp(K, out=K)
     return K
