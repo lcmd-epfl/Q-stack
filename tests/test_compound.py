@@ -60,6 +60,15 @@ def test_commentline():
         assert mol.charge == -1
 
 
+def test_multi():
+    path = os.path.dirname(os.path.realpath(__file__))
+    molpath = path+'/data/2xH2O.xyz'
+    mols = compound.xyz_to_mol_all(molpath)
+    assert len(mols) == 2
+    assert mols[0].natm == 3
+    assert mols[1].natm == 3
+
+
 if __name__ == '__main__':
     test_reader()
     test_reader_ignore()
@@ -67,3 +76,4 @@ if __name__ == '__main__':
     test_rotate_molecule()
     test_mol_to_xyz()
     test_commentline()
+    test_multi()
