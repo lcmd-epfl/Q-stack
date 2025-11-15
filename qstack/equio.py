@@ -7,7 +7,7 @@ import numpy as np
 import metatensor
 from qstack.tools import Cursor
 from qstack.reorder import get_mrange, pyscf2gpr_l1_order
-from qstack.compound import basis_flatten
+from qstack.compound import basis_flatten, numbers
 
 
 vector_label_names = SimpleNamespace(
@@ -34,12 +34,12 @@ def _get_llist(mol):
         mol (pyscf.gto.Mole): pyscf Mole object.
 
     Returns:
-        dict: Dictionary with atom numbers as keys and List of angular momentum quantum numbers for each basis function as values.
+        dict: Dictionary with atom numbers as keys and List of angular momentum quantum numbers for each shell as values.
     """
     ao, ao_start = basis_flatten(mol, return_both=False, return_shells=True)
     iat_shells, l_shells, _ = ao[:,ao_start]
     llist = {}
-    for q, iat in zip(*np.unique(mol.atom_charges(), return_index=True), strict=True):
+    for q, iat in zip(*np.unique(numbers(mol), return_index=True), strict=True):
         llist[q] = l_shells[np.where(iat_shells==iat)].tolist()
     return llist
 
@@ -82,7 +82,7 @@ def vector_to_tensormap(mol, c):
     Returns:
         metatensor.TensorMap: Tensor map representation of the vector.
     """
-    atom_charges = mol.atom_charges()
+    atom_charges = numbers(mol)
 
     tm_label_vals = []
     block_prop_label_vals = {}
@@ -165,7 +165,7 @@ def tensormap_to_vector(mol, tensor):
         raise RuntimeError(f'Tensor size mismatch ({nao} instead of {mol.nao})')
 
     c = np.zeros(mol.nao)
-    atom_charges = mol.atom_charges()
+    atom_charges = numbers(mol)
     llists = _get_llist(mol)
     i = 0
     for iat, q in enumerate(atom_charges):
@@ -195,7 +195,7 @@ def matrix_to_tensormap(mol, dm):
     Returns:
         metatensor.TensorMap: Tensor map representation of the matrix.
     """
-    atom_charges = mol.atom_charges()
+    atom_charges = numbers(mol)
     elements, counts = np.unique(atom_charges, return_counts=True)
     counts = dict(zip(elements, counts, strict=True))
     element_indices = {q: np.where(atom_charges==q)[0] for q in elements}
@@ -317,7 +317,7 @@ def tensormap_to_matrix(mol, tensor):
         raise RuntimeError(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
 
     dm = np.zeros((mol.nao, mol.nao))
-    atom_charges = mol.atom_charges()
+    atom_charges = numbers(mol)
     llists = _get_llist(mol)
     i1 = 0
     for iat1, q1 in enumerate(atom_charges):

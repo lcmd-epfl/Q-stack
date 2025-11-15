@@ -163,8 +163,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
             mol.spin = 0
 
     mol.build()
-    species_charges = [data.elements.charge(z) for z in mol.elements]
-    if mol.basis == 'minao' and ecp is None and (np.array(species_charges) > 36).any():
+    if mol.basis == 'minao' and ecp is None and (numbers(mol) > 36).any():
         msg = f"{mol.basis} basis set requires the use of effective core potentials for atoms with Z>36"
         raise RuntimeError(msg)
     return mol
@@ -352,3 +351,18 @@ def basis_flatten(mol, return_both=True, return_shells=False):
     if return_shells:
         ret.append(np.array(ao_starts))
     return ret[0] if len(ret)==1 else ret
+
+
+def numbers(mol):
+    """Get atom numbers of a molecule.
+
+    Use this function to get atomic NUMBERS to index elements.
+    Use `mol.atom_charges()` to get CHARGES (it returns effective charges when ECP are used).
+
+    Args:
+        mol (pyscf.gto.Mole): pyscf Mole object.
+
+    Returns:
+        numpy.ndarray: Array of atomic numbers.
+    """
+    return np.array([data.elements.charge(q) for q in mol.elements])
