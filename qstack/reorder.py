@@ -142,6 +142,16 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             errstr = f'Conversion to/from the {convention} convention is not implemented'
             raise NotImplementedError(errstr)
 
+    if vector is not None and vector.ndim not in (1,2):
+        errstr = f'Dim = {vector.ndim} (should be 1 or 2)'
+        raise ValueError(errstr)
+
+    if src.lower() == dest.lower():
+        if vector is None:
+            return np.arange(mol.nao), np.ones(mol.nao)
+        else:
+            return vector
+
     from .compound import basis_flatten
 
     (_, l, m), shell_start = basis_flatten(mol, return_both=False, return_shells=True)
@@ -162,9 +172,6 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         sign_dest = np.einsum('i,j->ij', sign_dest, sign_dest)
         idx_dest = np.ix_(idx_dest,idx_dest)
         idx_src  = np.ix_(idx_src,idx_src)
-    elif vector.ndim!=1:
-        errstr = f'Dim = {vector.ndim} (should be 1 or 2)'
-        raise ValueError(errstr)
 
     newvector = np.zeros_like(vector)
     newvector[idx_dest] = (sign_src*vector)[idx_src] * sign_dest[idx_dest]

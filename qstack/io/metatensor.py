@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import numpy as np
 import metatensor
 from qstack.tools import Cursor
-from qstack.reorder import get_mrange, pyscf2gpr_l1_order
+from qstack.reorder import reorder_ao
 from qstack.compound import basis_flatten, numbers
 
 
@@ -70,9 +70,10 @@ def _labels_to_array(labels):
     return values.view(dtype=dtype).reshape(values.shape[0])
 
 
-def vector_to_tensormap(mol, c):
+def _vector_to_tensormap(mol, c):
     """Transform an vector into a tensor map.
 
+    The input vector is assumed to be in the GPR order.
     Each element of the vector corresponds to an atomic orbital of the molecule.
 
     Args:
@@ -125,16 +126,12 @@ def vector_to_tensormap(mol, c):
                 msize = 2*l+1
                 nsize = blocks[l,q].shape[-1]
                 cslice = c[i(nsize*msize)].reshape(nsize,msize).T
-                if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    cslice = cslice[pyscf2gpr_l1_order]
                 blocks[l,q][iq[q],:,:] = cslice
         else:
             il = dict.fromkeys(range(max(llists[q]) + 1), 0)
             for l in llists[q]:
                 msize = 2*l+1
                 cslice = c[i(msize)]
-                if l==1:  # for l=1, the pyscf order is x,y,z (1,-1,0)
-                    cslice = cslice[pyscf2gpr_l1_order]
                 blocks[l,q][iq[q],:,il[l]] = cslice
                 il[l] += 1
         iq[q] += 1
@@ -147,8 +144,10 @@ def vector_to_tensormap(mol, c):
     return tensor
 
 
-def tensormap_to_vector(mol, tensor):
+def _tensormap_to_vector(mol, tensor):
     """Transform a tensor map into a vector.
+
+    The output vector will be in the GPR order.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
@@ -175,7 +174,7 @@ def tensormap_to_vector(mol, tensor):
             block = tensor.block(o3_lambda=l, center_type=q)
             id_samp = block.samples.position((iat,))
             id_prop = block.properties.position((il[l],))
-            for m in get_mrange(l):
+            for m in range(-l, l+1):
                 id_comp = block.components[0].position((m,))
                 c[i] = block.values[id_samp,id_comp,id_prop]
                 i += 1
@@ -183,9 +182,10 @@ def tensormap_to_vector(mol, tensor):
     return c
 
 
-def matrix_to_tensormap(mol, dm):
+def _matrix_to_tensormap(mol, dm):
     """Transform a matrix into a tensor map.
 
+    The input matrix is assumed to be in the GPR order.
     Each element of the matrix corresponds to a pair of atomic orbitals.
 
     Args:
@@ -284,14 +284,6 @@ def matrix_to_tensormap(mol, dm):
                 il1[l1] += 1
             iq1[q1] += 1
 
-    # Fix the m order (for l=1, the pyscf order is x,y,z (1,-1,0))
-    for key in blocks:
-        l1,l2 = key[:2]
-        if l1==1:
-            blocks[key] = np.ascontiguousarray(blocks[key][:,pyscf2gpr_l1_order,:,:])
-        if l2==1:
-            blocks[key] = np.ascontiguousarray(blocks[key][:,:,pyscf2gpr_l1_order,:])
-
     # Build tensor map
     tensor_blocks = [metatensor.TensorBlock(values=blocks[key], samples=block_samp_labels[key], components=block_comp_labels[key], properties=block_prop_labels[key]) for key in tm_label_vals]
     tensor = metatensor.TensorMap(keys=tm_labels, blocks=tensor_blocks)
@@ -299,8 +291,10 @@ def matrix_to_tensormap(mol, dm):
     return tensor
 
 
-def tensormap_to_matrix(mol, tensor):
+def _tensormap_to_matrix(mol, tensor):
     """Transform a tensor map into a matrix.
+
+    The output matrix will be in the GPR order.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
@@ -324,7 +318,7 @@ def tensormap_to_matrix(mol, tensor):
         llist1 = llists[q1]
         il1 = dict.fromkeys(range(max(llist1) + 1), 0)
         for l1 in llist1:
-            for m1 in get_mrange(l1):
+            for m1 in range(-l1, l1+1):
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     llist2 = llists[q2]
@@ -333,7 +327,7 @@ def tensormap_to_matrix(mol, tensor):
                         block = tensor.block(o3_lambda1=l1, o3_lambda2=l2, center_type1=q1, center_type2=q2)
                         id_samp = block.samples.position((iat1, iat2))
                         id_prop = block.properties.position((il1[l1], il2[l2]))
-                        for m2 in get_mrange(l2):
+                        for m2 in range(-l2, l2+1):
                             id_comp1 = block.components[0].position((m1,))
                             id_comp2 = block.components[1].position((m2,))
                             dm[i1, i2] = block.values[id_samp, id_comp1, id_comp2, id_prop]
@@ -344,14 +338,16 @@ def tensormap_to_matrix(mol, tensor):
     return dm
 
 
-def array_to_tensormap(mol, v):
+def array_to_tensormap(mol, v, src='pyscf'):
     """Transform an array into a tensor map.
 
-    Wrapper for vector_to_tensormap and matrix_to_tensormap.
+    Wrapper for _vector_to_tensormap and _matrix_to_tensormap.
+    Also reorders the AO.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         v (numpy.ndarray): Array to transform. Can be a vector (1D) or matrix (2D).
+        src (str): Source AO ordering of the input array. Default is 'pyscf'.
 
     Returns:
         metatensor.TensorMap: Tensor map representation of the array.
@@ -359,22 +355,25 @@ def array_to_tensormap(mol, v):
     Raises:
         ValueError: If array dimension is not 1 or 2.
     """
+    v = reorder_ao(mol, v, dest='gpr', src=src)
     if v.ndim==1:
-        return vector_to_tensormap(mol, v)
+        return _vector_to_tensormap(mol, v)
     elif v.ndim==2:
-        return matrix_to_tensormap(mol, v)
+        return _matrix_to_tensormap(mol, v)
     else:
         raise ValueError(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
 
 
-def tensormap_to_array(mol, tensor):
+def tensormap_to_array(mol, tensor, dest='pyscf'):
     """Transform a tensor map into an array.
 
-    Wrapper for tensormap_to_vector and tensormap_to_matrix.
+    Wrapper for _tensormap_to_vector and _tensormap_to_matrix.
+    Also reorders the AO.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         tensor (metatensor.TensorMap): Tensor to transform.
+        dest (str): Destination AO ordering of the output array. Default is 'pyscf'.
 
     Returns:
         numpy.ndarray: Array representation (1D vector or 2D matrix).
@@ -383,11 +382,12 @@ def tensormap_to_array(mol, tensor):
         RuntimeError: If tensor key names don't match expected format.
     """
     if tensor.keys.names==vector_label_names.tm:
-        return tensormap_to_vector(mol, tensor)
+        v = _tensormap_to_vector(mol, tensor)
     elif tensor.keys.names==matrix_label_names.tm:
-        return tensormap_to_matrix(mol, tensor)
+        v = _tensormap_to_matrix(mol, tensor)
     else:
         raise RuntimeError('Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
+    return reorder_ao(mol, v, src='gpr', dest=dest)
 
 
 def join(tensors):
