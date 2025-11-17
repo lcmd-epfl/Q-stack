@@ -1,3 +1,5 @@
+"""Kernel matrix computation."""
+
 import os
 import numpy as np
 from qstack.tools import correct_num_threads
@@ -6,15 +8,15 @@ from .parser import RegressionParser
 
 
 def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict):
-    """ Computes a kernel between sets A and B (or A and A) using their representations.
+    """Compute a kernel between sets A and B (or A and A) using their representations.
 
     Args:
-        X (list of arrays): Representation of A
-        Y (list of arrays): Representation of B.
-        sigma (): Sigma hyperparameter.
-        akernel (): Kernel type (G for Gaussian, L for Laplacian, and myL for Laplacian for open-shell systems).
-        gkernel (): Global kernel type (agv for average, rem for REMatch kernel, None for local kernels).
-        gdict (): Dictionary like input string to initialize global kernel parameters. Defaults to {'alpha':1.0, 'normalize':1}.
+        X (numpy.ndarray): Representation of A.
+        Y (numpy.ndarray): Representation of B.
+        sigma (float): Width of the kernel.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
 
     Returns:
         A numpy ndarray containing the kernel.
@@ -27,6 +29,7 @@ def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=def
 
 
 def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program computes kernel.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('test_size')
@@ -38,7 +41,9 @@ def _get_arg_parser():
     parser.add_argument('--dir',  type=str, dest='dir',  default='./',  help='directory to save the output in')
     return parser
 
+
 def main():
+    """Command-line entry point for computing kernel matrices."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):

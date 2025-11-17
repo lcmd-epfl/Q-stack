@@ -14,8 +14,8 @@ def test_excited():
     coeff   = np.load(xyzfile+'.mo.npy')
     X       = np.load(xyzfile+'.X.npy')
     x_c     = np.load(xyzfile+'.st2_transition_fit.npy')
-    hole_d  = np.load(xyzfile+'.st2_dm_hole.npy')
-    part_d  = np.load(xyzfile+'.st2_dm_part.npy')
+    hole_d0 = np.load(xyzfile+'.st2_dm_hole.npy')
+    part_d0 = np.load(xyzfile+'.st2_dm_part.npy')
     hole_c  = np.load(xyzfile+'.st2_dm_hole_fit.npy')
     part_c  = np.load(xyzfile+'.st2_dm_part_fit.npy')
 
@@ -23,18 +23,22 @@ def test_excited():
     x_ao = fields.excited.get_transition_dm(mol, X[state_id], coeff)
     dip  = fields.moments.first(mol, x_ao)
     dip0 = np.array([ 0.68927353, -2.10714637, -1.53423419])
-    assert(np.linalg.norm(dip-dip0)<1e-8)
+    assert(np.allclose(dip, dip0, atol=1e-8))
+
+    hole_d, part_d = fields.excited.get_holepart(mol, X[state_id], coeff)
+    assert(np.allclose(hole_d, hole_d0, atol=1e-8))
+    assert(np.allclose(part_d, part_d0, atol=1e-8))
 
     auxmol = compound.make_auxmol(mol, 'ccpvqz jkfit')
     dip    = fields.moments.first(auxmol, x_c)
     dip0 = np.array([-0.68919144,  2.10692116,  1.53399871])
-    assert(np.linalg.norm(dip-dip0)<1e-8)
+    assert(np.allclose(dip, dip0, atol=1e-8))
 
     dist, hole_extent, part_extent = fields.excited.exciton_properties(mol, hole_d, part_d)
-    assert(np.linalg.norm(np.array([dist, hole_extent, part_extent])-np.array([2.59863354, 7.84850017, 5.67617426]))<1e-7)
+    assert(np.allclose([dist, hole_extent, part_extent], [2.59863354, 7.84850017, 5.67617426], atol=1e-7))
 
     dist, hole_extent, part_extent = fields.excited.exciton_properties(auxmol, hole_c, part_c)
-    assert(np.linalg.norm(np.array([dist, hole_extent, part_extent])-np.array([2.59940378, 7.8477511,  5.67541635]))<1e-7)
+    assert(np.allclose([dist, hole_extent, part_extent], [2.59940378, 7.8477511,  5.67541635], atol=1e-7))
 
 
 def test_excited_frag():

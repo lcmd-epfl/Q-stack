@@ -1,3 +1,9 @@
+"""Global (molecular) kernel implementations.
+
+Provides:
+    global_kernels_dict: Dictionary mapping global kernel names to functions.
+"""
+
 import math
 from collections import Counter
 import numpy as np
@@ -5,10 +11,18 @@ from tqdm import tqdm
 
 
 def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
-    """
+    """Compute global kernel matrix between two sets of molecular representations.
 
-    .. todo::
-        Write the docstring
+    Args:
+        X (list): List of molecular representations (first set).
+        Y (list): List of molecular representations (second set).
+        sigma (float): Kernel width parameter.
+        local_kernel (callable): Local kernel function for atomic environments.
+        global_kernel (callable): Global kernel function for combining local kernels.
+        options (dict): Dictionary of global kernel options.
+
+    Returns:
+        numpy ndarray: Global kernel matrix of shape (len(X), len(Y)).
     """
     self = (Y is X)
     verbose = options.get('verbose', 0)
@@ -54,10 +68,19 @@ def get_global_K(X, Y, sigma, local_kernel, global_kernel, options):
 
 
 def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None):
-    """
+    """Compute the covariance matrix between two molecules using local kernels.
 
-    .. todo::
-        Write the docstring
+    Args:
+        mol1 (dict): First molecule represented as dictionary of atomic environments by species.
+        mol2 (dict): Second molecule represented as dictionary of atomic environments by species.
+        species (numpy ndarray): Array of unique atomic species present in the dataset.
+        max_atoms (dict): Maximum number of atoms per species across all molecules.
+        max_size (int): Total size of the padded covariance matrix.
+        kernel (callable): Local kernel function.
+        sigma (float, optional): Kernel width parameter. Defaults to None.
+
+    Returns:
+        numpy ndarray: Covariance matrix of shape (max_size, max_size).
     """
     K_covar = np.zeros((max_size, max_size))
     idx = 0
@@ -76,10 +99,16 @@ def get_covariance(mol1, mol2, species, max_atoms, max_size, kernel, sigma=None)
 
 
 def normalize_kernel(kernel, self_x=None, self_y=None, verbose=0):
-    """
+    """Normalize a kernel matrix using self-kernel values.
 
-    .. todo::
-        Write the docstring
+    Args:
+        kernel (numpy ndarray): Kernel matrix to normalize.
+        self_x (numpy ndarray, optional): Self-kernel values for X. If None, extracted from diagonal. Defaults to None.
+        self_y (numpy ndarray, optional): Self-kernel values for Y. If None, extracted from diagonal. Defaults to None.
+        verbose (int): Verbosity level. Defaults to 0.
+
+    Returns:
+        numpy ndarray: Normalized kernel matrix.
     """
     if verbose:
         print("Normalizing kernel.")
@@ -91,12 +120,15 @@ def normalize_kernel(kernel, self_x=None, self_y=None, verbose=0):
 
 
 def mol_to_dict(mol, species):
-    """
+    """Convert molecular representation to a dictionary organized by atomic species.
 
-    .. todo::
-        Write the docstring
-    """
+    Args:
+        mol (numpy ndarray): Molecular representation where each row is [atomic_number, features...].
+        species (numpy ndarray): Array of unique atomic species.
 
+    Returns:
+        dict: Dictionary mapping atomic numbers to arrays of atomic feature vectors.
+    """
     mol_dict = {q:[] for q in species}
     for atom in mol:
         mol_dict[atom[0]].append(atom[1])
@@ -106,23 +138,46 @@ def mol_to_dict(mol, species):
 
 
 def sumsq(x):
+    """Compute sum of squares (dot product with itself).
+
+    Args:
+        x (numpy ndarray): Input vector.
+
+    Returns:
+        float: Sum of squared elements.
+    """
     return x@x
 
 
 def avg_kernel(kernel, _options):
-    """
+    """Compute the average kernel value.
 
-    .. todo::
-        Write the docstring
+    Args:
+        kernel (numpy ndarray): Kernel matrix.
+        _options (dict): Options dictionary (unused).
+
+    Returns:
+        float: Average of all kernel matrix elements.
     """
     return np.sum(kernel) / math.prod(kernel.shape)
 
 
 def rematch_kernel(kernel, options):
-    """
+    """Compute the REMatch (Regularized Entropy Match) kernel.
 
-    .. todo::
-        Write the docstring
+    Uses Sinkhorn algorithm to compute optimal transport-based kernel similarity.
+
+    Reference:
+        S. De, A. P. Bartók, G. Csányi, M. Ceriotti,
+        "Comparing molecules and solids across structural and alchemical space",
+        Phys. Chem. Chem. Phys. 18, 13754 (2016), doi:10.1039/C6CP00415F
+
+    Args:
+        kernel (numpy ndarray): Local kernel matrix.
+        options (dict): Options dictionary containing 'alpha' parameter for regularization.
+
+    Returns:
+        float: REMatch kernel value.
     """
     alpha = options['alpha']
     thresh = 1e-6

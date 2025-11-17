@@ -1,27 +1,30 @@
+"""ORCA quantum chemistry package I/O utilities.
+
+Read and parse ORCA output files, including orbitals and densities binary files.
+"""
+
 import warnings
 import struct
 import numpy as np
 import pyscf
 from qstack.mathutils.matrix import from_tril
-from qstack.tools import reorder_ao
+from qstack.reorder import reorder_ao
 
 
 def read_input(fname, basis, ecp=None):
-    """Read the structure from an Orca input (XYZ coordinates in simple format only)
+    """Read the structure from an Orca input (XYZ coordinates in simple format only).
 
-    Note: we do not read basis set info from the file.
-    TODO: read also %coords block?
+    Note: We do not read basis set info from the file.
+    TODO: Read also %coords block?
 
     Args:
-        fname (str) : path to file
-        basis (str/dict) : basis name, path to file, or dict in the pyscf format
-    Kwargs:
-        ecp (str) : ECP to use
+        fname (str): Path to Orca input file.
+        basis (str or dict): Basis name, path to file, or dict in the pyscf format.
+        ecp (str): Effective core potential to use. Defaults to None.
 
     Returns:
-        pyscf Mole object.
+        pyscf.gto.Mole: pyscf Mole object.
     """
-
     with open(fname) as f:
         lines = [x.strip() for x in f]
 
@@ -52,19 +55,20 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     Tested on Orca versions 4.0, 4.2, and 5.0.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
+        mol (pyscf.gto.Mole): pyscf Mole object.
         basename (str): Job name (without extension).
-    Kwargs:
-        directory (str) : path to the directory with the density files.
-        version (int): ORCA version (400 for 4.0, 421 for 4.2, 500 for 5.0).
-        openshell (bool): If read spin density in addition to the electron density.
-        reorder_dest (str): Which AO ordering convention to use.
+        directory (str): Path to the directory with the density files. Defaults to './'.
+        version (int): ORCA version (400 for 4.0, 421 for 4.2, 500 for 5.0). Defaults to 500.
+        openshell (bool): Whether to read spin density in addition to electron density. Defaults to False.
+        reorder_dest (str): Which AO ordering convention to use. Defaults to 'pyscf'.
 
     Returns:
-        A numpy 2darray containing the density matrix (openshell=False)
-        or a numpy 3darray containing the density and spin density matrices (openshell=True).
-    """
+        numpy.ndarray: 2D array containing density matrix (openshell=False) or
+            3D array containing density and spin density matrices (openshell=True).
 
+    Raises:
+        RuntimeError: If density matrix reordering is compromised for def2 basis with 3d elements.
+    """
     path = directory+'/'+basename
     if version < 500:
         if version==400:
@@ -104,22 +108,26 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
 
 
 def _parse_gbw(fname):
-    """ Parse ORCA .gbw files.
+    """Parse ORCA .gbw files.
 
     Many thanks to
     https://pysisyphus.readthedocs.io/en/latest/_modules/pysisyphus/calculators/ORCA.html
 
     Args:
-        fname (str): path to the gbw file.
+        fname (str): Path to the gbw file.
 
     Returns:
-        numpy 3darray of (s,nao,nao) containing the density matrix
-        numpy 2darray of (s,nao) containing the MO energies
-        numpy 2darray of (s,nao) containing the MO occupation numbers
-        dict of {int : [int]} with a list of basis functions angular momenta
-                       for each atom (not for element!)
-    """
+        tuple: A tuple containing:
+        - coefficients_ab (numpy.ndarray): 3D array of shape (s,nao,nao) with MO coefficients.
+        - energies_ab (numpy.ndarray): 2D array of shape (s,nao) with MO energies.
+        - occupations_ab (numpy.ndarray): 2D array of shape (s,nao) with MO occupation numbers.
+        - ls (dict): Dictionary mapping atom index to list of basis function angular momenta.
+        s=1 for closed-shell and 2 for open-shell computation,
+            nao is the number of atomic/molecular orbitals.
 
+    Raises:
+        RuntimeError: If number of MO sets is not 1 or 2.
+    """
     def read_array(f, n, dtype):
         return np.frombuffer(f.read(dtype().itemsize * n), dtype=dtype)
 
@@ -177,18 +185,20 @@ def _parse_gbw(fname):
 
 
 def _get_indices(mol, ls_from_orca):
-    """ Get coefficient needed to reorder the AO read from Orca.
+    """Get coefficients needed to reorder the AO read from Orca.
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        ls_from_orca : dict of {int : [int]} with a list of basis functions
-                       angular momenta for those atoms (not elements!)
-                       whose basis functions are *not* sorted wrt to angular momenta.
-                       The lists represent the Orca order.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        ls_from_orca (dict): Dictionary mapping atom index to list of basis function angular momenta
+            for atoms whose basis functions are NOT sorted wrt angular momenta.
+            The lists represent the Orca order.
 
     Returns:
-        numpy int 1darray of (nao,) containing the indices to be used as
-                c_reordered = c_orca[indices]
+        numpy.ndarray: 1D integer array of shape (nao,) containing reordering indices.
+            Use as: c_reordered = c_orca[indices]
+
+    Raises:
+        RuntimeError: If AO reordering fails.
     """
     if ls_from_orca is None:
         return None
@@ -210,18 +220,14 @@ def _get_indices(mol, ls_from_orca):
 
 
 def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
-    """ Reorder coefficient read from ORCA .gbw
+    """Reorder coefficients read from ORCA .gbw in-place.
 
     Args:
-        c_full : numpy 3darray of (s,nao,nao) containing the MO coefficients
-                 to reorder
-        mol (pyscf Mole): pyscf Mole object.
-    Kwargs:
-        reorder_dest (str): Which AO ordering convention to use.
-        ls_from_orca : dict of {int : [int]} with a list of basis functions
-                       angular momenta for those atoms (not elements!)
-                       whose basis functions are *not* sorted wrt to angular momenta.
-                       The lists represent the Orca order.
+        c_full (numpy.ndarray): 3D array of shape (s,nao,nao) containing MO coefficients to reorder.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        reorder_dest (str): Which AO ordering convention to use. Defaults to 'pyscf'.
+        ls_from_orca (dict): Dictionary mapping atom index to list of basis function angular momenta
+            for atoms whose basis functions are NOT sorted wrt angular momenta. Defaults to None.
     """
     def _reorder_coeff(c):
         # In ORCA, at least def2-SVP and def2-TZVP for 3d metals
@@ -242,19 +248,22 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
     Limited for Orca version 4.0 (cannot read the basis set).
 
     Args:
-        mol (pyscf Mole): pyscf Mole object.
-        fname (str): path to the gbw file.
-    Kwargs:
-        reorder_dest (str): Which AO ordering convention to use.
-        sort_l (bool): if sort the basis functions wrt angular momenta.
-                       e.g. PySCF requires them sorted.
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        fname (str): Path to the gbw file.
+        reorder_dest (str): Which AO ordering convention to use. Defaults to 'pyscf'.
+        sort_l (bool): Whether to sort basis functions wrt angular momenta.
+            PySCF requires them sorted. Defaults to True.
 
     Returns:
-        numpy 3darray of (s,nao,nao) containing the MO coefficients
-        numpy 2darray of (s,nao) containing the MO energies
-        numpy 2darray of (s,nao) containing the MO occupation numbers
-           s is 1 for closed-shell and 2 for open-shell computation.
-           nao is number of atomic/molecular orbitals.
+        tuple: A tuple containing:
+        - c (numpy.ndarray): 3D array of shape (s,nao,nao) with MO coefficients.
+        - e (numpy.ndarray): 2D array of shape (s,nao) with MO energies.
+        - occ (numpy.ndarray): 2D array of shape (s,nao) with MO occupation numbers.
+        Where s is 1 for closed-shell and 2 for open-shell computation,
+            and nao is the number of atomic/molecular orbitals.
+
+    Raises:
+        RuntimeError: If basis set information not found and sort_l=True.
     """
     c, e, occ, ls = _parse_gbw(fname)
     if not ls and sort_l:

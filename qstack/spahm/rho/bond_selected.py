@@ -1,15 +1,40 @@
+"""Representation for a specific bond in a molecule."""
+
 import os
 import numpy as np
 from . import utils, dmb_rep_bond as dmbb, lowdin
 from qstack.tools import correct_num_threads
 from .utils import defaults
+from .parser import SpahmParser
 
 
 def get_spahm_b_selected(mols, bondidx, xyzlist,
                          readdm=None, guess=defaults.guess, xc=defaults.xc, spin=None,
                          cutoff=defaults.cutoff, printlevel=0, omods=defaults.omod,
                          bpath=defaults.bpath, only_m0=False, same_basis=False):
+    """Compute SPAHM(b) representations for specific bonds in molecules.
 
+    Generates bond-centered representations for user-specified atom pairs across
+    a dataset of molecules, useful for targeted bond analysis.
+
+    Args:
+        mols (list): List of pyscf Mole objects.
+        bondidx (numpy ndarray): 2D array (nmols, 2) of 0-indexed atom pairs defining bonds.
+        xyzlist (list): List of XYZ filenames corresponding to mols.
+        readdm (str, optional): Directory to load pre-computed density matrices. Defaults to None.
+        guess (str): Guess Hamiltonian method name. Defaults to defaults.guess.
+        xc (str): Exchange-correlation functional. Defaults to defaults.xc.
+        spin (numpy ndarray, optional): Array of numbers of unpaired electrons per molecule. Defaults to None.
+        cutoff (float): Maximum bond distance in Å. Defaults to defaults.cutoff.
+        printlevel (int): Verbosity level. Defaults to 0.
+        omods (list): Open-shell modes (e.g. 'alpha', 'beta'). Defaults to defaults.omod.
+        bpath (str): Path to bond basis set directory. Defaults to defaults.bpath.
+        only_m0 (bool): Use only m=0 basis functions. Defaults to False.
+        same_basis (bool): Use generic CC.bas for all pairs. Defaults to False.
+
+    Returns:
+        list: List of (filename, representation) tuples for each specified bond.
+    """
     if spin is None or (spin == None).all():
         omods = [None]
 
@@ -35,7 +60,7 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
 
 
 def _get_arg_parser():
-    from qstack.spahm.rho.parser import SpahmParser
+    """Parse CLI arguments."""
     parser = SpahmParser(description='This program computes the SPAHM(b) representation for a list of bonds', bond=True)
     parser.remove_argument('elements')
     parser.remove_argument('only_z')
@@ -52,7 +77,20 @@ def _get_arg_parser():
     parser.add_argument('--dir',     type=str,    dest='dir',       default='./',     help='directory to save the output in')
     return parser
 
+
 def main():
+    """Command-line interface for computing SPAHM(b) representations for specific bonds.
+
+    Reads a file listing XYZ structures and bond indices, computes representations
+    for each specified bond, and saves them to individual files. The input file format
+    is: XYZ_path atom1_index atom2_index (1-indexed).
+
+    Args:
+        None: Parses command-line arguments.
+
+    Output:
+        Saves bond representations to numpy files in specified directory.
+    """
     args = _get_arg_parser().parse_args()
     if args.print>0:
         print(vars(args))

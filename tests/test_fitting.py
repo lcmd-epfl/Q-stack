@@ -3,7 +3,7 @@
 import os
 import numpy as np
 from qstack import compound
-from qstack.fields import decomposition
+from qstack.fields import decomposition, moments
 
 
 def test_fitting():
@@ -39,9 +39,11 @@ def test_fitting_error():
     c0 = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
     error0 = 4.876780263884939e-05
     auxmol = compound.make_auxmol(mol, 'cc-pvdz jkfit')
-    eri2c = auxmol.intor('int2c2e_sph')
+    _, eri2c, eri3c = decomposition.get_integrals(mol, auxmol)
     self_repulsion = decomposition.get_self_repulsion(mol, dm)
-    error = decomposition.decomposition_error(self_repulsion, c0, eri2c)
+    error = decomposition.optimal_decomposition_error(self_repulsion, c0, eri2c)
+    assert(np.allclose(error, error0))
+    error = decomposition.decomposition_error(self_repulsion, c0, eri2c, eri3c, dm)
     assert(np.allclose(error, error0))
 
 
@@ -49,7 +51,7 @@ def test_fitting_noe():
     path = os.path.dirname(os.path.realpath(__file__))
     auxmol = compound.xyz_to_mol(path+'/data/H2O_dist.xyz', 'cc-pvdz jkfit', charge=0, spin=0)
     c = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
-    N = decomposition.number_of_electrons_deco(auxmol, c)
+    N = moments.r2_c(auxmol, c, moments=[0])[0]
     N0 = 10.000199558313856
     assert np.allclose(N,N0)
 

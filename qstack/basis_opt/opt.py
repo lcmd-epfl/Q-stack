@@ -1,31 +1,41 @@
+"""Basis set optimization routines and command-line interface."""
+
 import sys
 from ast import literal_eval
+import argparse
 import numpy as np
 import scipy.optimize
 from pyscf import gto
 import pyscf.data
+from ..compound import basis_flatten
 from . import basis_tools as qbbt
 
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", printlvl=2, check=False):
-    """ Optimize a given basis set.
+    """Optimize a given basis set.
 
     Args:
-        elements_in (str):
-        basis_in (str or dict): Basis set
-        molecules_in (dict): which contains the cartesian coordinates of the molecule (string) with the key 'atom', the uncorrelated on-top pair density on a grid (numpy array) with the key 'rho', the grid coordinates (numpy array) with the key 'coords', and the grid weights (numpy array) with the key 'weight'.
+        elements_in (str): List of elements to optimize. If None, optimize all elements in the basis.
+        basis_in (list): List of files paths (str) or dicts containing basis set(s).
+        molecules_in (list): List of file paths (str) or dicts containing molecular data.
         gtol_in (float): Gradient norm must be less than gtol_in before successful termination (minimization).
         method_in (str): Type of solver. Check scipy.optimize.minimize for full documentation.
-        printlvl (int):
-        check (bool):
+        printlvl (int): Level of printing during optimization (0: none, 1: final basis, 2: detailed).
+        check (bool): If True, compute and return both analytical and numerical gradients without optimization.
 
     Returns:
         Dictionary containing the optimized basis.
 
     """
-
-
     def energy(x):
+        """Compute total loss function (fitting error) for given exponents.
+
+        Args:
+            x (numpy.ndarray): Log of exponents.
+
+        Returns:
+            float: Loss function value.
+        """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
         E = 0.0
@@ -33,7 +43,18 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             E += qbbt.energy_mol(newbasis, m)
         return E
 
+
     def gradient(x):
+        """Compute total loss function (fitting error) and gradient for given exponents.
+
+        Args:
+            x (numpy.ndarray): Log of exponents.
+
+        Returns:
+            tuple: A tuple containing:
+            - E (float): Loss function value.
+            - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
+        """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
 
@@ -55,10 +76,31 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         dE_dx = dE_da * exponents
         return E, dE_dx
 
+
     def gradient_only(x):
+        """Compute only the gradient of the loss function (wrapper for optimization algorithms).
+
+        Args:
+            x (numpy.ndarray): Log of exponents.
+
+        Returns:
+            numpy.ndarray: Gradient with respect to log(exponents).
+        """
         return gradient(x)[1]
 
+
     def read_bases(basis_files):
+        """Read basis set definitions from files or dicts.
+
+        Args:
+            basis_files (list): List of file paths (str) or basis dicts.
+
+        Returns:
+            dict: Combined basis set definition.
+
+        Raises:
+            RuntimeError: If multiple sets for the same element are provided.
+        """
         basis = {}
         for i in basis_files:
             if isinstance(i, str):
@@ -75,7 +117,13 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
                 basis.update(i)
         return basis
 
+
     def make_bf_start():
+        """Create basis function index bounds for each element.
+
+        Returns:
+            dict: Dictionary mapping elements to their [start, end] indices.
+        """
         nbf = [len(basis[q]) for q in elements]
         bf_bounds = {}
         for i, q in enumerate(elements):
@@ -83,7 +131,25 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             bf_bounds[q] = [start, start+nbf[i]]
         return bf_bounds
 
+
     def make_moldata(fname):
+        """Create molecular data dictionary from file or dict.
+
+        Args:
+            fname (str or dict): Path to .npz file or dictionary containing molecular structure,
+                grid coordinates and weights, and reference density evaluated on it.
+
+        Returns:
+            dict: Dictionary containing:
+            mol (pyscf Mole): pyscf Mole object.
+            rho (numpy.ndarray): Reference density values on the grid.
+            coords (numpy.ndarray): Grid coordinates.
+            weights (numpy.ndarray): Grid weights.
+            self (float): Integral of the squared reference density.
+            idx (numpy.ndarray): Basis function indices for each AO.
+            centers (list): Atomic center indices for each AO.
+            distances (numpy.ndarray): Squared distances from each atom to each grid point.
+        """
         if isinstance(fname, str):
             rho_data = np.load(fname)
         else:
@@ -96,16 +162,15 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         self = np.einsum('p,p,p->', weights, rho, rho)
         mol = gto.M(atom=str(molecule), basis=basis)
 
-        idx = []
-        centers = []
-        for iat in range(mol.natm):
-            q = mol._atom[iat][0]
-            ib0 = bf_bounds[q][0]
-            for ib, b in enumerate(mol._basis[q]):
-                l = b[0]
-                idx += [ib+ib0] * (2*l+1)
-                centers += [iat] * (2*l+1)
-        idx = np.array(idx)
+        centers, l, _ = basis_flatten(mol, return_both=False)
+        idx = np.zeros_like(centers)
+        i = 0
+        while i < mol.nao:
+            q = mol.atom_symbol(centers[i])
+            for ib in range(*bf_bounds[q]):
+                msize = 2*l[i]+1
+                idx[i:i+msize] = [ib] * msize
+                i += msize
 
         distances = np.zeros((mol.natm, len(rho)))
         for iat in range(mol.natm):
@@ -166,9 +231,9 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
     return newbasis
 
-def _get_arg_parser():
-    import argparse
 
+def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = argparse.ArgumentParser(description='Optimize a density fitting basis set.')
     parser.add_argument('--elements',  type=str,   dest='elements',  nargs='+',    help='elements for optimization')
     parser.add_argument('--basis',     type=str,   dest='basis',     nargs='+',    help='initial df bases', required=True)
@@ -179,7 +244,9 @@ def _get_arg_parser():
     parser.add_argument('--check', action='store_true', dest='check', default=False, help='check the gradient and exit')
     return parser
 
+
 def main():
+    """Run basis set optimization via command-line interface."""
     args = _get_arg_parser().parse_args()
 
     result = optimize_basis(args.elements, args.basis, args.molecules, args.gtol, args.method, check=args.check, printlvl=args.print)

@@ -1,19 +1,24 @@
+"""Density matrix manipulation and analysis functions."""
+
 from pyscf import dft
 from qstack import constants
 import numpy as np
 
-def get_converged_dm(mol, xc, verbose=False):
-    """Performs restricted SCF and returns density matrix, given pyscf mol object and an XC density functional.
+
+def get_converged_mf(mol, xc, dm0=None, verbose=False):
+    """Perform SCF calculation.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
         xc (str): Exchange-correlation functional.
-        verbose (bool): If print more info
+        dm0 (numpy ndarray, optional): Initial guess for density matrix. Defaults to None.
+        verbose (bool): If print more information.
 
     Returns:
-        A numpy ndarray containing the density matrix in AO-basis.
+        tuple: A tuple containing:
+        - mf (pyscf.dft.rks.RKS or pyscf.dft.uks.UKS): Converged mean-field object.
+        - dm (numpy ndarray): Converged density matrix in AO-basis.
     """
-
     if mol.multiplicity == 1:
         mf = dft.RKS(mol)
     else:
@@ -21,21 +26,34 @@ def get_converged_dm(mol, xc, verbose=False):
 
     mf.xc = xc
     if verbose:
-        print("Starting Kohn-Sham computation at "+str(mf.xc)+"/"+str(mol.basis)+" level.")
+        print(f"Starting Kohn-Sham computation at {mf.xc}/{mol.basis} level.")
     mf.verbose = 1
-    mf.kernel()
+    mf.kernel(dm0=dm0)
 
     if verbose:
-        print("Convergence: ",mf.converged)
-        print("Energy: ",mf.e_tot)
+        print(f"Convergence: {mf.converged}")
+        print(f"Energy: {mf.e_tot}")
 
-    # Make the one-particle density matrix in ao-basis
     dm = mf.make_rdm1()
+    return (mf, dm)
 
-    return dm
 
-def make_grid_for_rho(mol, grid_level = 3):
-    """Generates a grid of real space coordinates and weights for integration.
+def get_converged_dm(mol, xc, verbose=False):
+    """Get a converged density matrix.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        xc (str): Exchange-correlation functional.
+        verbose (bool): If print more information.
+
+    Returns:
+        A numpy ndarray containing the density matrix in AO-basis.
+    """
+    return get_converged_mf(mol, xc, dm0=None, verbose=verbose)[1]
+
+
+def make_grid_for_rho(mol, grid_level=3):
+    """Generate a grid of real space coordinates and weights for integration.
 
     Args:
         mol (pyscf Mole): pyscf Mole object.
@@ -44,12 +62,11 @@ def make_grid_for_rho(mol, grid_level = 3):
     Returns:
         pyscf Grid object.
     """
-
     grid = dft.gen_grid.Grids(mol)
     grid.level = grid_level
     grid.build()
-
     return grid
+
 
 def sphericalize_density_matrix(mol, dm):
     """Sphericalize the density matrix in the sense of an integral over all possible rotations.
@@ -61,7 +78,6 @@ def sphericalize_density_matrix(mol, dm):
     Returns:
         A numpy ndarray with the sphericalized density matrix.
     """
-
     idx_by_l = [[] for i in range(constants.MAX_L)]
     i0 = 0
     for ib in range(mol.nbas):
@@ -86,20 +102,4 @@ def sphericalize_density_matrix(mol, dm):
                         spherical_dm[idx+m,jdx+m] = trace / (2*l+1)
 
     return spherical_dm
-
-def get_converged_mf(mol, func, dm0=None):
-    """
-
-    .. todo::
-        Write the complete docstring, and merge with get_converged_dm()
-    """
-
-    if mol.multiplicity == 1:
-        mf = dft.RKS(mol)
-    else:
-        mf = dft.UKS(mol)
-    mf.xc = func
-    mf.kernel(dm0=dm0)
-    dm = mf.make_rdm1()
-    return (mf, dm)
 

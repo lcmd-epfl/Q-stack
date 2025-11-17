@@ -1,3 +1,5 @@
+"""Learning curve computation."""
+
 import numpy as np
 import scipy
 from qstack.mathutils.fps import do_fps
@@ -11,32 +13,34 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
                test_size=defaults.test_size, train_size=defaults.train_size, n_rep=defaults.n_rep,
                random_state=defaults.random_state, idx_test=None, idx_train=None,
                sparse=None, debug=False, save_pred=False):
-    """ Produces learning curves (LC) data, for various training sizes, using kernel ridge regression and the user specified parameters
+    """Produce learning curves (LC) data using kernel ridge regression.
 
     Args:
-        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
-        y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
-        read_kernel (bool): if 'X' is a kernel and not an array of representations
-        sigma (float): width of the kernel
-        eta (float): regularization strength for matrix inversion
-        akernel (str): local kernel (Laplacian, Gaussian, linear)
-        gkernel (str): global kernel (REM, average)
-        gdit (dict): parameters of the global kernels
-        test_size (float or int): test set fraction (or number of samples)
-        train_size (list): list of training set size fractions used to evaluate the points on the LC
-        n_rep (int): the number of repetition for each point (using random sampling)
-        random_state (int): the seed used for random number generator (controls train/test splitting)
-        idx_test (list): list of indices for the test set (based on the sequence in X)
-        idx_train (list): list of indices for the training set (based on the sequence in X)
-        sparse (int): the number of reference environnments to consider for sparse regression
-        debug (bool): to use a fixed seed for random sampling (for reproducibility)
-        save_pred (bool): to return all predicted targets
+        X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
+        y (numpy.1darray[Nsamples]): Array containing the target property of all Nsamples.
+        read_kernel (bool): If 'X' is a kernel and not an array of representations.
+        sigma (float): Width of the kernel.
+        eta (float): Regularization strength for matrix inversion.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
+        test_size (float or int): Test set fraction (or number of samples).
+        train_size (list): List of training set size fractions used to evaluate the points on the LC.
+        n_rep (int): The number of repetition for each point (using random sampling).
+        random_state (int): The seed used for random number generator (controls train/test splitting).
+        idx_test (numpy.1darray): List of indices for the test set (based on the sequence in X).
+        idx_train (numpy.1darray): List of indices for the training set (based on the sequence in X).
+        sparse (int): The number of reference environnments to consider for sparse regression.
+        debug (bool): To use a fixed seed for partial training set selection (for reproducibility).
+        save_pred (bool): To return all predicted targets.
 
     Returns:
         The computed LC, as a list containing all its points (train size, MAE, std)
         If save_pres is True, a tuple with (results, (target values, predicted values))
-    """
 
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
+    """
     idx_train, idx_test, y_train, y_test = train_test_split_idx(y=y, idx_test=idx_test, idx_train=idx_train,
                                                                 test_size=test_size, random_state=random_state)
     if read_kernel is False:
@@ -84,14 +88,18 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         maes_all.append((size_train, np.mean(maes), np.std(maes)))
     return maes_all if not save_pred else (maes_all, (y_test, y_kf_predict))
 
+
 def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program computes the learning curve.', hyperparameters_set='single')
     parser.add_argument('--splits',  type=int,            dest='splits',    default=defaults.n_rep, help='number of splits')
     parser.add_argument('--name',    type=str,            dest='nameout',   default=None,           help='the name of the output file containting the LC data (.txt)')
     parser.add_argument('--debug',   action='store_true', dest='debug',     default=False,          help='enable debug')
     return parser
 
+
 def main():
+    """Command-line entry point for computing learning curves."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):

@@ -1,3 +1,5 @@
+"""Kernel matrix condition number."""
+
 import numpy as np
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
@@ -9,26 +11,28 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
               akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
               test_size=defaults.test_size, idx_test=None, idx_train=None,
               sparse=None, random_state=defaults.random_state):
-    """ Compute kernel matrix condition number
+    """Compute kernel matrix condition number.
 
     Args:
-        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
-        read_kernel (bool): if 'X' is a kernel and not an array of representations
-        sigma (float): width of the kernel
-        eta (float): regularization strength for matrix inversion
-        akernel (str): local kernel (Laplacian, Gaussian, linear)
-        gkernel (str): global kernel (REM, average)
-        gdit (dict): parameters of the global kernels
-        test_size (float or int): test set fraction (or number of samples)
-        random_state (int): the seed used for random number generator (controls train/test splitting)
-        idx_test (list): list of indices for the test set (based on the sequence in X)
-        idx_train (list): list of indices for the training set (based on the sequence in X)
-        sparse (int): the number of reference environnments to consider for sparse regression
+        X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
+        read_kernel (bool): If 'X' is a kernel and not an array of representations.
+        sigma (float): Width of the kernel.
+        eta (float): Regularization strength for matrix inversion.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
+        test_size (float or int): Test set fraction (or number of samples).
+        random_state (int): The seed used for random number generator (controls train/test splitting).
+        idx_test (numpy.1darray): List of indices for the test set (based on the sequence in X).
+        idx_train (numpy.1darray): List of indices for the training set (based on the sequence in X).
+        sparse (int): The number of reference environnments to consider for sparse regression.
 
     Returns:
-        float : condition number
-    """
+        float: Condition number.
 
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
+    """
     idx_train, _, _, _ = train_test_split_idx(y=np.arange(len(X)), idx_test=idx_test, idx_train=idx_train,
                                               test_size=test_size, random_state=random_state)
     if read_kernel is False:
@@ -50,13 +54,17 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     cond = np.linalg.cond(K_solve)
     return cond
 
+
 def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program computes the condition number for the kernel matrix.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')
     return parser
 
+
 def main():
+    """Command-line entry point for computing kernel matrix condition numbers."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):

@@ -1,10 +1,23 @@
+"""Command-line argument parser for SPAHM(a,b) main functions."""
+
 import argparse
+from qstack.tools import FlexParser
 from .utils import defaults, omod_fns_dict
 from .dmb_rep_atom import models_dict
 from ..guesses import guesses_dict
 
 
-class SpahmParser(argparse.ArgumentParser):
+class SpahmParser(FlexParser):
+    """Custom argument parser for SPAHM command-line tools.
+
+    Provides pre-configured argument sets for atomic and bond SPAHM computations.
+
+    Args:
+        unified (bool): Enable unified file/list interface. Defaults to False.
+        atom (bool): Add atom-specific arguments (auxbasis, model). Defaults to False.
+        bond (bool): Add bond-specific arguments (cutoff, bpath, etc.). Defaults to False.
+        **kwargs: Additional arguments passed to ArgumentParser.
+    """
     def __init__(self, unified=False, atom=False, bond=False, **kwargs):
         super().__init__(formatter_class=argparse.ArgumentDefaultsHelpFormatter, **kwargs)
         parser = self
@@ -37,18 +50,3 @@ class SpahmParser(argparse.ArgumentParser):
             parser.add_argument('--pairfile',      dest='pairfile',      default=None,                             type=str,     help='path to the atom pair file')
             parser.add_argument('--dump_and_exit', dest='dump_and_exit', action='store_true',                                    help='write the atom pair file and exit if --pairfile is set')
             parser.add_argument('--same_basis',    dest='same_basis',    action='store_true',                                    help='if to use generic CC.bas basis file for all atom pairs (Default: uses pair-specific basis, if exists)')
-
-
-    def remove_argument(parser, arg):
-        for action in parser._actions:
-            opts = action.option_strings
-            if (opts and opts[0] == arg) or action.dest == arg:
-                parser._remove_action(action)
-                break
-
-        for action in parser._action_groups:
-            for group_action in action._group_actions:
-                opts = group_action.option_strings
-                if (opts and opts[0] == arg) or group_action.dest == arg:
-                    action._group_actions.remove(group_action)
-                    return

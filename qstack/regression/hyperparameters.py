@@ -1,3 +1,5 @@
+"""Hyperparameter optimization."""
+
 import sys
 import numpy as np
 import scipy
@@ -9,33 +11,36 @@ from .parser import RegressionParser
 
 
 def hyperparameters(X, y,
-           sigma=defaults.sigmaarr, eta=defaults.etaarr, gkernel=defaults.gkernel, gdict=defaults.gdict,
-           akernel=defaults.kernel, test_size=defaults.test_size, splits=defaults.splits, idx_test=None, idx_train=None,
+           sigma=defaults.sigmaarr, eta=defaults.etaarr, akernel=defaults.kernel, gkernel=defaults.gkernel, gdict=defaults.gdict,
+           test_size=defaults.test_size, splits=defaults.splits, idx_test=None, idx_train=None,
            printlevel=0, adaptive=False, read_kernel=False, sparse=None, random_state=defaults.random_state):
-    """ Performs a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
+    """Perform a Kfold cross-validated hyperparameter optimization (for width of kernel and regularization parameter).
 
     Args:
-        X (numpy.2darray[Nsamples,Nfeat]): array containing the 1D representations of all Nsamples
-        y (numpy.1darray[Nsamples]): array containing the target property of all Nsamples
-        sigma (list): list of kernel width for the grid search
-        eta (list): list of regularization strength for the grid search
-        gkernel (str): global kernel (REM, average)
-        gdit (dict): parameters of the global kernels
-        akernel (str): local kernel (Laplacian, Gaussian, linear)
-        test_size (float or int): test set fraction (or number of samples)
-        splits (int): K number of splits for the Kfold cross-validation
-        idx_test (list): list of indices for the test-set (based on the sequence in X
-        idx_train (list): list of indices for the training set (based on the sequence in X)
-        printlevel (int): controls level of output printing
-        adaptative (bool): to expand the grid search adaptatively
-        read_kernel (bool): if 'X' is a kernel and not an array of representations
-        sparse (int): the number of reference environnments to consider for sparse regression
-        random_state (int): the seed used for random number generator (controls train/test splitting)
+        X (numpy.ndarray[Nsamples,...]): Array containing the representations of all Nsamples.
+        y (numpy.1darray[Nsamples]): Array containing the target property of all Nsamples.
+        sigma (list): List of kernel width for the grid search.
+        eta (list): List of regularization strength for the grid search.
+        akernel (str): Local kernel ('L' for Laplacian, 'G' for Gaussian, 'dot', 'cosine').
+        gkernel (str): Global kernel (None, 'REM', 'avg').
+        gdict (dict): Parameters of the global kernels.
+        test_size (float or int): Test set fraction (or number of samples).
+        splits (int): K number of splits for the Kfold cross-validation.
+        idx_test (numpy.1darray): List of indices for the test set (based on the sequence in X).
+        idx_train (numpy.1darray): List of indices for the training set (based on the sequence in X).
+        printlevel (int): Controls level of output printing.
+        adaptive (bool): To expand the grid search adaptatively.
+        read_kernel (bool): If 'X' is a kernel and not an array of representations.
+        sparse (int): The number of reference environnments to consider for sparse regression.
+        random_state (int): The seed used for random number generator (controls train/test splitting).
 
     Returns:
         The results of the grid search as a numpy.2darray [Cx(MAE,std,eta,sigma)],
-        where C is the number of parameter set and
-        the array is sorted according to MAEs (last is minimum)
+            where C is the number of parameter set and
+            the array is sorted according to MAEs (last is minimum)
+
+    Raises:
+        RuntimeError: If 'X' is a kernel and sparse regression is chosen.
     """
     def k_fold_opt(K_all, eta):
         kfold = KFold(n_splits=splits, shuffle=False)
@@ -130,13 +135,17 @@ def hyperparameters(X, y,
         print('next iteration:', work_sigma, flush=True)
     return errors
 
+
 def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
     parser.remove_argument("random_state")
     parser.remove_argument("train_size")
     return parser
 
+
 def main():
+    """Command-line entry point for hyperparameter optimization."""
     args = _get_arg_parser().parse_args()
     if(args.readk):
         args.sigma = [np.nan]

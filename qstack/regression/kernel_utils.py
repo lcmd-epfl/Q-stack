@@ -1,56 +1,56 @@
+"""Kernel computation utility functions and defaults.
+
+Provides:
+    REGMODULE_PATH: Path to the module.
+    defaults: Default parameters.
+"""
+
 import os
-import argparse
 import warnings
 from types import SimpleNamespace
 import numpy as np
+from sklearn.model_selection import train_test_split
 from .local_kernels import local_kernels_dict
 from .global_kernels import global_kernels_dict, get_global_K
+
 
 REGMODULE_PATH = os.path.dirname(__file__)
 
 
-class ParseKwargs(argparse.Action):
-    def __call__(self, _parser, namespace, values, _option_string=None):
-        setattr(namespace, self.dest, defaults.gdict)
-        for value in values:
-            key, value = value.split('=')
-            for t in [int, float]:
-                try:
-                    value = t(value)
-                    break
-                except ValueError:
-                    continue
-            getattr(namespace, self.dest)[key] = value
-
-
 defaults = SimpleNamespace(
-  sigma=32.0,
-  eta=1e-5,
-  kernel='L',
-  gkernel=None,
-  gdict={'alpha':1.0, 'normalize':1, 'verbose':0},
-  test_size=0.2,
-  n_rep=5,
-  splits=5,
-  train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
-  etaarr=np.logspace(-10, 0, 5).tolist(),
-  sigmaarr=np.logspace(0,6, 13).tolist(),
-  sigmaarr_mult=np.logspace(0,2, 5).tolist(),
-  random_state=0,
-  )
+        sigma=32.0,
+        eta=1e-5,
+        kernel='L',
+        gkernel=None,
+        gdict={'alpha':1.0, 'normalize':1, 'verbose':0},
+        test_size=0.2,
+        n_rep=5,
+        splits=5,
+        train_size=[0.125, 0.25, 0.5, 0.75, 1.0],
+        etaarr=np.logspace(-10, 0, 5).tolist(),
+        sigmaarr=np.logspace(0,6, 13).tolist(),
+        sigmaarr_mult=np.logspace(0,2, 5).tolist(),
+        random_state=0,
+        )
 
 
 def get_local_kernel(arg):
-    """ Obtains a local-envronment kernel by name.
+    """Obtain a local-environment kernel function by name.
 
     Args:
-        arg (str): the name of the kernel, in ['']  # TODO
+        arg (str): Kernel name. Available options include:
+            - 'G': Gaussian (RBF) kernel.
+            - 'L': Laplacian kernel.
+            - 'dot': Linear (dot product) kernel.
+            - 'cosine': Cosine similarity kernel.
+            - Implementation-specific variants: 'G_sklearn', 'G_custom_c', 'L_sklearn', 'L_custom_c', 'L_custom_py'.
 
     Returns:
-        kernel (Callable[np.ndarray,np.ndarray,float -> np.ndarray]): the actual kernel function, to call as ``K = kernel(X,Y,gamma)``
+        callable: Kernel function with signature kernel(X, Y, gamma) -> numpy.ndarray.
 
-    .. todo::
-        Write the docstring
+    Raises:
+        NotImplementedError: If the specified kernel is not implemented.
+        RuntimeError: If the kernel implementation is not available (e.g., C library missing).
     """
     if arg not in local_kernels_dict:
         raise NotImplementedError(f'{arg} kernel is not implemented')
@@ -62,10 +62,17 @@ def get_local_kernel(arg):
 
 
 def get_global_kernel(arg, local_kernel):
-    """
+    """Create a global kernel function from a local kernel.
 
-    .. todo::
-        Write the docstring
+    Args:
+        arg (tuple): Tuple of (gkernel_name, options_dict).
+        local_kernel (callable): Local kernel function.
+
+    Returns:
+        callable: Global kernel function that combines local kernels.
+
+    Raises:
+        NotImplementedError: If the specified global kernel is not implemented.
     """
     gkernel, options = arg
 
@@ -76,23 +83,26 @@ def get_global_kernel(arg, local_kernel):
 
 
 def get_kernel(arg, arg2=None):
-  """ Returns the kernel function depending on the cli argument
+    """Return the appropriate kernel function based on arguments.
 
-  .. todo::
-      Write the docstring
-  """
+    Args:
+        arg (str): Local kernel name.
+        arg2 (tuple, optional): If provided, tuple of (global_kernel_name, options) for global kernel. Defaults to None.
 
-  local_kernel = get_local_kernel(arg)
+    Returns:
+        callable: Kernel function (local or global).
+    """
+    local_kernel = get_local_kernel(arg)
 
-  if arg2 is None or arg2[0] is None:
-      return local_kernel
-  else:
-      return get_global_kernel(arg2, local_kernel)
+    if arg2 is None or arg2[0] is None:
+        return local_kernel
+    else:
+        return get_global_kernel(arg2, local_kernel)
 
 
 def train_test_split_idx(y, idx_test=None, idx_train=None,
                          test_size=defaults.test_size, random_state=defaults.random_state):
-    """ Perfrom test/train data split based on random shuffling or given indices.
+    """Perfrom test/train data split based on random shuffling or given indices.
 
         If neither `idx_test` nor `idx_train` are specified, the splitting
            is done randomly using `random_state`.
@@ -104,20 +114,20 @@ def train_test_split_idx(y, idx_test=None, idx_train=None,
 
     Args:
         y (numpy.1darray(Nsamples)): array containing the target property of all Nsamples
-        test_size (float or int): test set fraction (or number of samples)
-        idx_test ([int] / numpy.1darray): list of indices for the test set (based on the sequence in X)
-        idx_train ([int] / numpy.1darray): list of indices for the training set (based on the sequence in X)
-        random_state (int): the seed used for random number generator (controls train/test splitting)
+        test_size (float or int): Test set fraction (or number of samples).
+        idx_test ([int] / numpy.1darray): List of indices for the test set (based on the sequence in X).
+        idx_train ([int] / numpy.1darray): List of indices for the training set (based on the sequence in X).
+        random_state (int): The seed used for random number generator (controls train/test splitting).
 
     Returns:
         numpy.1darray(Ntest, dtype=int) : test indices
         numpy.1darray(Ntrain, dtype=int) : train indices
         numpy.1darray(Ntest, dtype=float) : test set target property
         numpy.1darray(Ntrain, dtype=float) : train set target property
+
+    Raises:
+        RuntimeError: If test indices are repeated.
     """
-
-    from sklearn.model_selection import train_test_split
-
     if idx_test is None and idx_train is None:
         idx_train, idx_test = train_test_split(np.arange(len(y)), test_size=test_size, random_state=random_state)
     elif idx_test is not None and idx_train is None:
@@ -142,7 +152,7 @@ def train_test_split_idx(y, idx_test=None, idx_train=None,
 
 
 def sparse_regression_kernel(K_train, y_train, sparse_idx, eta):
-    r""" Compute the sparse regression matrix and vector.
+    r"""Compute the sparse regression matrix and vector.
 
         Solution of a sparse regression problem is
         $$ \vec w = \left( \mathbf{K}_{MN} \mathbf{K}_{NM} + \eta \mathbf{1} \right) ^{-1} \mathbf{K}_{MN}\vec y $$
@@ -156,12 +166,10 @@ def sparse_regression_kernel(K_train, y_train, sparse_idx, eta):
         and y_solve $\mathbf{K}_{MN}\vec y$.
 
     Args:
-        K_train (numpy.1darray(Ntrain1,Ntrain): kernel computed on the training set.
-                Ntrain1 (N in the equation) may differ from the full training set Ntrain (e.g. a subset)
+        K_train (numpy.1darray(Ntrain1,Ntrain): Kernel computed on the training set. Ntrain1 (N in the equation) may differ from the full training set Ntrain (e.g. a subset).
         y_train (numpy.1darray(Ntrain)): array containing the target property of the full training set
-        sparse_idx (numpy.1darray of int) : (M in the equation): sparse subset indices
-                   wrt to the order of the full training set.
-        eta (float): regularization strength for matrix inversion
+        sparse_idx (numpy.1darray of int): (M in the equation): sparse subset indices wrt to the order of the full training set.
+        eta (float): Regularization strength for matrix inversion.
 
     Returns:
         numpy.2darray((len(sparse), len(sparse)), dtype=float) : matrix to be inverted

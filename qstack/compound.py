@@ -1,6 +1,4 @@
-"""
-Module containing all the operations to load, transform, and save molecular objects.
-"""
+"""Molecular structure parsing and manipulation."""
 
 import json
 import re
@@ -8,12 +6,13 @@ import warnings
 import numpy as np
 from pyscf import gto, data
 from qstack import constants
-from qstack.tools import rotate_euler
+from qstack.reorder import get_mrange
+from qstack.mathutils.array import stack_padding
+from qstack.mathutils.rotation_matrix import rotate_euler
 
 
 # detects a charge-spin line, containing only two ints (one positive or negative, the other positive and nonzero)
 _re_spincharge = re.compile(r'(?P<charge>[-+]?[0-9]+)\s+(?P<spinmult>[1-9][0-9]*)')
-
 # fetches a single key=value or key:value pair, then matches a full line, for space-separated pairs
 _re_singlekey = re.compile(r'\s*(?P<key>\w+)[=:](?P<val>[^\s,]+)\s*')
 _re_keyline = re.compile(r'\s*(\w+[=:][^\s,]+\s+)*(\w+[=:][^\s,]+)\s*')
@@ -25,21 +24,29 @@ _re_int = re.compile(r'[+-]?(?P<basisprefix>0[obxOBX])?[1-9a-fA-F][0-9a-fA-F]*')
 # matches a floating-point number in any format python reads
 _re_float = re.compile(r'[+-]?[0-9]*?([0-9]\.|\.[0-9]|[0-9])[0-9]*?([eEdD][+-]?[0-9]+)?')
 
+
 def xyz_comment_line_parser(line):
-    """reads the 'comment' line of a XYZ file, and tries to infer its meaning"""
+    """Read the 'comment' line of a XYZ file and tries to infer its meaning.
+
+    Args:
+        line (str): Comment line from XYZ file.
+
+    Returns:
+        dict: Dictionary containing parsed properties (charge, spin, etc.).
+    """
     line = line.strip()
     if line == '':
         return {}
     elif _re_spincharge.fullmatch(line):
         # possibility 1: the line only has charge and spin multiplicity
+        # note: this skips the futher processing
         matcher = _re_spincharge.fullmatch(line)
         spinmult = int(matcher.group('spinmult'))
         charge = int(matcher.group('charge'))
-        # note: this skips the futher processing
         return {'charge':charge, 'spin':spinmult-1}
     elif _re_keyline.fullmatch(line):
         # possibility 2: space-separated key/value pairs
-        line_parts = line.split()  # split across any whitespace
+        line_parts = line.split()
         part_matching = _re_singlekey
         props = {}
     elif _re_keyline2.fullmatch(line):
@@ -76,50 +83,52 @@ def xyz_comment_line_parser(line):
             val = float(val)
         props[part_matcher.group('key')] = val
 
-
     if 'spin' in props:
         # we want a difference in electons (alpha-beta), but we expect the file to contain a spin multiplicity
         props['spin'] = props['spin']-1
     return props
 
-def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False, read_string=False):
-    """Reads a molecular file in xyz format and returns a pyscf Mole object.
+
+def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit=None, ecp=None, parse_comment=False):
+    """Read a molecular file in xyz format and returns a pyscf Mole object.
 
     Args:
-        inp (str): path of the xyz file to read / xyz fine contents if read_string==True
-        basis (str or dict): Basis set.
-        charge (int): Provide/override charge of the molecule.
-        spin (int): Provide/override spin of the molecule (alpha electrons - beta electrons).
-        ignore (bool): If assume molecule closed-shell an assign charge either 0 or -1
-        unit (str): Provide/override units (Ang or Bohr)
-        ecp (str) : ECP to use
+        inp (str): Path of the xyz file to read, or xyz file contents.
+        basis (str or dict): Basis set. Defaults to "def2-svp".
+        charge (int): Provide/override charge of the molecule. Defaults to None.
+        spin (int): Provide/override spin of the molecule (alpha electrons - beta electrons). Defaults to None.
+        ignore (bool): If True, assume molecule is closed-shell and assign charge either 0 or -1. Defaults to False.
+        unit (str): Provide/override units (Ang or Bohr). Defaults to None.
+        ecp (str): ECP to use. Defaults to None.
+        parse_comment (bool): Whether to parse the comment line for properties. Defaults to False.
 
     Returns:
-        A pyscf Mole object containing the molecule information.
-    """
+        pyscf.gto.Mole: pyscf Mole object containing the molecule information.
 
-    if read_string:
+    Raises:
+        RuntimeError: If units are not recognized or if minao basis requires ECP for heavy atoms.
+    """
+    if '\n' in inp:
         molxyz = gto.fromstring(inp)
     else:
         molxyz = gto.fromfile(inp)
 
     if parse_comment:
-        if read_string:
+        if '\n' in inp:
             comment_line = inp.split('\n')[1]
         else:
             with open(inp) as f:
-                _ = f.readline()
-                comment_line = f.readline()
+                _, comment_line = f.readline(), f.readline()
         props = xyz_comment_line_parser(comment_line)
     else:
-        props = [None]
+        props = {}
 
-    # Define attributes to the Mole object and build it
     mol = gto.Mole()
     mol.atom = molxyz
     mol.basis = basis
+    if ecp is not None:
+        mol.ecp = ecp
 
-    # Check the units for the pyscf driver
     if unit is not None:
         pass
     elif 'unit' in props:
@@ -128,7 +137,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
         unit = 'Angstrom'
     unit = unit.upper()[0]
     if unit not in ['B', 'A']:
-        raise RuntimeError("Unknown units (use Ängstrom or Bohr)")
+        raise RuntimeError("Unknown units (use A[ngstrom] or B[ohr])")
     mol.unit = unit
 
     if ignore:
@@ -142,8 +151,6 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
         elif 'charge' in props:
             mol.charge = props['charge']
         else:
-            # no ignore, no charge/spin specified:
-            # let's hope we have a set of neutral, closed shell compounds!
             mol.charge = 0
 
         if spin is not None:
@@ -152,9 +159,6 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
             mol.spin = props['spin']
         else:
             mol.spin = 0
-
-    if ecp is not None:
-        mol.ecp = ecp
 
     mol.build()
     species_charges = [data.elements.charge(z) for z in mol.elements]
@@ -165,51 +169,45 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
 
 
 def mol_to_xyz(mol, fout, fmt="xyz"):
-    """Converts a pyscf Mole object into a molecular file in xyz format.
+    """Convert a pyscf Mole object into a molecular file in xyz format.
 
     Args:
-        pyscf Mole: pyscf Mole object.
+        mol (pyscf.gto.Mole): pyscf Mole object.
         fout (str): Name (including path) of the xyz file to write.
+        fmt (str): Output format. Defaults to "xyz".
 
     Returns:
-        A file in xyz format containing the charge, total spin and molecular coordinates.
-    """
+        str: String containing the xyz formatted data.
 
+    Raises:
+        NotImplementedError: If fmt is not "xyz".
+    """
     fmt = fmt.lower()
+    output = []
     if fmt == "xyz":
         coords = mol.atom_coords() * constants.BOHR2ANGS
-        output = []
-        if fmt == "xyz":
-            output.append(str(mol.natm))
-            output.append(f"{mol.charge} {mol.multiplicity}")
-
-        for i in range(mol.natm):
-            symb = mol.atom_pure_symbol(i)
-            x, y, z = coords[i]
-            output.append(f"{symb:4s} {x:14.5f} {y:14.5f} {z:14.5f}")
-        string = "\n".join(output)
-
+        output.append(f"{mol.natm}\n{mol.charge} {mol.multiplicity}")
+        output.extend([f"{mol.atom_pure_symbol(i):4s} {r[0]:14.5f} {r[1]:14.5f} {r[2]:14.5f}" for i, r in enumerate(coords)])
+        output = "\n".join(output)
     else:
         raise NotImplementedError
 
     with open(fout, "w") as f:
-        f.write(string)
-        f.write("\n")
-    return string
+        f.write(output+"\n")
+    return output
 
 
 def make_auxmol(mol, basis, copy_ecp=False):
-    """Builds an auxiliary Mole object given a basis set and a pyscf Mole object.
+    """Build an auxiliary Mole object given a basis set and a pyscf Mole object.
 
     Args:
-        mol (pyscf Mole): Original pyscf Mole object.
+        mol (pyscf.gto.Mole): Original pyscf Mole object.
         basis (str or dict): Basis set.
+        copy_ecp (bool): Whether to copy ECP from original molecule. Defaults to False.
 
     Returns:
-        An auxiliary pyscf Mole object.
+        pyscf.gto.Mole: Auxiliary pyscf Mole object.
     """
-
-    # Define attributes to the auxiliary Mole object and build it
     auxmol = gto.Mole()
     auxmol.atom = mol.atom
     auxmol.charge = mol.charge
@@ -218,103 +216,105 @@ def make_auxmol(mol, basis, copy_ecp=False):
     if copy_ecp:
         auxmol.ecp = mol.ecp
     auxmol.build()
-
     return auxmol
 
 
 def rotate_molecule(mol, a, b, g, rad=False):
-    """Rotate a molecule: transform nuclear coordinates given a set of Euler angles.
+    """Rotate a molecule: transform nuclear coordinates given a set of Cardan angles.
 
     Args:
-        mol (pyscf Mole): Original pyscf Mole object.
+        mol (pyscf.gto.Mole): Original pyscf Mole object.
         a (float): Alpha Euler angle.
         b (float): Beta Euler angle.
         g (float): Gamma Euler angle.
-        rad (bool) : Wheter the angles are in radians or not.
-
+        rad (bool): Whether the angles are in radians. Defaults to False (degrees).
 
     Returns:
-        A pyscf Mole object with transformed coordinates.
+        pyscf.gto.Mole: pyscf Mole object with transformed coordinates.
     """
-
-    orig_coords = mol.atom_coords()
-    rotated_coords = orig_coords @ rotate_euler(a, b, g, rad) * constants.BOHR2ANGS
-    atom_types = mol.elements
-
+    rotated_coords = mol.atom_coords() @ rotate_euler(a, b, g, rad) * constants.BOHR2ANGS
     rotated_mol = gto.Mole()
-    rotated_mol.atom = list(zip(atom_types, rotated_coords.tolist(), strict=True))
+    rotated_mol.atom = [*zip(mol.elements, rotated_coords, strict=True)]
     rotated_mol.charge = mol.charge
     rotated_mol.spin = mol.spin
     rotated_mol.basis = mol.basis
+    rotated_mol.ecp = mol.ecp
     rotated_mol.build()
-
     return rotated_mol
 
 
-
 def fragments_read(frag_file):
-    """Loads fragement definition from a frag file.
+    """Load fragment definition from a file.
 
     Args:
-        frag_file (str): Name (including path) of the frag file to read.
+        frag_file (str): Path to the fragment file containing space-separated atom indices (1-based).
 
     Returns:
-        A list of arrays containing the fragments.
+        list: List of numpy arrays containing the fragment indices.
     """
     with open(frag_file) as f:
         fragments = [np.fromstring(line, dtype=int, sep=' ')-1 for line in f]
     return fragments
 
+
 def fragment_partitioning(fragments, prop_atom_inp, normalize=True):
-    """Computes the contribution of each fragment.
+    """Compute the contribution of each fragment.
 
     Args:
-        fragments (numpy ndarray): Fragment definition
-        prop_atom_inp (list of arrays or array): Coefficients densities.
-        normalize (bool): Normalized fragment partitioning. Defaults to True.
+        fragments (list): Fragment definition as list of numpy arrays.
+        prop_atom_inp (numpy.ndarray or list of numpy.ndarray): Atomic contributions to property(ies).
+        normalize (bool): Whether to normalize fragment partitioning. Defaults to True.
 
     Returns:
-        A list of arrays or an array containing the contribution of each fragment.
+        list or numpy.ndarray: Contribution of each fragment. Returns list if input was list, array otherwise.
     """
-
-    if type(prop_atom_inp) is list:
-        props_atom = prop_atom_inp
-    else:
-        props_atom = [prop_atom_inp]
+    props_atom = prop_atom_inp if type(prop_atom_inp) is list else [prop_atom_inp]
 
     props_frag = []
     for prop_atom in props_atom:
-        prop_frag = np.zeros(len(fragments))
-        for i, k in enumerate(fragments):
-            prop_frag[i] = prop_atom[k].sum()
-            prop_frag[i] = prop_atom[k].sum()
+        prop_frag = np.array([prop_atom[k].sum() for i, k in enumerate(fragments)])
+        if normalize:
+            prop_frag *= 100.0 / prop_frag.sum()
         props_frag.append(prop_frag)
 
-    if normalize:
-        for i, prop_frag in enumerate(props_frag):
-            tot = prop_frag.sum()
-            props_frag[i] *= 100.0 / tot
-
-    if type(prop_atom_inp) is list:
-        return props_frag
-    else:
-        return props_frag[0]
+    return props_frag if type(prop_atom_inp) is list else props_frag[0]
 
 
-def make_atom(q, basis):
+def make_atom(q, basis, ecp=None):
+    """Create a single-atom molecule at the origin.
+
+    Args:
+        q (str): Element symbol.
+        basis (str or dict): Basis set.
+        ecp (str): ECP to use. Defaults to None.
+
+    Returns:
+        pyscf.gto.Mole: Single-atom pyscf Mole object.
+    """
     mol = gto.Mole()
     mol.atom = q + " 0.0 0.0 0.0"
     mol.charge = 0
     mol.spin = data.elements.ELEMENTS_PROTON[q] % 2
     mol.basis = basis
+    if ecp is not None:
+        mol.ecp = ecp
     mol.build()
     return mol
 
+
 def singleatom_basis_enumerator(basis):
-    """Enumerates the different tensors of atomic orbitals within a 1-atom basis set
-    Each tensor is a $2l+2$-sized group of orbitals that share a radial function and $l$ value.
-    For each tensor, return the values of $l$, $n$ (an arbitrary radial-function counter that starts at 0),
-    as well as AO range
+    """Enumerate the different tensors of atomic orbitals within a 1-atom basis set.
+
+    Each tensor is a 2l+1-sized group of orbitals that share a radial function and l value.
+
+    Args:
+        basis (list): Basis set definition in pyscf format.
+
+    Returns:
+        tuple: A tuple containing:
+        - l_per_bas (list): Angular momentum quantum number l for each basis shell.
+        - n_per_bas (list): Radial function counter n (starting at 0) for each basis shell.
+        - ao_starts (list): Starting index in AO array for each basis shell.
     """
     ao_starts = []
     l_per_bas = []
@@ -340,3 +340,44 @@ def singleatom_basis_enumerator(basis):
         cursor += msize*n_count
     return l_per_bas, n_per_bas, ao_starts
 
+
+def basis_flatten(mol, return_both=True):
+    """Flatten a basis set definition for AOs.
+
+    Args:
+        mol (pyscf.gto.Mole): pyscf Mole object.
+        return_both (bool): Whether to return both AO info and primitive Gaussian info. Defaults to True.
+
+    Returns:
+        - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
+        - 0: atom index
+        - 1: angular momentum quantum number l
+        - 2: magnetic quantum number m
+        If return_both is True, also returns:
+        - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
+        - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
+        - j: AO index
+        - k: radial function index (padded with zeros if necessary)
+    """
+    x = []
+    y = np.zeros((3, mol.nao), dtype=int)
+    i = 0
+    a = mol.bas_exps()
+    for iat in range(mol.natm):
+        for bas_id in mol.atom_shell_ids(iat):
+            l = mol.bas_angular(bas_id)
+            n = mol.bas_nctr(bas_id)
+            cs = mol.bas_ctr_coeff(bas_id)
+            msize = 2*l+1
+            if return_both:
+                for c in cs.T:
+                    ac = np.array([a[bas_id], c])
+                    x.extend([ac]*msize)
+            y[:2,i:i+msize*n] = np.array([[iat, l]]*msize*n).T
+            y[2,i:i+msize*n] = [*get_mrange(l)]*n
+            i += msize*n
+    if return_both:
+        x = stack_padding(x).transpose((1,0,2))
+        return y, x
+    else:
+        return y
