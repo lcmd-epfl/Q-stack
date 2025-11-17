@@ -60,13 +60,13 @@ jobs:
         run: make html -C docs/
 
       - name: Upload artifacts
-        #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/build/html/
 
   deploy:
-    #if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
 
