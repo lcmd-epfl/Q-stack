@@ -291,7 +291,7 @@ def _matrix_to_tensormap(mol, dm):
     return tensor
 
 
-def _tensormap_to_matrix(mol, tensor):
+def _tensormap_to_matrix(mol, tensor, fast=False):
     """Transform a tensor map into a matrix.
 
     The output matrix will be in the GPR order.
@@ -299,6 +299,8 @@ def _tensormap_to_matrix(mol, tensor):
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         tensor (metatensor.TensorMap): tensor to transform.
+        fast (bool): Whether to use a faster approach using assumptions
+            on the internal ordering of the TensorMap. Default is False.
 
     Returns:
         numpy.ndarray: 2D array (matrix) representation.
@@ -313,28 +315,55 @@ def _tensormap_to_matrix(mol, tensor):
     dm = np.zeros((mol.nao, mol.nao))
     atom_charges = numbers(mol)
     llists = _get_llist(mol)
-    i1 = 0
-    for iat1, q1 in enumerate(atom_charges):
-        llist1 = llists[q1]
-        il1 = dict.fromkeys(range(max(llist1) + 1), 0)
-        for l1 in llist1:
-            for m1 in range(-l1, l1+1):
+
+    if fast:
+        nsizes = {q: np.unique(llist, return_counts=True)[1] for q, llist in llists.items()}
+        idx = {}
+        i = 0
+        for iat, q in enumerate(atom_charges):
+            idx[iat] = np.zeros_like(nsizes[q])
+            for l, n in enumerate(nsizes[q]):
+                idx[iat][l] = i
+                i += (2*l+1) * n
+
+        for (l1, l2, q1, q2), block in tensor.items():
+            msize1 = 2*l1+1
+            msize2 = 2*l2+1
+            nsize1 = nsizes[q1][l1]
+            nsize2 = nsizes[q2][l2]
+            ac1 = np.count_nonzero(atom_charges==q1)
+            ac2 = np.count_nonzero(atom_charges==q2)
+            values = block.values.reshape((ac1, ac2, msize1, msize2, nsize1, nsize2))
+            for iiat1, iat1 in enumerate(np.where(atom_charges==q1)[0]):
+                for iiat2, iat2 in enumerate(np.where(atom_charges==q2)[0]):
+                    i1 = idx[iat1][l1]
+                    i2 = idx[iat2][l2]
+                    dm[i1:i1+nsize1*msize1,i2:i2+nsize2*msize2] = values[iiat1,iiat2].transpose((2,0,3,1)).reshape((nsize1*msize1,nsize2*msize2))
+    else:
+        i1 = 0
+        for iat1, q1 in enumerate(atom_charges):
+            llist1 = llists[q1]
+            il1 = np.zeros(max(llist1)+1, dtype=int)
+            for l1 in llist1:
+                msize1 = 2 * l1 + 1
                 i2 = 0
                 for iat2, q2 in enumerate(atom_charges):
                     llist2 = llists[q2]
-                    il2 = dict.fromkeys(range(max(llist2) + 1), 0)
+                    il2 = np.zeros(max(llist2)+1, dtype=int)
                     for l2 in llist2:
+                        msize2 = 2 * l2 + 1
                         block = tensor.block(o3_lambda1=l1, o3_lambda2=l2, center_type1=q1, center_type2=q2)
                         id_samp = block.samples.position((iat1, iat2))
                         id_prop = block.properties.position((il1[l1], il2[l2]))
-                        for m2 in range(-l2, l2+1):
-                            id_comp1 = block.components[0].position((m1,))
-                            id_comp2 = block.components[1].position((m2,))
-                            dm[i1, i2] = block.values[id_samp, id_comp1, id_comp2, id_prop]
-                            i2 += 1
+                        for m1 in range(-l1, l1+1):
+                            for m2 in range(-l2, l2+1):
+                                id_comp1 = block.components[0].position((m1,))
+                                id_comp2 = block.components[1].position((m2,))
+                                dm[i1+m1+l1,i2+m2+l2] = block.values[id_samp, id_comp1, id_comp2, id_prop]
+                        i2 += msize2
                         il2[l2] += 1
-                i1 += 1
-            il1[l1] += 1
+                i1 += msize1
+                il1[l1] += 1
     return dm
 
 
@@ -364,7 +393,7 @@ def array_to_tensormap(mol, v, src='pyscf'):
         raise ValueError(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
 
 
-def tensormap_to_array(mol, tensor, dest='pyscf'):
+def tensormap_to_array(mol, tensor, dest='pyscf', fast=False):
     """Transform a tensor map into an array.
 
     Wrapper for _tensormap_to_vector and _tensormap_to_matrix.
@@ -374,6 +403,8 @@ def tensormap_to_array(mol, tensor, dest='pyscf'):
         mol (pyscf.gto.Mole): pyscf Mole object.
         tensor (metatensor.TensorMap): Tensor to transform.
         dest (str): Destination AO ordering of the output array. Default is 'pyscf'.
+        fast (bool): Whether to use a faster approach for matrix conversion
+            using assumptions on the internal ordering of the TensorMap. Default is False.
 
     Returns:
         numpy.ndarray: Array representation (1D vector or 2D matrix).
@@ -384,7 +415,7 @@ def tensormap_to_array(mol, tensor, dest='pyscf'):
     if tensor.keys.names==vector_label_names.tm:
         v = _tensormap_to_vector(mol, tensor)
     elif tensor.keys.names==matrix_label_names.tm:
-        v = _tensormap_to_matrix(mol, tensor)
+        v = _tensormap_to_matrix(mol, tensor, fast=fast)
     else:
         raise RuntimeError('Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
     return reorder_ao(mol, v, src='gpr', dest=dest)
