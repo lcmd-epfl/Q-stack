@@ -116,27 +116,27 @@ def get_model(arg):
         tuple: (density_fitting_function, symmetrization_function) pair.
             - density_fitting_function (callable): Function performing density fitting.
 
-            Args:
-                mol (pyscf Mole): Molecule object.
-                dm (numpy ndarray): Density matrix (2D).
-                auxbasis (str or dict): Auxiliary basis set.
-                only_i (list[int]): List of atom indices to use.
+              Args:
+                  mol (pyscf Mole): Molecule object.
+                  dm (numpy ndarray): Density matrix (2D).
+                  auxbasis (str or dict): Auxiliary basis set.
+                  only_i (list[int]): List of atom indices to use.
 
-            Returns:
-                c (numpy ndarray or list): Density fitting coefficients (1D).
+              Returns:
+                  c (numpy ndarray or list): Density fitting coefficients (1D).
 
             - symmetrization_function (callable): Function for symmetrizing coefficients.
 
-            Args:
-                c (numpy ndarray): Density fitting coefficients (1D).
-                mol (pyscf Mole): Molecule object.
-                idx (dict): Pair indices per element.
-                ao (dict): Angular momentum info per element.
-                ao_len (dict): Basis set sizes per element.
-                M (dict): Metric matrices per element (2D numpy ndarrays).
+              Args:
+                  c (numpy ndarray): Density fitting coefficients (1D).
+                  mol (pyscf Mole): Molecule object.
+                  idx (dict): Pair indices per element.
+                  ao (dict): Angular momentum info per element.
+                  ao_len (dict): Basis set sizes per element.
+                  M (dict): Metric matrices per element (2D numpy ndarrays).
 
-            Returns:
-                v (list or numpy ndarray): Symmetrized atomic feature vectors.
+              Returns:
+                  v (list or numpy ndarray): Symmetrized atomic feature vectors.
 
     Raises:
         RuntimeError: If model name is not recognized.

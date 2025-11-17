@@ -19,8 +19,8 @@ def get_guess_orbitals(mol, guess, xc="pbe", field=None, return_ao_dip=False):
     Returns:
         tuple: Depending on return_ao_dip:
         - If False: (e, v) where:
-        - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues.
-        - v (numpy ndarray): 2D array (nao, nao) of MO coefficients.
+          - e (numpy ndarray): 1D array (nao,) of orbital eigenvalues.
+          - v (numpy ndarray): 2D array (nao, nao) of MO coefficients.
         - If True: (e, v, ao_dip) where ao_dip is 3D array (3, nao, nao) of AO dipole integrals
             if field is not None, else None.
 
