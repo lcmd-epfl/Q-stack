@@ -42,7 +42,7 @@ docstring-code-line-length = "dynamic"
 
 [lint]
 
-
+allowed-confusables = ["ρ", "×", "–", "γ"]
 
 select = [
   "A", "E", "F", "B",
@@ -55,8 +55,6 @@ ignore = [
 "E741",     # ambiguous variable name
 "E731",     # do not assign lambda expression
 "E501",     # line length
-"RUF003",   # `×` in comments
-"RUF002",   # `–` in comments
 "RUF015",   # single element slice
 "SIM3",     # yoda condition
 "SIM114",   # combine if branches

@@ -6,28 +6,12 @@ Q-stack
 <p align="center"><img alt="qstack logo" align="center" src="./images/logo.png" width=66%></p>
 
 
-## Contents
-* [Contents](#Contents-)
-* [About](#about-)
-* [Install](#install-)
-* [Examples](#examples-)
-* [References](#references-)
-* [Acknowledgements](#acknowledgements-)
+## About
 
-## About [↑](#contents)
+Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML).
+It is a work in progress. Stay tuned for updates!
 
-Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML). It is a work in progress. Stay tuned for updates!
-
-For now, we link to the relevant packages that will be incorporated (among others):
-- [x] https://github.com/lcmd-epfl/azo-xcite-tools
-- [x] https://github.com/lcmd-epfl/SPAHM
-- [x] https://github.com/lcmd-epfl/SPAHM-RHO
-- [x] https://github.com/lcmd-epfl/RHO-Decomposition
-- [ ] https://github.com/lcmd-epfl/ml-density
-- [x] https://github.com/lcmd-epfl/OTPD-basis
-- [x] https://github.com/lcmd-epfl/b2r2-reaction-rep
-
-## Install [↑](#contents)
+## Install
 
 The installation of the library for python use can be done executing one of the following commands:
 
@@ -39,6 +23,19 @@ python -m pip install "qstack[all] @ git+https://github.com/lcmd-epfl/Q-stack.gi
 
 The last one is recommended if you do not know which features you wish to use, since they pull the dependencies required with all 'optional' parts of Q-stack.
 
+### Features:
+
+| feature | capability  |
+|---|---|
+| `[pyscf]` | quantum-chemical computations, wrappers, and conversion tools |
+| `[qml]` | stucture-based representations such as SLATM, SLATM_d, B2R2 (no quantum chemistry) |
+| `[spahm]` | SPAHM (ε-SPAHM, SPAHM(a,b)) representations |
+| `[cell2mol]` | interface with [cell2mol](https://github.com/lcmd-epfl/cell2mol) |
+| `[equio]`   | interface with [metatensor](https://github.com/metatensor/metatensor) |
+| `[regression]` | tools to run kernel ridge regression (no quantum chemistry) | 
+| `[wigner]` | tool to compute Wigner d-matrices for real spherical harmonics |
+
+
 If you want to be able to edit Q-stack's code after installing, you need to download it yourself, for instance with this series of commands
 
 ```bash
@@ -46,7 +43,7 @@ git clone https://github.com/lcmd-epfl/Q-stack
 cd Q-stack
 
 #optionally, run the following line, if you want to be extra-careful about reproducibility, by installing a well-known version of all dependencies
-python -m pip install -r requirements.py3.11.txt   # (or "requirements.py3.9.txt" if you have an older version of python and that first file doesn't work)
+python -m pip install -r requirements.py3.13.txt   # (or "requirements.py3.{9,11}.txt" if you have an older version of python and that first file doesn't work)
 
 python -m pip install -e .[all]    # note: this translates as "install as '-e'ditable, install from this directory ('.'), with optional feature 'all'"
 ```
@@ -54,29 +51,57 @@ python -m pip install -e .[all]    # note: this translates as "install as '-e'di
 For the optional step above, we also have an `environment.yml` file available, if you prefer working with conda environments.
 
 
-## Examples [↑](#contents)
-Q-stack comes with several example codes that illustrate some of its key capabilities. To run the examples, go to the example folder and run the following commands:
+## Examples
+Q-stack comes with several example codes that illustrate some of its key capabilities.
+Check out the `examples/` and `tests/` folders:
 
-- Field decomposition:
-```
-python example_deco.py
-```
-- Computation of Hirshfeld charges:
-```
-python example_hirsh.py
-```
-- Basis set optimization:
-```
-python example_opt.py
-```
-- Generation of the SPAHM representation:
-```
-python example_SPAHM.py
-```
-- An example for the structure-based reaction representations ($B^2R^2$ and $\mathrm{SLATM}_d$) will follow shortly
+* Field decomposition:
+  - [`examples/example_deco.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/examples/example_deco.py)
+  - [`tests/test_fitting.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_fitting.py)
+
+* Computation of Hirshfeld charges:
+  - [`examples/example_hirsh.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/examples/example_hirsh.py)
+
+* Basis set optimization:
+  - [`examples/example_opt.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/examples/example_opt.py)
+
+* Generation of the ε-SPAHM representation:
+  - [`examples/example_SPAHM.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/examples/example_SPAHM.py)
+  - [`tests/test_spahm.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_spahm.py)
+  - [`tests/test_spahm_grad.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_spahm_grad.py)
+
+* Generation of the SPAHM(a,b) representations:
+  - [`tests/test_spahm_a.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_spahm_a.py)
+  - [`tests/test_spahm_b.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_spahm_b.py)
+  - [`tests/test_spahm_b_selected.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_spahm_b_selected.py)
+
+* Reaction representations ($B^2R^2$ and $\mathrm{SLATM}_d$):
+  - [`tests/test_rxn-repr.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_rxn-repr.py)
+
+* Computation of DORI (density overlap regions indicator):
+  - [`tests/test_dori.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_dori.py)
+
+* Interface with [cell2mol](https://github.com/lcmd-epfl/cell2mol):
+  - [`tests/test_c2mio.py`](https://github.com/lcmd-epfl/Q-stack/tree/master/tests/test_c2mio.py)
+
+* Parsing ORCA binary output:
+  - [`examples/example_orcaio.py`](https://github.com/lcmd-epfl/tree/master/examples/example_orcaio.py)
+  - [`tests/test_orca.py`](https://github.com/lcmd-epfl/tree/master/tests/test_orca.py)
 
 
-## References [↑](#contents)
+## Sources
+
+Relevant packages incorporated (among others):
+* [https://github.com/lcmd-epfl/azo-xcite-tools](https://github.com/lcmd-epfl/azo-xcite-tools)
+* [https://github.com/lcmd-epfl/SPAHM](https://github.com/lcmd-epfl/SPAHM)
+* [https://github.com/lcmd-epfl/SPAHM-RHO](https://github.com/lcmd-epfl/SPAHM-RHO)
+* [https://github.com/lcmd-epfl/RHO-Decomposition](https://github.com/lcmd-epfl/RHO-Decomposition)
+* [https://github.com/lcmd-epfl/OTPD-basis](https://github.com/lcmd-epfl/OTPD-basis)
+* [https://github.com/lcmd-epfl/b2r2-reaction-rep](https://github.com/lcmd-epfl/b2r2-reaction-rep)
+* [https://github.com/lcmd-epfl/ml-density](https://github.com/lcmd-epfl/ml-density)
+
+
+## References
 
 * A. Fabrizio, A. Grisafi, B. Meyer, M. Ceriotti, and C. Corminboeuf,
   “Electron density learning of non-covalent systems”,
@@ -114,7 +139,7 @@ python example_SPAHM.py
   [![DOI](https://img.shields.io/badge/DOI-10.1088/2632--2153/ac8f1a-blue)](https://doi.org/10.1088/2632-2153/ac8f1a)
 
 
-## Acknowledgements [↑](#contents)
+## Acknowledgements
 The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR)
 "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" 
 of the Swiss National Science Foundation (SNSF, grant number 182892)

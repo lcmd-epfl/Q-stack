@@ -55,12 +55,17 @@ def condition(X, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
     return cond
 
 
-def main():
-    """Command-line entry point for computing kernel matrix condition numbers."""
+def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program computes the condition number for the kernel matrix.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')
-    args = parser.parse_args()
+    return parser
+
+
+def main():
+    """Command-line entry point for computing kernel matrix condition numbers."""
+    args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):
         correct_num_threads()

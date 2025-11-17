@@ -9,6 +9,11 @@ __pycache__/
 # C extensions
 *.so
 
+# docs
+docs/source/qstack
+docs/source/index.rst
+docs/build/
+
 # Distribution / packaging
 .Python
 build/
@@ -73,6 +78,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/build/
+docs/source/qstack
 
 # PyBuilder
 target/

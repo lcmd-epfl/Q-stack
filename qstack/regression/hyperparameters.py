@@ -136,12 +136,17 @@ def hyperparameters(X, y,
     return errors
 
 
-def main():
-    """Command-line entry point for hyperparameter optimization."""
+def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
     parser.remove_argument("random_state")
     parser.remove_argument("train_size")
-    args = parser.parse_args()
+    return parser
+
+
+def main():
+    """Command-line entry point for hyperparameter optimization."""
+    args = _get_arg_parser().parse_args()
     if(args.readk):
         args.sigma = [np.nan]
     print(vars(args))

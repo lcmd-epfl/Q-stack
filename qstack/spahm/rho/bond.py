@@ -8,6 +8,11 @@ from .compute_rho_spahm import get_repr
 from .parser import SpahmParser
 
 
+def _get_arg_parser():
+    """Parse CLI arguments."""
+    return SpahmParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof', unified=True, bond=True)
+
+
 def main(args=None):
     """Command-line interface for computing SPAHM(b) bond representations.
 
@@ -20,8 +25,7 @@ def main(args=None):
     Output:
         Saves representations to numpy files with names based on --name argument.
     """
-    parser = SpahmParser(description='This program computes the SPAHM(b) representation for a given molecular system or a list of thereof', unified=True, bond=True)
-    args = parser.parse_args(args=args)
+    args = _get_arg_parser().parse_args(args=args)
     if args.print>0:
         print(vars(args))
     correct_num_threads()

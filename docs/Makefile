@@ -1,6 +1,3 @@
-# Minimal makefile for Sphinx documentation
-#
-
 # You can set these variables from the command line, and also
 # from the environment for the first two.
 SPHINXOPTS    ?=
@@ -11,6 +8,16 @@ BUILDDIR      = build
 # Put it first so that "make" without argument is like "make help".
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+docs:
+	make build-src
+	make html
+
+clean-src:
+	@rm -rfv source/qstack/ source/index.rst
+
+build-src:
+	@python generate_rst.py ../qstack/ -o source/ --project "Qstack" --package-root-name qstack
 
 .PHONY: help Makefile
 

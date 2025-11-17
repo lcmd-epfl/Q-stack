@@ -59,19 +59,8 @@ def get_spahm_b_selected(mols, bondidx, xyzlist,
     return vecs
 
 
-def main():
-    """Command-line interface for computing SPAHM(b) representations for specific bonds.
-
-    Reads a file listing XYZ structures and bond indices, computes representations
-    for each specified bond, and saves them to individual files. The input file format
-    is: XYZ_path atom1_index atom2_index (1-indexed).
-
-    Args:
-        None: Parses command-line arguments.
-
-    Output:
-        Saves bond representations to numpy files in specified directory.
-    """
+def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = SpahmParser(description='This program computes the SPAHM(b) representation for a list of bonds', bond=True)
     parser.remove_argument('elements')
     parser.remove_argument('only_z')
@@ -86,8 +75,23 @@ def main():
     parser.add_argument('--charge',  type=str,    dest='charge',    default=None,     help='file with a list of charges')
     parser.add_argument('--spin',    type=str,    dest='spin',      default=None,     help='file with a list of numbers of unpaired electrons')
     parser.add_argument('--dir',     type=str,    dest='dir',       default='./',     help='directory to save the output in')
+    return parser
 
-    args = parser.parse_args()
+
+def main():
+    """Command-line interface for computing SPAHM(b) representations for specific bonds.
+
+    Reads a file listing XYZ structures and bond indices, computes representations
+    for each specified bond, and saves them to individual files. The input file format
+    is: XYZ_path atom1_index atom2_index (1-indexed).
+
+    Args:
+        None: Parses command-line arguments.
+
+    Output:
+        Saves bond representations to numpy files in specified directory.
+    """
+    args = _get_arg_parser().parse_args()
     if args.print>0:
         print(vars(args))
     correct_num_threads()

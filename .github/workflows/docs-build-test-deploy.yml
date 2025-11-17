@@ -1,11 +1,4 @@
-name: Python Package with caching
-
-# taken from https://github.com/epassaro/cache-conda-envs
-
-# cancel any previous running or pending jobs from the same branch
-concurrency:
-  group: python-package-conda-cache-${{ github.head_ref }}
-  cancel-in-progress: true
+name: Test documentation build
 
 on:
   push:
@@ -14,9 +7,6 @@ on:
   pull_request:
     branches:
       - '*'
-  schedule:
-    - cron: '0 0 * * 1'
-  workflow_dispatch:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
@@ -24,9 +14,7 @@ env:
 jobs:
   build:
 
-    # https://github.com/orgs/community/discussions/57827
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-
 
     strategy:
       matrix:
@@ -39,9 +27,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Build C
-        run: make -C qstack/regression/lib/
 
       - name: Setup Miniforge
         uses: conda-incubator/setup-miniconda@v2
@@ -62,6 +47,38 @@ jobs:
         run: conda env update -n my-env -f environment.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: Run tests
+      - name: Install documentation requirements
         shell: bash -l {0}
-        run: pytest ./tests
+        run: pip install -r docs/requirements.txt
+
+      - name: Build documentation src
+        shell: bash -l {0}
+        run: make build-src -C docs/
+
+      - name: Build HTML
+        shell: bash -l {0}
+        run: make html -C docs/
+
+      - name: Upload artifacts
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build/html/
+
+  deploy:
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy
+        uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

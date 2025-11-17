@@ -222,6 +222,13 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
     return allvec
 
 
+def _get_arg_parser():
+    """Parse CLI arguments."""
+    parser = SpahmParser(description='This program computes the SPAHM(a,b) representations for a given molecular system or a list thereof', unified=True, atom=True, bond=True)
+    parser.add_argument('--rep',  dest='rep',  type=str, choices=['atom', 'bond'], required=True, help='the type of representation')
+    return parser
+
+
 def main(args=None):
     """Command-line interface for computing SPAHM representations (atom or bond centered).
 
@@ -234,9 +241,7 @@ def main(args=None):
     Output:
         Saves representations to numpy files based on --name argument and options.
     """
-    parser = SpahmParser(description='This program computes the SPAHM(a,b) representations for a given molecular system or a list thereof', unified=True, atom=True, bond=True)
-    parser.add_argument('--rep',  dest='rep',  type=str, choices=['atom', 'bond'], required=True, help='the type of representation')
-    args = parser.parse_args(args=args)
+    args = _get_arg_parser().parse_args(args=args)
     if args.print>0:
         print(vars(args))
     correct_num_threads()

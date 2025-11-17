@@ -43,8 +43,8 @@ def oos(X, X_oos, alpha, sigma=defaults.sigma,
     return y
 
 
-def main():
-    """Command-line entry point for out-of-sample predictions."""
+def _get_arg_parser():
+    """Parse CLI arguments."""
     parser = RegressionParser(description='This program makes prediction for OOS.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('train_size')
@@ -52,7 +52,12 @@ def main():
     parser.remove_argument('eta')
     parser.add_argument('--x-oos',  type=str, dest='x_oos',  required=True,  help='path to the OOS representations file')
     parser.add_argument('--alpha',  type=str, dest='alpha',  required=True,  help='path to the regression weights file')
-    args = parser.parse_args()
+    return parser
+
+
+def main():
+    """Command-line entry point for out-of-sample predictions."""
+    args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):
         correct_num_threads()
