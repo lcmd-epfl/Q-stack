@@ -26,7 +26,7 @@ def kernel(X, Y=None, sigma=defaults.sigma, akernel=defaults.kernel, gkernel=def
     return K
 
 
-def main():
+def _get_arg_parser():
     parser = RegressionParser(description='This program computes kernel.', hyperparameters_set='single')
     parser.remove_argument('prop')
     parser.remove_argument('test_size')
@@ -36,7 +36,10 @@ def main():
     parser.remove_argument('random_state')
     parser.remove_argument('eta')
     parser.add_argument('--dir',  type=str, dest='dir',  default='./',  help='directory to save the output in')
-    args = parser.parse_args()
+    return parser
+
+def main():
+    args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):
         correct_num_threads()

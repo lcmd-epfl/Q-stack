@@ -5,7 +5,6 @@ from qstack.tools import correct_num_threads
 from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
 from .utils import defaults
-from .parser import SpahmParser
 
 
 def spahm_a_b(rep_type, mols, dms,
@@ -211,10 +210,14 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
 
     return allvec
 
-def main(args=None):
+def _get_arg_parser():
+    from qstack.spahm.rho.parser import SpahmParser
     parser = SpahmParser(description='This program computes the SPAHM(a,b) representations for a given molecular system or a list thereof', unified=True, atom=True, bond=True)
     parser.add_argument('--rep',  dest='rep',  type=str, choices=['atom', 'bond'], required=True, help='the type of representation')
-    args = parser.parse_args(args=args)
+    return parser
+
+def main(args=None):
+    args = _get_arg_parser().parse_args(args=args)
     if args.print>0:
         print(vars(args))
     correct_num_threads()

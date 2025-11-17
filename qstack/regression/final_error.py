@@ -70,11 +70,14 @@ def final_error(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
         return aes
 
 
-def main():
+def _get_arg_parser():
     parser = RegressionParser(description='This program computes the full-training error for each molecule.', hyperparameters_set='single')
     parser.remove_argument('train_size')
     parser.add_argument('--save-alpha', type=str,   dest='save_alpha',  default=None,  help='file to write the regression coefficients to')
-    args = parser.parse_args()
+    return parser
+
+def main():
+    args = _get_arg_parser().parse_args()
     print(vars(args))
     if(args.ll):
         correct_num_threads()

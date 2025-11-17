@@ -83,15 +83,16 @@ def cv_results(X, y,
         np.savetxt(f"{preffix}_{n_rep}-predictions.txt", pred_mean.T)
     return lc
 
-
-def main():
+def _get_arg_parser():
     parser = RegressionParser(description='This program runs a full cross-validation of the learning curves (hyperparameters search included).', hyperparameters_set='array')
     parser.remove_argument('random_state')
     parser.add_argument('--n',          type=int,            dest='n_rep',     default=defaults.n_rep,  help='the number of repetition for each point')
     parser.add_argument('--save',       action='store_true', dest='save_all',  default=False,           help='if saving intermediate results in .npy file')
     parser.add_argument('--save-pred',  action='store_true', dest='save_pred', default=False,           help='if save test-set prediction')
+    return parser
 
-    args = parser.parse_args()
+def main():
+    args = _get_arg_parser().parse_args()
     if(args.readk):
         args.sigma = [np.nan]
     if(args.ll):
