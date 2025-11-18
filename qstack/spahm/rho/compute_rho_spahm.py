@@ -146,8 +146,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
     else:
         all_atoms   = [mol.elements for mol in mols]
 
-    spin = np.array(spin)  # a bit dirty but couldn't find a better way to ensure Iterable type!
-    if (spin == None).all():
+    if (np.asarray(spin) == None).all():
         omods = [None]
 
     allvec  = spahm_a_b(rep_type, mols, dms, bpath, cutoff, omods,
