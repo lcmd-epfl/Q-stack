@@ -2,15 +2,81 @@
 
 Provides:
     local_kernels_dict: Dictionary mapping kernel names to their implementations.
+    RAM_BATCHING_SIZE: Max. RAM (in bytes) that can be used for batched compuation
+        of Manhattan distance matrix for L_custom_py kernel. Can be modified before call
+        using `local_kernels.RAM_BATCHING_SIZE = ...`.
 """
 
 import os
 import ctypes
 import sysconfig
 import warnings
+import itertools
 import numpy as np
 import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
 from qstack.regression import __path__ as REGMODULE_PATH
+
+
+RAM_BATCHING_SIZE = 1024**3 * 5  # 5GiB
+
+
+def compute_distance_matrix(R1, R2):
+    """Compute the Manhattan-distance matrix.
+
+    This computes (||r_1 - r_2||_1) between the samples of R1 and R2,
+    using a batched python/numpy implementation,
+    designed to be more memory-efficient than a single numpy call and faster than a simple python for loop.
+
+    This function is a batched-over-R1 implementation of the following code:
+    `return np.sum( (R1[:,None, ...]-R2[None,:, ...])**2, axis=tuple(range(2, R1.ndim)))`
+
+    Args:
+        R1 (numpy ndarray): First set of samples (can be multi-dimensional).
+        R2 (numpy ndarray): Second set of samples.
+
+    Returns:
+        numpy ndarray: squared-distance matrix of shape (len(R1), len(R2)).
+
+    Raises:
+        RuntimeError: If X and Y have incompatible shapes.
+    """
+    if R1.ndim != R2.ndim or R1.shape[1:] != R2.shape[1:]:
+        raise RuntimeError(f'incompatible shapes for R1 ({R1.shape:r}) and R2 ({R2.shape:r})')
+
+    # determine batch size (batch should divide the larger dimention)
+    if R1.shape[0] < R2.shape[0]:
+        transpose_flag = True
+        R2,R1 = R1,R2
+    else:
+        transpose_flag = False
+    dtype=np.result_type(R1,R2)
+    out = np.zeros((R1.shape[0], R2.shape[0]), dtype=dtype)
+
+    # possible weirdness: how is the layout of dtype done if dtype.alignment != dtype.itemsize?
+    batch_size = int(np.floor(RAM_BATCHING_SIZE/ (dtype.itemsize * np.prod(R2.shape))))
+
+    if batch_size == 0:
+        batch_size = 1
+
+    if min(R1.shape[0],R2.shape[0]) == 0 or batch_size >= R1.shape[0]:
+        dists = R1[:,None]-R2[None,:]
+        #np.pow(dists, 2, out=dists)  # For Euclidean distance
+        np.abs(dists, out=dists)
+        np.sum(dists, out=out, axis=tuple(range(2,dists.ndim)))
+    else:
+        dists = np.zeros((batch_size, *R2.shape), dtype=dtype)
+        batch_limits = np.minimum(np.arange(0, R1.shape[0]+batch_size, step=batch_size), R1.shape[0])
+        for batch_start, batch_end in itertools.pairwise(batch_limits):
+            dists_view = dists[:batch_end-batch_start]
+            R1_view = R1[batch_start:batch_end, None, ...]
+            np.subtract(R1_view, R2[None,:], out=dists_view)
+            #np.pow(dists_view, 2, out=dists_view)  # For Euclidean distance
+            np.abs(dists_view, out=dists_view)
+            np.sum(dists_view, out=out[batch_start:batch_end], axis=tuple(range(2,dists.ndim)))
+
+    if transpose_flag:
+        out = out.T
+    return out
 
 
 def custom_laplacian_kernel(X, Y, gamma):
@@ -31,15 +97,7 @@ def custom_laplacian_kernel(X, Y, gamma):
     """
     if X.shape[1:] != Y.shape[1:]:
         raise RuntimeError(f"Incompatible shapes {X.shape} and {Y.shape}")
-    def cdist(X, Y):
-        K = np.zeros((len(X),len(Y)))
-        for i,x in enumerate(X):
-            x = np.array([x] * len(Y))
-            d = np.abs(x-Y)
-            d = np.sum(d, axis=tuple(range(1, len(d.shape))))
-            K[i,:] = d
-        return K
-    K = -gamma * cdist(X, Y)
+    K = -gamma * compute_distance_matrix(X,Y)
     np.exp(K, out=K)
     return K
 

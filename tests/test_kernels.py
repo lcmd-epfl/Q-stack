@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from qstack.regression import kernel
+from qstack.regression import kernel, local_kernels
 
 
 def test_local_kernels():
@@ -44,5 +44,24 @@ def test_local_kernels():
     assert np.allclose(K, K_cos_good)
 
 
+def test_batched_local_kernels():
+    X = np.array([[0.70043712, 0.84418664, 0.67651434, 0.72785806], [0.95145796, 0.0127032 , 0.4135877 , 0.04881279]])
+    Y = np.array([[0.09992856, 0.50806631, 0.20024754, 0.74415417], [0.192892  , 0.70084475, 0.29322811, 0.77447945]])
+    K_L_good = np.array([[0.48938983, 0.58251676], [0.32374891, 0.31778924]])
+
+    X_huge = np.tile(X, (1000,1000))
+    Y_huge = np.tile(Y, (50,1000))
+    K_L_good_huge = np.tile(K_L_good, (1000,50))
+
+    local_kernels.RAM_BATCHING_SIZE = 1024**2 * 50  # 50MiB
+
+    K = kernel.kernel(X_huge, Y_huge, akernel='L_custom_py', sigma=2.0*1000)
+    assert np.allclose(K, K_L_good_huge)
+
+    K = kernel.kernel(X_huge.reshape((-1, 50, 80)), Y_huge.reshape((-1, 50, 80)), akernel='L_custom_py', sigma=2.0*1000)
+    assert np.allclose(K, K_L_good_huge)
+
+
 if __name__ == '__main__':
     test_local_kernels()
+    test_batched_local_kernels()
