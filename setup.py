@@ -19,6 +19,8 @@ def get_git_version_hash():
     except OSError:
         return VERSION + "+unknown"
     version = p.communicate()[0]
+    if not version.strip():
+        return VERSION + "+unknown"
     print(version)
     return VERSION+'+'+version.strip().decode()
 
