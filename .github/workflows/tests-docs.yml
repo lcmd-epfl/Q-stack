@@ -1,0 +1,154 @@
+name: "Tests and Docs"
+
+# taken from https://github.com/epassaro/cache-conda-envs
+
+# cancel any previous running or pending jobs from the same branch
+concurrency:
+  group: python-package-conda-cache-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+
+  build:
+
+    # do not run twice when push to a branch linked to a PR
+    # https://github.com/orgs/community/discussions/57827
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
+
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3/envs/qstack
+
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+            miniforge-version: latest
+            activate-environment: qstack
+
+      - name: Set cache date
+        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
+
+      - name: Use env cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Update environment
+        run: conda env update -n qstack -f environment.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Build C
+        run: make -C qstack/regression/lib/
+
+      - name: Run tests
+        run: pytest ./tests
+
+
+  # maybe split back into two workflows depending on each other
+
+  build-docs:
+
+    needs: build
+
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3/envs/qstack
+
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+            miniforge-version: latest
+            activate-environment: qstack
+
+      - name: Set cache date
+        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
+
+      - name: Restore doc env cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ hashFiles('docs/requirements.txt') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache-doc
+
+      - name: Restore env cache
+        if: steps.cache-doc.outputs.cache-hit != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.CONDA }}/envs
+          key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          fail-on-cache-miss: true
+        id: cache
+
+      - name: Install documentation requirements
+        if: steps.cache-doc.outputs.cache-hit != 'true'
+        run: pip install -r docs/requirements.txt
+
+      - name: Build documentation src
+        run: make build-src -C docs/
+
+      - name: Build HTML
+        run: make html -C docs/
+
+      - name: Upload artifacts
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build/html/
+
+  deploy:
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    needs: build-docs
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy
+        uses: actions/deploy-pages@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
