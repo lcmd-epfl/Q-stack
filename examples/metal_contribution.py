@@ -6,7 +6,8 @@ import numpy as np
 import scipy
 from pyscf import scf
 from pyscf.data import elements
-from qstack import compound, orcaio, fields
+from qstack import compound, fields
+from qstack.io import orca
 
 
 def dipole_moment(mol, dm):
@@ -73,7 +74,7 @@ if __name__=='__main__':
     mol = compound.xyz_to_mol(xyz, args.basis, ecp=args.basis, parse_comment=True)
     gbw = f'{path}/data/{name}/{name}_{mol.multiplicity}_SPE.gbw'
 
-    c, e, occ = orcaio.read_gbw(mol, gbw)
+    c, e, occ = orca.read_gbw(mol, gbw)
     homo_idx, lumo_idx = get_homo_lumo_idx(occ)
     print_metal_contribution([homo_idx, lumo_idx], c, e, metals, do_checks=args.do_checks)
 

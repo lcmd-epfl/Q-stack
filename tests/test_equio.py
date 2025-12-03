@@ -5,7 +5,8 @@ import tempfile
 import filecmp
 from itertools import starmap
 import numpy as np
-from qstack import compound, equio
+from qstack import compound
+from qstack.io import metatensor as equio
 import metatensor
 
 

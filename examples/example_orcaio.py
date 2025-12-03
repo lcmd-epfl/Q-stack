@@ -3,7 +3,8 @@
 import os
 import argparse
 import numpy as np
-from qstack import compound, orcaio, fields
+from qstack import compound, fields
+from qstack.io import orca
 
 
 def example_orca_reader():
@@ -23,9 +24,9 @@ def example_orca_reader():
     openshell = mol.multiplicity > 1
 
     S = mol.intor('int1e_ovlp_sph')
-    C, _e, occ = orcaio.read_gbw(mol, gbw)
+    C, _e, occ = orca.read_gbw(mol, gbw)
     D1 = fields.dm.make_rdm1(np.squeeze(C), np.squeeze(occ))
-    D2 = orcaio.read_density(mol, name_long, reorder_dest='pyscf',
+    D2 = orca.read_density(mol, name_long, reorder_dest='pyscf',
                              version=version, openshell=openshell, directory=f'{path}/data/{name}')
 
     if openshell:
