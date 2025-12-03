@@ -52,8 +52,8 @@ def get_chsp(fname, n):
     if fname is None:
         return np.full(n, None, dtype=object)
     if os.path.isfile(fname):
-        chsp = np.loadtxt(fname, dtype=object, converters=chsp_converter, encoding=None)
-        if len(chsp)!=n:
+        chsp = np.loadtxt(fname, dtype=object, converters={0: chsp_converter}, encoding=None)
+        if chsp.shape != (n,):
             raise RuntimeError(f'Wrong length of the file {fname}')
     else:
         raise RuntimeError(f"{fname} can not be found")

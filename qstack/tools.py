@@ -4,11 +4,25 @@ Provides decorators, argument parsers, and helper functions for command-line too
 """
 
 import os
+import sys
 import time
 import resource
 import argparse
-import itertools
 import numpy as np
+from itertools import accumulate
+if sys.version_info[1]>=10:
+    from itertools import pairwise
+else:
+    def pairwise(iterable):
+        """Implement itertools.pairwise for python<3.10.
+
+        Taken from https://docs.python.org/3/library/itertools.html#itertools.pairwise
+        """
+        iterator = iter(iterable)
+        a = next(iterator, None)
+        for b in iterator:
+            yield a, b
+            a = b
 
 
 def unix_time_decorator(func):
@@ -115,8 +129,8 @@ def slice_generator(iterable, inc=lambda x: x, i0=0):
         tuple: (element, slice) pairs for each element in the iterable.
     """
     func = func=lambda total, elem: total+inc(elem)
-    starts = itertools.accumulate(iterable, func=func, initial=i0)
-    starts_ends = itertools.pairwise(starts)
+    starts = accumulate(iterable, func=func, initial=i0)
+    starts_ends = pairwise(starts)
     for elem, (start, end) in zip(iterable, starts_ends, strict=True):
         yield elem, np.s_[start:end]
 

@@ -51,7 +51,7 @@ def _orca2gpr_idx(l_slices, m):
         idx[s] = np.concatenate((idx[s][::-2], idx[s][1::2]))
     signs = np.ones_like(idx)
     signs[np.where(np.abs(m)>=3)] = -1  # in pyscf order
-    signs[idx] = signs  # in orca order
+    signs[idx] = np.copy(signs)  # in orca order. copy for numpy < 2
     return idx, signs
 
 

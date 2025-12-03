@@ -5,13 +5,12 @@ packaging==21.3
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.6
-pyscf==2.0.1
+pyscf>=2.1
 pytest==6.2.5
-numpy===1.22.3
+numpy>=1.26.1
 scipy==1.10
 toml==0.10.2
 scikit-learn==1.6.1
 ase==3.22
 tqdm==4.67
 metatensor-core==0.1.8
-cell2mol @ git+https://github.com/lcmd-epfl/cell2mol.git@22473bbf12a013467137a55a63c88fbbdc95baa2

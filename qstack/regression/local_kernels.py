@@ -11,10 +11,10 @@ import os
 import ctypes
 import sysconfig
 import warnings
-import itertools
 import numpy as np
 import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
 from qstack.regression import __path__ as REGMODULE_PATH
+from qstack.tools import pairwise
 
 
 RAM_BATCHING_SIZE = 1024**3 * 5  # 5GiB
@@ -66,7 +66,7 @@ def compute_distance_matrix(R1, R2):
     else:
         dists = np.zeros((batch_size, *R2.shape), dtype=dtype)
         batch_limits = np.minimum(np.arange(0, R1.shape[0]+batch_size, step=batch_size), R1.shape[0])
-        for batch_start, batch_end in itertools.pairwise(batch_limits):
+        for batch_start, batch_end in pairwise(batch_limits):
             dists_view = dists[:batch_end-batch_start]
             R1_view = R1[batch_start:batch_end, None, ...]
             np.subtract(R1_view, R2[None,:], out=dists_view)
