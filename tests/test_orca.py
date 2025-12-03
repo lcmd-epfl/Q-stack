@@ -4,7 +4,8 @@ import os
 import numpy as np
 from pyscf import scf
 from pyscf.data import elements
-from qstack import orcaio, compound, fields
+from qstack import compound, fields
+from qstack.io import orca as orcaio
 
 
 def _dipole_moment(mol, dm):
