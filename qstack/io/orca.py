@@ -10,6 +10,11 @@ import pyscf
 from qstack.mathutils.matrix import from_tril
 from qstack.reorder import reorder_ao
 from qstack.tools import Cursor
+from .orca_l_order import def2_orca_l_order
+
+
+_not_supported_bases = ('def2-mSVP', 'def2-SV(P)', 'def2-TZVP(-f)')
+_def2_orca_l_order = {pyscf.gto.basis._format_basis_name(basis): vals for basis, vals in def2_orca_l_order.items() if basis not in _not_supported_bases}
 
 
 def read_input(fname, basis, ecp=None):
@@ -113,6 +118,8 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
     if isinstance(mol.basis, str):
         basis_name = pyscf.gto.basis._format_basis_name(mol.basis)
         is_def2 = 'def2' in basis_name
+        if is_def2:
+            basis_orca_l_order = _def2_orca_l_order.get(basis_name)
     else:
         msg = f'\n{path}:\nUnknown basis set. Orbital order can be compromised.\nBetter use a gbw file.'
         warnings.warn(msg, RuntimeWarning, stacklevel=2)
@@ -121,34 +128,37 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
             msg = f'\n{path}:\nCannot sort the AO wrt angular momenta.\nBetter use a gbw file.'
             raise RuntimeError(msg)
 
-    iat_3d = np.nonzero(np.array([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements]))[0]
-
-    if ls is None:
-        msg = f'\n{path}:\nUsing automatic sorting of AO wrt angular momenta.\nBetter use a gbw file.'
-        warnings.warn(msg, RuntimeWarning, stacklevel=2)
-        if is_def2:
-            if basis_name == 'def2svp':
-                ls_3d = [0]*5 + [1]*2 + [2]*1 + [1, 2, 3]
-            elif basis_name == 'def2tzvp':
-                ls_3d = [0]*6 + [1]*3 + [2]*3 + [1, 2, 3]
-            else:
-                msg = f'\n{path}:\nCannot determine AO order for 3d elements with {basis_name} basis.\nBetter use a gbw file.'
-                raise NotImplementedError(msg)
-            ls = dict.fromkeys(iat_3d, ls_3d)
-        else:
-            ls = {}
-    else:
-        msg = f'\n{path}:\nUsing provided angular momenta list to sort the AO wrt angular momenta.\nBetter use a gbw file.'
-        warnings.warn(msg, RuntimeWarning, stacklevel=2)
-
     if sort_l:
+
+        if ls is None:
+            msg = f'\n{path}:\nUsing automatic sorting of AO wrt angular momenta.\nBetter use a gbw file.'
+            warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            ls = {}
+            if is_def2:
+                if basis_orca_l_order is None:
+                    msg = f'\n{path}:\nCannot determine AO order for 3d elements with {basis_name} basis.\nBetter use a gbw file.'
+                    raise NotImplementedError(msg)
+                for iat, q in enumerate(mol.elements):
+                    if q in basis_orca_l_order:
+                        ls[iat] = _def2_orca_l_order[basis_name][q]
+        else:
+            msg = f'\n{path}:\nUsing provided angular momenta list to sort the AO wrt angular momenta.\nBetter use a gbw file.'
+            warnings.warn(msg, RuntimeWarning, stacklevel=2)
+
         idx = _get_indices(mol, ls)
         idx = np.ix_(idx,idx)
         dm[:,:,:] = dm[:,*idx]
+
     else:
-        if is_def2 and len(iat_3d)>0:
-            msg = f'\n{path}:\nBasis set is not sorted wrt angular momenta for 3d elements.\nBetter use a gbw file.'
-            warnings.warn(msg, RuntimeWarning, stacklevel=2)
+        if is_def2:
+            if basis_orca_l_order is None:
+                msg = f'\n{path}:\nBasis set {basis_name} might not sorted wrt angular momenta for some elements.\nBetter use a gbw file.'
+                warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            else:
+                compromised_elements = set(mol.elements).intersection(basis_orca_l_order.keys())
+                if len(compromised_elements)>0:
+                    msg = f'\n{path}:\nBasis set {basis_name} is not sorted wrt angular momenta for elements {list(compromised_elements)}.\nBetter use a gbw file.'
+                    warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
     if reorder_dest is not None:
         dm = np.array([reorder_ao(mol, i, src='orca', dest=reorder_dest) for i in dm])
