@@ -59,7 +59,7 @@ def main():
     """Command-line entry point for out-of-sample predictions."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X       = np.load(args.repr)
     X_oos   = np.load(args.x_oos)

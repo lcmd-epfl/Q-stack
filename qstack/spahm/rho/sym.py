@@ -6,6 +6,27 @@ from qstack.mathutils.matrix import sqrtm
 from qstack.reorder import get_mrange
 
 
+def c_split_atom(mol, c, only_i=None):
+    """Split coefficient vector by angular momentum quantum number for each atom.
+
+    Organizes expansion coefficients into sublists grouped by angular momentum (l)
+    for each atomic basis function.
+
+    Args:
+        mol (pyscf Mole): pyscf Mole object.
+        c (numpy ndarray): 1D array of expansion coefficients.
+        only_i (list[int]): List of atom indices to use.
+
+    Returns:
+        list: List of coefficients (numpy ndarrays) per atom.
+    """
+    if only_i is None or len(only_i)==0:
+        aoslice_by_atom = mol.aoslice_by_atom()[:,2:]
+    else:
+        aoslice_by_atom = mol.aoslice_by_atom()[only_i,2:]
+    return [c[i0:i1] for i0, i1 in aoslice_by_atom]
+
+
 def idxl0(ao_i, l, ao):
     """Return index of basis function with same L and N quantum numbers but M=0.
 
@@ -62,7 +83,7 @@ def store_pair_indices(ao):
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
-        list: List of [i, j] index pairs with matching (l, m).
+        numpy ndarray: [i, j] index pairs with matching (l, m).
     """
     idx = []
     for i, [li, mi] in enumerate(zip(ao['l'], ao['m'], strict=True)):
@@ -70,7 +91,7 @@ def store_pair_indices(ao):
             if (li!=lj) or (mi!=mj):
                 continue
             idx.append([i, j])
-    return idx
+    return np.array(idx)
 
 
 def store_pair_indices_short(ao, ao_start):
@@ -84,7 +105,7 @@ def store_pair_indices_short(ao, ao_start):
         ao_start (list): Starting indices for each angular momentum shell.
 
     Returns:
-        list: List of [i, j] index pairs for m=0 components with matching L.
+        numpy ndarray: [i, j] index pairs for m=0 components with matching L.
     """
     idx = []
     for i in ao_start:
@@ -94,7 +115,7 @@ def store_pair_indices_short(ao, ao_start):
             if li!=lj:
                 continue
             idx.append([i, j])
-    return idx
+    return np.array(idx)
 
 
 def metric_matrix(q, idx, ao, S):
@@ -106,7 +127,7 @@ def metric_matrix(q, idx, ao, S):
 
     Args:
         q (str): Element symbol key for angular momentum info.
-        idx (list): List of [i, j] basis function pair indices.
+        idx (numpy ndarray): [i, j] basis function pair indices.
         ao (dict): Angular momentum info dict with nested structure ao[q].
         S (numpy ndarray): Overlap matrix.
 
@@ -121,7 +142,7 @@ def metric_matrix(q, idx, ao, S):
             i1, j1 = idx[p1]
             l  = ao['l'][i]
             l1 = ao['l'][i1]
-            if(l!=l1):
+            if l!=l1:
                 continue
             A[p1,p] = A[p,p1] = 1.0/(2*l+1) \
                                 * S[idxl0(i, l, ao[q]), idxl0(i1, l, ao[q])] \
@@ -133,7 +154,7 @@ def metric_matrix_short(idx, ao, S):
     """Compute metric matrix for symmetrization of short-format coefficients.
 
     Args:
-        idx (list): List of [i, j] basis function pair indices.
+        idx (numpy ndarray): [i, j] basis function pair indices.
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         S (numpy ndarray): Overlap matrix.
 
@@ -148,7 +169,7 @@ def metric_matrix_short(idx, ao, S):
             i1,j1 = idx[p1]
             l  = ao['l'][i]
             l1 = ao['l'][i1]
-            if(l!=l1):
+            if l!=l1:
                 continue
             A[p1,p] = A[p,p1] = S[i,i1] * S[j,j1] / (2*l+1)
     return sqrtm(A)
@@ -160,7 +181,7 @@ def vectorize_c(idx, c):
     Creates rotationally invariant representation from coefficient products.
 
     Args:
-        idx (list): List of [i, j] basis function pair indices.
+        idx (numpy ndarray): [i, j] basis function pair indices.
         c (numpy ndarray): 1D array of coefficients.
 
     Returns:
@@ -184,14 +205,14 @@ def vectorize_c_MR2021(idx_pair, ao, c):
     within each angular momentum shell.
 
     Args:
-        idx_pair (list): List of [i, j] basis function pair indices.
+        idx_pair (numpy ndarray): [i, j] basis function pair indices.
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         c (numpy ndarray): 1D array of density fitting coefficients.
 
     Returns:
         numpy ndarray: 1D array of contracted coefficient norms per shell.
     """
-    idx = sorted(set(np.array(idx_pair)[:,0]))
+    idx = np.unique(idx_pair[:,0])
     v = np.zeros(len(idx))
     for p,i in enumerate(idx):
         l = ao['l'][i]
@@ -206,7 +227,7 @@ def vectorize_c_short(idx, ao, c):
     Computes representation by contracting coefficient vectors of angular momentum shells.
 
     Args:
-        idx (list): List of [i, j] basis function pair indices (shell starts).
+        idx (numpy ndarray): [i, j] basis function pair indices (shell starts).
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         c (numpy ndarray): 1D array of density fitting coefficients.
 
@@ -231,7 +252,7 @@ def store_pair_indices_z(ao):
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
-        list: List of [i, j] index pairs with |m_i| = |m_j|.
+        numpy ndarray: [i, j] index pairs with |m_i| = |m_j|.
     """
     idx = []
     for i, mi in enumerate(ao['m']):
@@ -239,7 +260,7 @@ def store_pair_indices_z(ao):
             if abs(mi)!=abs(mj):
                 continue
             idx.append([i,j])
-    return idx
+    return np.array(idx)
 
 
 def store_pair_indices_z_only0(ao):
@@ -251,7 +272,7 @@ def store_pair_indices_z_only0(ao):
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
 
     Returns:
-        list: List of [i, j] index pairs where both m_i = m_j = 0.
+        numpy ndarray: [i, j] index pairs where both m_i = m_j = 0.
     """
     idx = []
     for i, mi in enumerate(ao['m']):
@@ -261,7 +282,7 @@ def store_pair_indices_z_only0(ao):
             if mj!=0:
                 continue
             idx.append([i,j])
-    return idx
+    return np.array(idx)
 
 
 def metric_matrix_z(idx, ao, S):
@@ -272,7 +293,7 @@ def metric_matrix_z(idx, ao, S):
     numbers satisfy m_i=m_j AND m_i1=m_j1, or m_i=-m_j AND m_i1=-m_j1.
 
     Args:
-        idx (list): List of [i, j] basis function pair indices.
+        idx (numpy ndarray): [i, j] basis function pair indices.
         ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
         S (numpy ndarray): Overlap matrix.
 

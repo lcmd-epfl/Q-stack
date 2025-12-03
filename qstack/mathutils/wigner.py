@@ -56,7 +56,7 @@ def get_polynom_Y(l, m):
     r = Symbol('r', nonnegative=True)
     expr = real_Y_correct_phase(l,m, theta, phi) * r**l
     expr = expand(expr, func=True)
-    expr = expr.rewrite(sp.cos)#.simplify().trigsimp()
+    expr = expr.rewrite(sp.cos)  # .simplify().trigsimp()
     expr = expand_trig(expr)
     expr = cancel(expr)
     expr = expr.subs({r: sp.sqrt(x*x+y*y+z*z), phi: sp.atan2(y,x), theta: sp.atan2(sp.sqrt(x*x+y*y),z)})
@@ -139,7 +139,6 @@ def compute_wigner(lmax):
             # rotated spherical harmonic
             Y_rot[l][m] = Y[l][m].subs({x: x1, y:y1, z:z1}).subs({x1:xx*x+xy*y+xz*z, y1:yx*x+yy*y+yz*z, z1:zx*x+zy*y+zz*z})
 
-
     D = [zeros(2*l+1,2*l+1) for l in range(lmax+1)]
     integrals_xyz_dict = {}
     for l in range(lmax+1):
@@ -159,4 +158,3 @@ if __name__ == "__main__":
 
     D = compute_wigner(lmax)
     print_wigner(D)
-

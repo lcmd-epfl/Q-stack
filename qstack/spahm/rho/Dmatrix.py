@@ -2,6 +2,7 @@
 
 import numpy as np
 from numpy import sqrt
+from qstack.tools import Cursor
 
 
 def c_split(mol, c):
@@ -19,14 +20,11 @@ def c_split(mol, c):
             coefficients is the subset of c for that angular momentum shell.
     """
     cs = []
-    i0 = 0
-    for at in mol.aoslice_by_atom():
-        for b in range(at[0], at[1]):
+    slicer = Cursor(inc=lambda l: 2*l+1, action='slicer')
+    for at0, at1 in mol.aoslice_by_atom()[:,:2]:
+        for b in range(at0, at1):
             l = mol.bas_angular(b)
-            msize = 2*l+1
-            for _n in range(mol.bas_nctr(b)):
-                cs.append([l, c[i0:i0+msize]])
-                i0 += msize
+            cs.extend([[l, c[slicer(l)]] for _n in range(mol.bas_nctr(b))])
     return cs
 
 
@@ -63,7 +61,7 @@ def new_xy_axis(z):
     i     = np.argmin(abs(z))      # find the axis with the minimal projection of the vector z
     x     = -z[i] * z
     x[i] += 1.0                    # create a vector orthogonal to z with dominant component i
-    x    /= np.sqrt(1.0-z[i]*z[i]) # normalize
+    x    /= np.sqrt(1.0-z[i]*z[i])  # normalize
     y     = np.cross(z,x)
     return np.array([x,y,z])
 
@@ -115,7 +113,7 @@ def Dmatrix(xyz, lmax, order='xyz'):
         D[1][l+  1,l+ -1] = xy
         D[1][l+  1,l+  0] = xz
         D[1][l+  1,l+  1] = xx
-    elif order=='xyz': # 1 -1 0
+    elif order=='xyz':  # 1 -1 0
         D[1][ 0, 0] = xx
         D[1][ 0, 1] = xy
         D[1][ 0, 2] = xz
@@ -317,4 +315,3 @@ def Dmatrix_for_z(z, lmax, order='xyz'):
         list: List of Wigner D-matrices for l=0 to lmax.
     """
     return Dmatrix(new_xy_axis(z), lmax, order)
-

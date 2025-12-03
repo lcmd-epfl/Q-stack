@@ -7,6 +7,8 @@ import os
 import time
 import resource
 import argparse
+import itertools
+import numpy as np
 
 
 def unix_time_decorator(func):
@@ -98,3 +100,97 @@ class FlexParser(argparse.ArgumentParser):
                 if (opts and opts[0] == arg) or group_action.dest == arg:
                     action._group_actions.remove(group_action)
                     return
+
+
+def slice_generator(iterable, inc=lambda x: x, i0=0):
+    """Generate slices for elements in an iterable based on increments.
+
+    Args:
+        iterable (iterable): Iterable of elements to generate slices for.
+        inc (callable: int->int): Function that computes increment size for each element.
+                                  Defaults to identity function.
+        i0 (int): Initial starting index. Defaults to 0.
+
+    Yields:
+        tuple: (element, slice) pairs for each element in the iterable.
+    """
+    func = func=lambda total, elem: total+inc(elem)
+    starts = itertools.accumulate(iterable, func=func, initial=i0)
+    starts_ends = itertools.pairwise(starts)
+    for elem, (start, end) in zip(iterable, starts_ends, strict=True):
+        yield elem, np.s_[start:end]
+
+
+class Cursor:
+    """Cursor class to manage dynamic indexing.
+
+    Args:
+        action (str): Type of indexing action ('slicer' or 'ranger').
+        inc (callable: int->int): Function to determine increment size.
+                                  Defaults to identity function.
+        i0 (int): Initial index position. Defaults to 0.
+
+    Attributes:
+        i (int): Current index position.
+        i_prev (int): Previous index position.
+        cur (range or slice: Current range or slice.
+        inc (callable int->int): Increment function.
+
+    Methods:
+        add(di): Advances the cursor by increment and returns current range/slice.
+        __call__(di=None): Advances the cursor if di is not None,
+            returns current range/slice.
+    """
+    def __init__(self, action='slicer', inc=lambda x: x, i0=0):
+        self.i = i0
+        self.i_prev = None
+        self.inc = inc
+        self.cur = None
+        self.action = action
+        self.actions_dict = {'slicer': self._slicer, 'ranger': self._ranger}
+
+    def add(self, di):
+        """Advance the cursor and return the current range or slice.
+
+        Args:
+            di: Element to determine increment size.
+
+        Returns:
+            Current range or slice after advancing.
+        """
+        self._add(di)
+        self.cur = self.actions_dict[self.action]()
+        return self.cur
+
+    def _ranger(self):
+        return range(self.i_prev, self.i)
+
+    def _slicer(self):
+        return np.s_[self.i_prev:self.i]
+
+    def _add(self, di):
+        self.i_prev = self.i
+        self.i += self.inc(di)
+
+    def __call__(self, di=None):
+        """Optionally advance the cursor and return the current range or slice.
+
+        If the argument is passed, it is used to advance the cursor.
+        If not, the current value is returned.
+
+        Args:
+            di (optional): Element to determine increment size.
+
+        Returns:
+            Current range or slice (after advancing).
+        """
+        if di is None:
+            return self.cur
+        else:
+            return self.add(di)
+
+    def __str__(self):
+        return str(self.i)
+
+    def __repr__(self):
+        return str(self.i)

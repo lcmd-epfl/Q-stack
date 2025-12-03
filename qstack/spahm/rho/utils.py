@@ -53,7 +53,7 @@ def get_chsp(fname, n):
         return np.full(n, None, dtype=object)
     if os.path.isfile(fname):
         chsp = np.loadtxt(fname, dtype=object, converters=chsp_converter, encoding=None)
-        if(len(chsp)!=n):
+        if len(chsp)!=n:
             raise RuntimeError(f'Wrong length of the file {fname}')
     else:
         raise RuntimeError(f"{fname} can not be found")
@@ -194,7 +194,7 @@ def check_data_struct(fin, local=False):
         is_labeled = False
         if not local and x.ndim == 1:
             is_single = True
-        elif x.shape[1] != 2: ## could be problematic! (if it's a set of local representations and nfeatures = 2 !!
+        elif x.shape[1] != 2:  # could be problematic! (if it's a set of local representations and nfeatures = 2 !!
             is_single=True
         else:
             is_single = False
@@ -266,10 +266,10 @@ def load_reps(f_in, from_list=True, srcdir=None, with_labels=False,
                 else:
                     reps.extend(x)
         else:
-           if is_labeled:
+            if is_labeled:
                 reps.append(x[1])
                 labels.extend(x[0])
-           else:
+            else:
                 reps.append(x)
     try:
         reps = np.array(reps, dtype=float)

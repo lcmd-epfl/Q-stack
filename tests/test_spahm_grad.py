@@ -46,7 +46,7 @@ def test_spahm_ev_grad():
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_ev, mol, guess).T
     for g1, g2 in zip(ngrad, agrad, strict=True):
-        assert(np.linalg.norm(g1-g2)<1e-6)
+        assert (np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_re_grad():
@@ -60,7 +60,7 @@ def test_spahm_re_grad():
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_re, mol, guess).reshape(mol.natm*3, -1).T
     for g1, g2 in zip(ngrad, agrad, strict=True):
-        assert(np.linalg.norm(g1-g2)<1e-6)
+        assert (np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_ev_grad_ecp():
@@ -74,7 +74,7 @@ def test_spahm_ev_grad_ecp():
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_ev, mol, guess).T
     for g1, g2 in zip(ngrad, agrad, strict=True):
-        assert(np.linalg.norm(g1-g2)<1e-6)
+        assert (np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_ev_grad_field():
@@ -89,7 +89,7 @@ def test_spahm_ev_grad_field():
     agrad = spahm.compute_spahm.get_guess_orbitals_grad(mol, guess, field=field)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_ev, mol, guess).T
     for g1, g2 in zip(ngrad, agrad, strict=True):
-        assert(np.linalg.norm(g1-g2)<1e-6)
+        assert (np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_re_grad_field():
@@ -105,7 +105,7 @@ def test_spahm_re_grad_field():
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)[1].reshape(-1, mol.natm*3)
     ngrad = grad_num(spahm_re, mol, guess).reshape(mol.natm*3, -1).T
     for g1, g2 in zip(ngrad, agrad, strict=True):
-        assert(np.linalg.norm(g1-g2)<1e-6)
+        assert (np.linalg.norm(g1-g2)<1e-6)
 
 
 def test_spahm_re_field_grad():
@@ -119,7 +119,7 @@ def test_spahm_re_field_grad():
     agrad = spahm.compute_spahm.get_spahm_representation_grad(mol, guess, field=field)[2].reshape(-1, 3)
     ngrad = derivatives_num(field, spahm_re, mol, guess).reshape(3, -1).T
     for g1, g2 in zip(ngrad, agrad, strict=True):
-        assert(np.linalg.norm(g1-g2)<1e-6)
+        assert (np.linalg.norm(g1-g2)<1e-6)
 
 
 if __name__ == '__main__':

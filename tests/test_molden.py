@@ -14,7 +14,7 @@ def test_molden():
     c = np.load(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.npy')
     tmpfile = tempfile.mktemp() + '.molden'
     coeffs_to_molden(auxmol, c, tmpfile)
-    assert(filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.molden', tmpfile))
+    assert (filecmp.cmp(path+'/data/H2O_dist.ccpvdz.ccpvdzjkfit.molden', tmpfile))
 
 
 if __name__ == '__main__':

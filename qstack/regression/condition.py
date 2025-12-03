@@ -67,7 +67,7 @@ def main():
     """Command-line entry point for computing kernel matrix condition numbers."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     X = np.load(args.repr)
     c = condition(X, read_kernel=args.readk, sigma=args.sigma, eta=args.eta,

@@ -3,7 +3,7 @@
 import os
 import itertools
 import numpy as np
-from qstack.tools import correct_num_threads
+from qstack.tools import correct_num_threads, slice_generator
 from . import utils, dmb_rep_bond as dmbb
 from . import dmb_rep_atom as dmba
 from .utils import defaults
@@ -47,55 +47,48 @@ def spahm_a_b(rep_type, mols, dms,
         - max_atoms: Maximum number of atoms/bonds across all molecules
         - n_features: Representation dimension
     """
-    maxlen = 0
     if only_z is None:
         only_z = []
+    if len(only_z) > 0:
+        print(f"Selecting atom-types in {only_z}")
+        natm = max(sum(sum(z==np.array(mol.elements)) for z in only_z) for mol in mols)
+    else:
+        natm = max(mol.natm for mol in mols)
+
     if rep_type == 'bond':
         elements, mybasis, qqs0, qqs4q, idx, M = dmbb.read_basis_wrapper(mols, bpath, only_m0, printlevel,
                                                                          elements=elements, cutoff=cutoff,
                                                                          pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis)
         qqs = qqs0 if zeros else qqs4q
-        maxlen = max([dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements])
+        maxlen = max(dmbb.bonds_dict_init(qqs[q0], M)[1] for q0 in elements)
     elif rep_type == 'atom':
         if elements is None:
             elements = set()
             for mol in mols:
                 elements.update(mol.elements)
         elements = sorted(set(elements))
-        df_wrapper, sym_wrapper = dmba.get_model(model)
+        df_wrapper, sym_wrapper, maxlen_fn = dmba.get_model(model)
         ao, ao_len, idx, M = dmba.get_basis_info(elements, auxbasis)
-        maxlen = sum([len(v) for v in idx.values()])
+        maxlen = maxlen_fn(idx, idx.keys() if len(only_z)==0 else only_z)
 
-    if len(only_z) > 0:
-        print(f"Selecting atom-types in {only_z}")
-        zinmols = []
-        for mol in mols:
-            zinmol = [sum(z == np.array(mol.elements)) for z in only_z]
-            zinmols.append(sum(zinmol))
-        natm  = max(zinmols)
-    else:
-        natm   = max([mol.natm for mol in mols])
-        zinmols = [mol.natm for mol in mols]
     allvec = np.zeros((len(omods), len(mols), natm, maxlen))
 
     for imol, (mol, dm) in enumerate(zip(mols, dms, strict=True)):
         if printlevel>0:
             print('mol', imol, flush=True)
-        if len(only_z) >0:
+        if len(only_z)>0:
             only_i = [i for i,z in enumerate(mol.elements) if z in only_z]
         else:
             only_i = range(mol.natm)
 
         for iomod, omod in enumerate(omods):
             DM  = utils.dm_open_mod(dm, omod)
-            vec = None # This too !!! (maybe a wrapper or dict)
             if rep_type == 'bond':
                 vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
                 c_df = df_wrapper(mol, DM, auxbasis, only_i=only_i)
-                vec = sym_wrapper(c_df, mol, idx, ao, ao_len, M, elements)
+                vec = sym_wrapper(maxlen, c_df, mol.elements, idx, ao, ao_len, M, only_i)
             allvec[iomod,imol,:len(vec)] = vec
-
     return allvec
 
 
@@ -153,8 +146,7 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
     else:
         all_atoms   = [mol.elements for mol in mols]
 
-    spin = np.array(spin) ## a bit dirty but couldn't find a better way to ensure Iterable type!
-    if (spin == None).all():
+    if (np.asarray(spin) == None).all():
         omods = [None]
 
     allvec  = spahm_a_b(rep_type, mols, dms, bpath, cutoff, omods,
@@ -198,24 +190,21 @@ def get_repr(rep_type, mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=
                 ], dtype=object)
 
     else:
-        natm_tot = sum(len(elems) for elems in all_atoms)
-        allvec_new = np.empty_like(allvec, shape=(len(omods), natm_tot, maxlen))
-        atm_i = 0
-        for mol_i, elems in enumerate(all_atoms):
-            allvec_new[:, atm_i:atm_i+len(elems), :] = allvec[:, mol_i, :len(elems), :]
-            atm_i += len(elems)
+        all_atoms_list = list(itertools.chain.from_iterable(all_atoms))
+        allvec_new = np.empty_like(allvec, shape=(len(omods), len(all_atoms_list), maxlen))
+        for (mol_i, elems), slice_i in slice_generator([*enumerate(all_atoms)], inc=lambda x: len(x[1])):
+            allvec_new[:, slice_i, :] = allvec[:, mol_i, :len(elems), :]
         allvec = allvec_new
         del allvec_new
-        all_atoms = list(itertools.chain.from_iterable(all_atoms))
 
         if merge:
             allvec = np.hstack(allvec)
             if with_symbols:
-                allvec = np.array(list(zip(all_atoms, allvec, strict=True)), dtype=object)
+                allvec = np.array(list(zip(all_atoms_list, allvec, strict=True)), dtype=object)
         else:
             if with_symbols:
                 allvec = np.array([
-                    np.array(list(zip(all_atoms, modvec, strict=True)), dtype=object)
+                    np.array(list(zip(all_atoms_list, modvec, strict=True)), dtype=object)
                     for modvec in allvec
                 ], dtype=object)
 
@@ -293,6 +282,7 @@ def main(args=None):
                 np.save(args.name_out + '_' + basename + mod_suffix, molvec)
         else:
             np.save(args.name_out + mod_suffix, modvec)
+
 
 if __name__ == "__main__":
     main()

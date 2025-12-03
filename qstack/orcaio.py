@@ -9,6 +9,7 @@ import numpy as np
 import pyscf
 from qstack.mathutils.matrix import from_tril
 from qstack.reorder import reorder_ao
+from qstack.tools import Cursor
 
 
 def read_input(fname, basis, ecp=None):
@@ -89,7 +90,6 @@ def read_density(mol, basename, directory='./', version=500, openshell=False, re
         dm = np.array([from_tril(np.fromfile(f, offset=offset)) for f in path])
     else:
         dm = np.fromfile(path[0], offset=8, count=mol.nao*mol.nao*nspin).reshape((nspin,mol.nao,mol.nao))
-
 
     is_def2 = 'def2' in pyscf.gto.basis._format_basis_name(mol.basis)
     has_3d = np.any([21 <= pyscf.data.elements.charge(q) <= 30 for q in mol.elements])
@@ -206,10 +206,9 @@ def _get_indices(mol, ls_from_orca):
     indices_full = np.arange(mol.nao)
     for iat, ls in ls_from_orca.items():
         indices = []
-        i = 0
+        i = Cursor(action='ranger')
         for il, l in enumerate(ls):
-            indices.append((l, il, i + np.arange(2*l+1)))
-            i += 2*l+1
+            indices.append((l, il, i(2*l+1)))
         indices = sorted(indices, key=lambda x: (x[0], x[1]))
         indices = np.array([j for i in indices for j in i[2]])
         atom_slice = np.s_[ao_limits[iat][0]:ao_limits[iat][1]]
@@ -277,4 +276,3 @@ def read_gbw(mol, fname, reorder_dest='pyscf', sort_l=True):
     if reorder_dest is not None:
         reorder_coeff_inplace(c, mol, reorder_dest, ls if (ls and sort_l) else None)
     return c, e, occ
-

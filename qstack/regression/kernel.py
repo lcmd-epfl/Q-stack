@@ -46,7 +46,7 @@ def main():
     """Command-line entry point for computing kernel matrices."""
     args = _get_arg_parser().parse_args()
     print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
     if os.path.isfile(args.repr):
         X = np.load(args.repr)

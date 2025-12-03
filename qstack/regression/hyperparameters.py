@@ -125,9 +125,9 @@ def hyperparameters(X, y,
 
         # at the 1st iteration if is checked twice on purpose
         if direction=='up'     and best_sigma==max(work_sigma):
-                new_sigma = best_sigma*np.array(defaults.sigmaarr_mult[1:])
+            new_sigma = best_sigma*np.array(defaults.sigmaarr_mult[1:])
         elif direction=='down' and best_sigma==min(work_sigma):
-                new_sigma = best_sigma/np.array(defaults.sigmaarr_mult[1:])
+            new_sigma = best_sigma/np.array(defaults.sigmaarr_mult[1:])
 
         if new_sigma is None:
             break
@@ -147,11 +147,11 @@ def _get_arg_parser():
 def main():
     """Command-line entry point for hyperparameter optimization."""
     args = _get_arg_parser().parse_args()
-    if(args.readk):
+    if args.readk:
         args.sigma = [np.nan]
-    print(vars(args))
-    if(args.ll):
+    if args.ll:
         correct_num_threads()
+    print(vars(args))
 
     X = np.load(args.repr)
     y = np.loadtxt(args.prop)

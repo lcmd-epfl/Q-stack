@@ -78,5 +78,6 @@ def main(args=None):
         else:
             np.save(args.name_out + mod_suffix, modvec)
 
+
 if __name__ == "__main__":
     main()

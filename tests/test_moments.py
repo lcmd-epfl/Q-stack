@@ -18,25 +18,25 @@ def test_moments():
     R2 = 12.352661975356678
 
     r0, r1, r2 = moments.r2_c(mol, c)
-    assert(np.allclose(r0, R0))
-    assert(np.allclose(r1, R1))
-    assert(np.allclose(r2, R2))
+    assert (np.allclose(r0, R0))
+    assert (np.allclose(r1, R1))
+    assert (np.allclose(r2, R2))
 
     I0, I1, I2 = moments.r2_c(mol, None)
-    assert(np.allclose(r0, I0@c))
-    assert(np.allclose(r1, I1@c))
-    assert(np.allclose(r2, I2@c))
+    assert (np.allclose(r0, I0@c))
+    assert (np.allclose(r1, I1@c))
+    assert (np.allclose(r2, I2@c))
 
     I0, I1, I2 = moments.r2_c(mol, None, per_atom=True)
     r0_atom = c @ I0
-    assert(np.allclose(r0_atom, R0_atom))
+    assert (np.allclose(r0_atom, R0_atom))
     r1_atom = np.einsum('p,xpa->ax', c, I1)  # (atom, component)
-    assert(np.allclose(r1_atom.sum(axis=0), R1))
+    assert (np.allclose(r1_atom.sum(axis=0), R1))
 
     r0_atom, r1_atom, r2_atom = moments.r2_c(mol, c, per_atom=True)
-    assert(np.allclose(r0_atom, R0_atom))
-    assert(np.allclose(r1_atom.sum(axis=0), R1))
-    assert(np.allclose(r2_atom.sum(), R2))
+    assert (np.allclose(r0_atom, R0_atom))
+    assert (np.allclose(r1_atom.sum(axis=0), R1))
+    assert (np.allclose(r2_atom.sum(), R2))
 
 
 if __name__ == '__main__':

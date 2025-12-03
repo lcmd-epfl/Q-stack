@@ -22,7 +22,6 @@ class LB2020guess:
         self.init_data()
         self.get_basis(fname, parameters)
 
-
     def renormalize(self, a):
         r"""Compute renormalization factor for Gaussian basis functions.
 
@@ -41,7 +40,6 @@ class LB2020guess:
         """
         x = np.sqrt(np.sqrt(0.5*a/np.pi))
         return x*x*x
-
 
     def read_ac(self, fname):
         """Read auxiliary basis parameters from file.
@@ -70,7 +68,6 @@ class LB2020guess:
             basis[data.elements.ELEMENTS[q]] = qbasis
         return basis
 
-
     def add_caps(self, basis):
         """Add cap (diffuse) functions to the auxiliary basis.
 
@@ -86,7 +83,6 @@ class LB2020guess:
             if qname in basis:
                 basis[qname].append( [0, [a, self.renormalize(a) ]] )
         return
-
 
     def get_basis(self, fname, parameters):
         """Initialize auxiliary basis set from file or predefined parameters.
@@ -112,7 +108,6 @@ class LB2020guess:
             self.acbasis = self._hfs_basis
             self.parameters = 'HFS'
 
-
     def use_charge(self, mol):
         """Adjust basis coefficients based on molecular charge.
 
@@ -131,7 +126,6 @@ class LB2020guess:
             for q in acbasis:
                 acbasis[q][-1][1][1] *= factor
         return acbasis
-
 
     def use_ecp(self, mol, acbasis):
         """Adjust basis set to account for effective core potentials (ECP).
@@ -176,7 +170,6 @@ class LB2020guess:
                     acbasis[q].pop(i)
         return acbasis
 
-
     def get_auxweights(self, auxmol):
         """Extract auxiliary basis weights from the basis.
 
@@ -198,7 +191,6 @@ class LB2020guess:
                 iao+=1
         return w
 
-
     def merge_caps(self, w, eri3c):
         """Contracts 3-center integrals with auxiliary basis weights.
 
@@ -213,7 +205,6 @@ class LB2020guess:
             numpy.ndarray: Contracted integrals (ij) = sum_P w_P * (ij|P).
         """
         return np.einsum('...i,i->...', eri3c, w)
-
 
     def get_eri3c(self, mol, auxmol):
         """Compute 3-center electron repulsion integrals.
@@ -230,7 +221,6 @@ class LB2020guess:
         shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
         eri3c      = pmol.intor('int3c2e_sph', shls_slice=shls_slice)
         return eri3c
-
 
     def check_coefficients(self, mol, acbasis):
         """Validate that auxiliary basis coefficients sum to correct total charge.
@@ -250,7 +240,6 @@ class LB2020guess:
         if not np.isclose(ch1, ch2):
             raise RuntimeError("Coefficients corrupted after adding ECP")
 
-
     def HLB20(self, mol):
         """Compute the LB2020 effective potential matrix.
 
@@ -268,7 +257,6 @@ class LB2020guess:
         auxw    = self.get_auxweights(auxmol)
         return self.merge_caps(auxw, eri3c)
 
-
     def Heff(self, mol):
         """Construct one-electron Hamiltonian for initial guess.
 
@@ -284,7 +272,6 @@ class LB2020guess:
         self.Hcore = scf.hf.get_hcore(mol)
         self.H     = self.Hcore + self.HLB20(mol)
         return self.H
-
 
     def HLB20_ints_generator(self, mol, auxmol):
         """Create generator for LB2020 potential gradients.
@@ -302,10 +289,11 @@ class LB2020guess:
         """
         pmol  = mol + auxmol
         shls_slice = (0, mol.nbas, 0, mol.nbas, mol.nbas, mol.nbas+auxmol.nbas)
-        eri3c2e_ip1 = pmol.intor('int3c2e_ip1', shls_slice=shls_slice) # (nabla \, \| \)
-        eri3c2e_ip2 = pmol.intor('int3c2e_ip2', shls_slice=shls_slice) # ( \, \| nabla\)
+        eri3c2e_ip1 = pmol.intor('int3c2e_ip1', shls_slice=shls_slice)  # (nabla \, \| \)
+        eri3c2e_ip2 = pmol.intor('int3c2e_ip2', shls_slice=shls_slice)  # ( \, \| nabla\)
         aoslices = mol.aoslice_by_atom()[:,2:]
         auxaoslices = auxmol.aoslice_by_atom()[:,2:]
+
         def HLB20_ints_deriv(iat):
             p0, p1 = aoslices[iat]
             P0, P1 = auxaoslices[iat]
@@ -315,7 +303,6 @@ class LB2020guess:
             eri3c2e_ip[:,:,:,P0:P1] += eri3c2e_ip2[:,:,:,P0:P1]
             return -eri3c2e_ip
         return HLB20_ints_deriv
-
 
     def HLB20_generator(self, mol):
         """Create generator for LB2020 potential gradient contributions.
@@ -333,10 +320,10 @@ class LB2020guess:
         auxmol  = df.make_auxmol(mol, acbasis)
         eri3c   = self.HLB20_ints_generator(mol, auxmol)
         auxw    = self.get_auxweights(auxmol)
+
         def HLB20_deriv(iat):
             return self.merge_caps(auxw, eri3c(iat))
         return HLB20_deriv
-
 
     def init_data(self):
         """Set parameters.

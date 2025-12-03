@@ -1,8 +1,9 @@
 """Density matrix manipulation and analysis functions."""
 
+import numpy as np
 from pyscf import dft
 from qstack import constants
-import numpy as np
+from qstack.tools import Cursor
 
 
 def get_converged_mf(mol, xc, dm0=None, verbose=False):
@@ -79,27 +80,26 @@ def sphericalize_density_matrix(mol, dm):
         A numpy ndarray with the sphericalized density matrix.
     """
     idx_by_l = [[] for i in range(constants.MAX_L)]
-    i0 = 0
+    i0 = Cursor(action='ranger')
     for ib in range(mol.nbas):
         l = mol.bas_angular(ib)
+        msize = 2*l+1
         nc = mol.bas_nctr(ib)
-        i1 = i0 + nc * (l*2+1)
-        idx_by_l[l].extend(range(i0, i1, l*2+1))
-        i0 = i1
+        idx_by_l[l].extend(i0(nc*msize)[::msize])
 
     spherical_dm = np.zeros_like(dm)
 
     for l in np.nonzero(idx_by_l)[0]:
+        msize = 2*l+1
         for idx in idx_by_l[l]:
             for jdx in idx_by_l[l]:
                 if l == 0:
                     spherical_dm[idx,jdx] = dm[idx,jdx]
                 else:
                     trace = 0
-                    for m in range(2*l+1):
+                    for m in range(msize):
                         trace += dm[idx+m,jdx+m]
-                    for m in range(2*l+1):
-                        spherical_dm[idx+m,jdx+m] = trace / (2*l+1)
+                    for m in range(msize):
+                        spherical_dm[idx+m,jdx+m] = trace / msize
 
     return spherical_dm
-
