@@ -291,7 +291,7 @@ def reorder_coeff_inplace(c_full, mol, reorder_dest='pyscf', ls_from_orca=None):
         # are not sorted wrt angular momenta
         idx_from_l = _get_indices(mol, ls_from_orca)
         idx, sign = reorder_ao(mol, None, src='orca', dest=reorder_dest)
-        for i in range(len(c)):
+        for i in range(c.shape[1]):
             if idx_from_l is not None:
                 c[:,i] = c[idx_from_l,i]
             c[:,i] = c[idx,i]*sign

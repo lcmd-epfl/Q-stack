@@ -6,9 +6,26 @@ Provides:
 
 import numpy as np
 from .tools import slice_generator
+from .constants import MAX_L
 
 
-pyscf2gpr_l1_order = [1,2,0]
+def order_from_m(l, current_m):
+    """Get the indices to reorder atomic orbitals of angular momentum l to GPR order.
+
+    Args:
+        l (int): Angular momentum quantum number.
+        current_m (iterable): Current order of magnetic quantum numbers.
+
+    Returns:
+        numpy.ndarray: Indices to reorder from order b to GPR order.
+
+    Raises:
+        ValueError: If b does not contain the correct m values for given l.
+    """
+    gpr_m = np.arange(-l, l+1)
+    if any(sorted(current_m)!=gpr_m):
+        raise ValueError("Wrong m values for given l")
+    return np.equal.outer(gpr_m, current_m).argmax(axis=1)
 
 
 def get_mrange(l):
@@ -24,7 +41,7 @@ def get_mrange(l):
         tuple or range: Magnetic quantum numbers for the given l.
     """
     if l==1:
-        return (1,-1,0)
+        return _m_pyscf_l1
     else:
         return range(-l,l+1)
 
@@ -47,8 +64,8 @@ def _orca2gpr_idx(l_slices, m):
         tuple: Re-arranged indices array and sign array.
     """
     idx = np.arange(len(m))
-    for _l, s in l_slices:
-        idx[s] = np.concatenate((idx[s][::-2], idx[s][1::2]))
+    for l, s in l_slices:
+        idx[s] = idx[s][_orca2gpr_order[l]]
     signs = np.ones_like(idx)
     signs[np.where(np.abs(m)>=3)] = -1  # in pyscf order
     signs[idx] = np.copy(signs)  # in orca order. copy for numpy < 2
@@ -102,8 +119,67 @@ def _gau2gpr_idx(l_slices, m):
         if l==1:
             idx[s] = idx[s][pyscf2gpr_l1_order]
         elif l>1:
-            idx[s] = np.concatenate((idx[s][::-2], idx[s][1::2]))
+            idx[s] = idx[s][_orca2gpr_order[l]]
     return idx, np.ones_like(idx)
+
+
+def _turbomole2gpr_idx(l_slices, m):
+    """Given a molecule returns a list of reordered indices to tranform Orca AO ordering into SA-GPR.
+
+    In SA-GPR the orbital ordering corresponds to:
+        m=-l, -l+1, ..., -1, 0, +1, ..., l-1, l
+    In Turbomole, it is:
+         1  px
+        -1  py
+         0  pz
+
+         0  d0  = (-xx-yy+2zz)/sqrt(12)
+         1  d1a = xz
+        -1  d1b = yz
+        -2  d2a = xy
+         2  d2b = (xx-yy)/2
+
+         0  f0  = (2zzz-3xxz-3yyz)/sqrt(60)
+         1  f1a = (-xxx-xyy+4xzz)/sqrt(40)
+        -1  f1b = (-yyy-xxy+4yzz)/sqrt(40)
+        -2  f2a = xyz
+         2  f2b = (xxz-yyz)/2
+         3  f3a = (xxx-3xyy)/sqrt(24)
+        -3! f3b = (yyy-3xxy)/sqrt(24)
+
+         0  g0  = (3xxxx+3yyyy+8zzzz+6xxyy-24xxzz-24yyzz)/sqrt(6720)
+         1  g1a = (-3xxxz+4xzzz-3xyyz)/sqrt(168)
+        -1  g1b = (-3yyyz+4yzzz-3xxyz)/sqrt(168)
+        -2  g2a = (-xxxy-xyyy+6xyzz)/sqrt(84)
+         2! g2b = (xxxx-yyyy-6xxzz+6yyzz)/sqrt(336)
+         3  g3a = (xxxz-3xyyz)/sqrt(24)
+        -3! g3b = (yyyz-3xxyz)/sqrt(24)
+        -4  g4a = (xxxy-xyyy)/sqrt(12)
+         4  g4b = (xxxx+yyyy-6xxyy)/sqrt(192)
+
+    Args:
+        l_slices (iterator): Iterator that yeilds (l: int, s: slice) per shell, where
+            l is angular momentum quantum number and s is the corresponding slice of size 2*l+1.
+        m (np.ndarray): Array of magnetic quantum numbers per AO.
+
+    Returns:
+        tuple: Re-arranged indices array and sign array.
+
+    Raises:
+        NotImplementedError: If l>2 orbitals are present.
+    """
+    idx = np.arange(len(m))
+    l_slices = list(l_slices)
+    for l, s in l_slices:
+        if l==1:
+            idx[s] = idx[s][pyscf2gpr_l1_order]
+        elif l>1:
+            idx[s] = idx[s][_turbomole2gpr_order[l]]
+    lmax = max(l for l, _x in l_slices)
+    if lmax>=3:
+        raise NotImplementedError("Phase convention differences orbitals with l>2 are not implemented yet. You can contribute by adding them to the _turbomole2gpr_idx function.")
+    signs = np.ones_like(idx)
+    return idx, signs
 
 
 def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
@@ -118,7 +194,7 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             If None, returns the indices to reorder and sign multipliers for an 1D vector
             to use as `x = x[idx]*sign`.
         src (str): Current convention. Defaults to 'pyscf'.
-        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca', 'gaussian'). Defaults to 'gpr'.
+        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca', 'gaussian', 'turbomole'). Defaults to 'gpr'.
 
     Returns:
         numpy.ndarray: Reordered vector or matrix, or tuple of (idx (numpy.ndarray), sign (numpy.ndarray)) if vector is None.
@@ -138,6 +214,8 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             return _orca2gpr_idx(l_slices, m)
         elif convention == 'gaussian':
             return _gau2gpr_idx(l_slices, m)
+        elif convention == 'turbomole':
+            return _turbomole2gpr_idx(l_slices, m)
         else:
             errstr = f'Conversion to/from the {convention} convention is not implemented'
             raise NotImplementedError(errstr)
@@ -176,3 +254,16 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
     newvector = np.zeros_like(vector)
     newvector[idx_dest] = (sign_src*vector)[idx_src] * sign_dest[idx_dest]
     return newvector
+
+
+_m_pyscf_l1 = (1, -1, 0)  # x,y,z
+pyscf2gpr_l1_order = order_from_m(1, _m_pyscf_l1)
+
+_m_orca = np.hstack(([0], np.repeat(np.arange(1, MAX_L+1), 2)))
+_m_orca[::2] *= -1
+_orca2gpr_order = [order_from_m(l, _m_orca[:2*l+1]) for l in range(MAX_L+1)]
+
+_m_turbomole_l2_plus = np.hstack(([0], np.repeat(np.arange(1, MAX_L+1), 2)))
+_m_turbomole_l2_plus[2::4] *= -1
+_m_turbomole_l2_plus[3::4] *= -1
+_turbomole2gpr_order = {l: order_from_m(l, _m_turbomole_l2_plus[:2*l+1]) for l in range(2, MAX_L+1)}

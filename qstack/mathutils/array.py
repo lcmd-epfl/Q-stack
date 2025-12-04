@@ -97,7 +97,7 @@ def vstack_padding(xs):
     return X
 
 
-def loadtxtvar(var, *kargs, **kwargs):
+def loadtxt_var(var, *kargs, **kwargs):
     """Load a numpy array from a string variable.
 
     Args:
@@ -110,4 +110,20 @@ def loadtxtvar(var, *kargs, **kwargs):
     """
     with StringIO(var) as f:
         x = np.loadtxt(f, *kargs, **kwargs)
+    return x
+
+
+def genfromtxt_var(var, *kargs, **kwargs):
+    """Load a numpy array from a string variable.
+
+    Args:
+        var (str): String variable containing the data.
+        *kargs: Additional positional arguments for numpy.genfromtxt.
+        **kwargs: Additional keyword arguments for numpy.genfromtxt.
+
+    Returns:
+        numpy.ndarray: Loaded array.
+    """
+    with StringIO(var) as f:
+        x = np.genfromtxt(f, *kargs, **kwargs)
     return x
