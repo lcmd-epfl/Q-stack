@@ -7,7 +7,7 @@ import numpy as np
 from pyscf import gto, data
 from qstack import constants
 from qstack.reorder import get_mrange
-from qstack.mathutils.array import stack_padding
+from qstack.mathutils.array import stack_padding, loadtxtvar
 from qstack.mathutils.rotation_matrix import rotate_euler
 from qstack.tools import Cursor
 
@@ -144,8 +144,9 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     if ignore:
         if charge not in (0, None) or spin not in (0, None):
             warnings.warn("Spin and charge values are overwritten", RuntimeWarning, stacklevel=2)
+        atoms = [int(q) if q.isdigit() else data.elements.ELEMENTS_PROTON[q] for q in loadtxtvar(molxyz, dtype='str', usecols=0)]
         mol.spin = 0
-        mol.charge = - sum(mol.atom_charges())%2
+        mol.charge = -(sum(atoms)%2)
     else:
         if charge is not None:
             mol.charge = charge
@@ -162,8 +163,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
             mol.spin = 0
 
     mol.build()
-    species_charges = [data.elements.charge(z) for z in mol.elements]
-    if mol.basis == 'minao' and ecp is None and (np.array(species_charges) > 36).any():
+    if mol.basis == 'minao' and ecp is None and (numbers(mol) > 36).any():
         msg = f"{mol.basis} basis set requires the use of effective core potentials for atoms with Z>36"
         raise RuntimeError(msg)
     return mol
@@ -303,64 +303,31 @@ def make_atom(q, basis, ecp=None):
     return mol
 
 
-def singleatom_basis_enumerator(basis):
-    """Enumerate the different tensors of atomic orbitals within a 1-atom basis set.
-
-    Each tensor is a 2l+1-sized group of orbitals that share a radial function and l value.
-
-    Args:
-        basis (list): Basis set definition in pyscf format.
-
-    Returns:
-        tuple: A tuple containing:
-        - l_per_bas (list): Angular momentum quantum number l for each basis shell.
-        - n_per_bas (list): Radial function counter n (starting at 0) for each basis shell.
-        - ao_starts (list): Starting index in AO array for each basis shell.
-    """
-    ao_starts = []
-    l_per_bas = []
-    n_per_bas = []
-    cursor = Cursor(action='ranger')
-    cursor_per_l = []
-    for bas in basis:
-        # shape of `bas`, l, then another optional constant, then lists [exp, coeff, coeff, coeff]
-        # that make a matrix between the number of functions (number of coeff per list)
-        # and the number of primitive gaussians (one per list)
-        l = bas[0]
-        while len(cursor_per_l) <= l:
-            cursor_per_l.append(Cursor(action='ranger'))
-        n_count = len(bas[-1])-1
-        l_per_bas += [l] * n_count
-        n_per_bas.extend(cursor_per_l[l].add(n_count))
-        msize = 2*l+1
-        ao_starts.extend(cursor.add(msize*n_count)[::msize])
-    return l_per_bas, n_per_bas, ao_starts
-
-
 def basis_flatten(mol, return_both=True, return_shells=False):
     """Flatten a basis set definition for AOs.
 
     Args:
         mol (pyscf.gto.Mole): pyscf Mole object.
         return_both (bool): Whether to return both AO info and primitive Gaussian info. Defaults to True.
-        return_shells (bool): Whether to return angular momenta per shell. Defaults to False.
+        return_shells (bool): Whether to return angular momenta and starting indices per shell
+            (2l+1-sized group of orbitals that share a radial function and l value). Defaults to False.
 
     Returns:
         - numpy.ndarray: 3×mol.nao int array where each column corresponds to an AO and rows are:
-            - 0: atom index
-            - 1: angular momentum quantum number l
-            - 2: magnetic quantum number m
+            - 0: atom index,
+            - 1: angular momentum quantum number l,
+            - 2: magnetic quantum number m.
         If return_both is True, also returns:
         - numpy.ndarray: 2×mol.nao×max_n float array where index (i,j,k) means:
-            - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian
-            - j: AO index
-            - k: radial function index (padded with zeros if necessary)
-        If return_shell is True, also returns:
-        - numpy.ndarray: angular momentum quantum number for each shell
-
+            - i: 0 for exponent, 1 for contraction coefficient of a primitive Gaussian,
+            - j: AO index,
+            - k: radial function index (padded with zeros if necessary).
+        If return_shells is True, also returns:
+        - numpy.ndarray: starting AO indices for each shell.
     """
     x = []
-    L = []
+    ao_starts = []
+    cursor = Cursor(action='ranger')
     y = np.zeros((3, mol.nao), dtype=int)
     i = Cursor(action='slicer')
     a = mol.bas_exps()
@@ -376,11 +343,26 @@ def basis_flatten(mol, return_both=True, return_shells=False):
                     x.extend([ac]*msize)
             y[:,i(msize*n)] = np.vstack((np.array([[iat, l]]*msize*n).T, [*get_mrange(l)]*n))
             if return_shells:
-                L.extend([l]*n)
+                ao_starts.extend(cursor.add(msize*n)[::msize])
 
     ret = [y]
     if return_both:
         ret.append(stack_padding(x).transpose((1,0,2)))
     if return_shells:
-        ret.append(np.array(L))
+        ret.append(np.array(ao_starts))
     return ret[0] if len(ret)==1 else ret
+
+
+def numbers(mol):
+    """Get atom numbers of a molecule.
+
+    Use this function to get atomic NUMBERS to index elements.
+    Use `mol.atom_charges()` to get CHARGES (it returns effective charges when ECP are used).
+
+    Args:
+        mol (pyscf.gto.Mole): pyscf Mole object.
+
+    Returns:
+        numpy.ndarray: Array of atomic numbers.
+    """
+    return np.array([data.elements.charge(q) for q in mol.elements])

@@ -203,7 +203,7 @@ def correct_N(mol, c0, N=None, mode='Lagrange', metric='u'):
         numpy ndarray: Corrected decomposition coefficients (1D array).
     """
     mode = mode.lower()
-    q = moments.r2_c(mol, None, moments=[0])
+    q = moments.r2_c(mol, None, moments=[0])[0]
     N0 = c0 @ q
 
     if N is None:

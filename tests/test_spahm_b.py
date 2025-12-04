@@ -20,8 +20,14 @@ def test_water():
     xyz_in = PATH+'/data/H2O.xyz'
     mols = utils.load_mols([xyz_in], [0], [0], 'minao')
     X = bond.get_repr("bond", mols, [xyz_in], 'LB', spin=[0], with_symbols=False, same_basis=False)
-
     underlying_test(X, '/data/H2O_spahm_b.npy_alpha_beta.npy')
+
+
+def test_water_onlym0():
+    xyz_in = PATH+'/data/H2O.xyz'
+    mols = utils.load_mols([xyz_in], spin=None, charge=None, basis='minao')
+    X = bond.get_repr("bond", mols, [xyz_in], 'LB', spin=[0], with_symbols=False, same_basis=False, only_m0=True)
+    underlying_test(X, '/data/H2O_spahm_b_onlym0.npy')
 
 
 def test_water_closed():
@@ -117,6 +123,7 @@ if __name__ == '__main__':
     test_water_closed()
     test_water_O_only()
     test_water_same_basis()
+    test_water_onlym0()
     test_ecp()
     test_repr_shapes()
     test_from_list()

@@ -98,9 +98,9 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
         NotImplementedError: If the specified convention is not implemented.
         ValueError: If vector dimension is not 1 or 2.
     """
-    def get_idx(L, m, convention):
+    def get_idx(l_shells, m, convention):
         convention = convention.lower()
-        l_slices = slice_generator(L, inc=lambda l: 2*l+1)
+        l_slices = slice_generator(l_shells, inc=lambda l: 2*l+1)
         if convention == 'gpr':
             return np.arange(len(m)), np.ones_like(m)
         elif convention == 'pyscf':
@@ -113,9 +113,11 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
 
     from .compound import basis_flatten
 
-    (_, _, m), L = basis_flatten(mol, return_both=False, return_shells=True)
-    idx_src, sign_src  = get_idx(L, m, src)
-    idx_dest, sign_dest = get_idx(L, m, dest)
+    (_, l, m), shell_start = basis_flatten(mol, return_both=False, return_shells=True)
+    l_shells = l[shell_start]
+
+    idx_src, sign_src  = get_idx(l_shells, m, src)
+    idx_dest, sign_dest = get_idx(l_shells, m, dest)
 
     if vector.ndim == 2:
         sign_src  = np.einsum('i,j->ij', sign_src, sign_src)
