@@ -2,7 +2,7 @@
 
 import numpy as np
 import scipy
-from pyscf import scf
+from pyscf import scf, gto
 from qstack import compound
 from . import moments
 
@@ -59,10 +59,10 @@ def get_self_repulsion(mol_or_mf, dm):
     Returns:
         float: Self-repulsion energy (a.u).
     """
-    try:
-        j, _k = mol_or_mf.get_jk()
-    except AttributeError:
+    if isinstance(mol_or_mf, gto.mole.Mole):
         j, _k = scf.hf.get_jk(mol_or_mf, dm)
+    else:
+        j, _k = mol_or_mf.get_jk()
     return np.einsum('ij,ij', j, dm)
 
 
