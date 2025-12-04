@@ -1,4 +1,3 @@
-import numpy as np
 import os
 from qstack import compound, fields
 from qstack.fields.decomposition import decompose

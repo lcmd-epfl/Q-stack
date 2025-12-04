@@ -1,48 +1,48 @@
 #!/usr/bin/env python3
 
 import os
+import argparse
 import numpy as np
-import qstack
+from qstack import compound, fields
+from qstack.io import orca
+
 
 def example_orca_reader():
+    parser = argparse.ArgumentParser(description='Example of ORCA reader')
+    parser.add_argument('--name', type=str, default='AJALIH', choices=['AJALIH', 'CEHZOF'], help='job name')
+    args = parser.parse_args()
 
     path = os.path.dirname(os.path.realpath(__file__))
-    name = 'ZOFDAC_6_SPE'
-    openshell = True
-    basis_name = 'def2-TZVP'
-    version = 504
+    basis = 'def2-TZVP'
+    version = 502
 
-    # In ORCA, def2-TZVP is not sorted wrt angular momenta
-    basis_Fe = [
-[0, [300784.84637, 0.00022806273096], [45088.970557, 0.0017681788761], [10262.516317, 0.009192708349], [2905.2897293, 0.037355495807], [946.11487137, 0.12151108426], [339.87832894, 0.28818881468], [131.94425588, 0.41126612677], [52.111494077, 0.21518583573]],
-[0, [329.48839267, -0.024745216477], [101.92332739, -0.1168308905], [16.240462745, 0.55293621136], [6.8840675801, 0.53601640182]],
-[0, [10.470693782, -0.22912708577], [1.7360039648, 0.71159319984]],
-[0, [0.72577288979, 1.0]],
-[0, [0.11595528203, 1.0]],
-[0, [0.041968227746, 1.0]],
-[1, [1585.395997, 0.0023793960179], [375.38006499, 0.019253154755], [120.31816501, 0.090021836536], [44.788749031, 0.25798172356], [17.829278584, 0.41492649744], [7.2247153786, 0.24207474784]],
-[1, [28.143219756, -0.029041755152], [3.8743241412, 0.55312260343], [1.5410752281, 0.96771136842]],
-[1, [0.5828561525, 1.0]],
-[2, [61.996675034, 0.011971972255], [17.873732552, 0.07321013541], [6.2744782934, 0.23103094314], [2.3552337175, 0.39910706494]],
-[2, [0.85432239901, 1.0]],
-[2, [0.27869254413, 1.0]],
-[1, [0.134915, 1.0]],
-[2, [0.091, 1.0]],
-[3, [1.598, 1.0]]
-]
-    mol0 = qstack.compound.xyz_to_mol(path+'/data/'+name+'.xyz', basis_name, ignore=True)
-    basis = mol0._basis
-    basis['Fe'] = basis_Fe
-    mol = qstack.compound.make_auxmol(mol0, basis)
+    name = args.name
+    xyz = f'{path}/data/{name}/{name}.xyz'
+    mol = compound.xyz_to_mol(xyz, basis, ecp=basis, parse_comment=True)
+    name_long = f'{name}_{mol.multiplicity}_SPE'
+    gbw = f'{path}/data/{name}/{name}_{mol.multiplicity}_SPE.gbw'
+    openshell = mol.multiplicity > 1
 
     S = mol.intor('int1e_ovlp_sph')
-    D = qstack.orcaio.read_density(mol, name, version=504, openshell=openshell, directory=path+'/data')
+    C, _e, occ = orca.read_gbw(mol, gbw)
+    D1 = fields.dm.make_rdm1(np.squeeze(C), np.squeeze(occ))
+    D2 = orca.read_density(mol, name_long, reorder_dest='pyscf',
+                             version=version, openshell=openshell, directory=f'{path}/data/{name}')
 
     if openshell:
-        print(np.trace(D[0]@S))
-        print(np.trace(D[1]@S))
+        Da, Db = D1
+        print()
+        print(mol.nelec)
+        print(np.trace(Da@S), np.trace(Db@S))
+        Dp, Ds = D2
+        print()
+        print(mol.nelectron, mol.multiplicity-1)
+        print(np.trace(Dp@S), np.trace(Ds@S))
     else:
-        print(np.trace(D@S))
+        print()
+        print(mol.nelectron)
+        print(np.trace(D1@S))
+        print(np.trace(D2@S))
 
 
 if __name__ == '__main__':

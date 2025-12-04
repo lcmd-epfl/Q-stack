@@ -325,7 +325,7 @@ def render_index_rst(project: str, modules: list[ModuleInfo], out_dir: Path) -> 
     out.append(".. toctree::\n   :caption: Modules\n   :hidden:\n\n")
 
 
-    module_order = ['spahm', 'fields', 'qml', 'regression'] + ['compound', 'c2mio', 'equio', 'orcaio']
+    module_order = ['spahm', 'fields', 'qml', 'regression', 'compound']
     def key(m):
         name = m.name.split('.')[1]
         i = module_order.index(name) if name in module_order else len(module_order)
