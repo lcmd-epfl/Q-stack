@@ -186,6 +186,10 @@ class Cursor:
         self.i_prev = self.i
         self.i += self.inc(di)
 
+    def __iadd__(self, di):
+        self.add(di)
+        return self
+
     def __call__(self, di=None):
         """Optionally advance the cursor and return the current range or slice.
 

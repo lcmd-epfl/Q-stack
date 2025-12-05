@@ -249,7 +249,7 @@ def _matrix_to_tensormap(mol, dm):
                 msize1 = 2*l1+1
                 nsize1 = llists[q1].count(l1)
                 iq2 = dict.fromkeys(elements, 0)
-                i1.add(nsize1*msize1)
+                i1 += nsize1*msize1
                 i2 = Cursor(action='slicer')
                 for iat2, q2 in enumerate(atom_charges):
                     for l2 in set(llists[q2]):
@@ -268,7 +268,7 @@ def _matrix_to_tensormap(mol, dm):
         for iat1, q1 in enumerate(atom_charges):
             il1 = dict.fromkeys(range(max(llists[q1]) + 1), 0)
             for l1 in llists[q1]:
-                i1.add(2*l1+1)
+                i1 += 2*l1+1
                 iq2 = dict.fromkeys(elements, 0)
                 i2 = Cursor(action='slicer')
                 for iat2, q2 in enumerate(atom_charges):
