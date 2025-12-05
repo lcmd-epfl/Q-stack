@@ -6,10 +6,10 @@ import warnings
 import numpy as np
 from pyscf import gto, data
 from qstack import constants
-from qstack.reorder import get_mrange
 from qstack.mathutils.array import stack_padding, loadtxt_var
 from qstack.mathutils.rotation_matrix import rotate_euler
 from qstack.tools import Cursor
+from .constants import XYZ
 
 
 # detects a charge-spin line, containing only two ints (one positive or negative, the other positive and nonzero)
@@ -325,6 +325,9 @@ def basis_flatten(mol, return_both=True, return_shells=False):
         If return_shells is True, also returns:
         - numpy.ndarray: starting AO indices for each shell.
     """
+    def get_mrange(l):
+        return XYZ if l==1 else range(-l, l+1)
+
     x = []
     ao_starts = []
     cursor = Cursor(action='ranger')
