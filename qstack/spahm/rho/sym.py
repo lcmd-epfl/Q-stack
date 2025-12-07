@@ -1,9 +1,9 @@
 """Symmetry operations for SPAHM(a,b) representations."""
 
+import itertools
 import numpy as np
 from qstack import compound
 from qstack.mathutils.matrix import sqrtm
-from qstack.reorder import get_mrange
 
 
 def c_split_atom(mol, c, only_i=None):
@@ -27,23 +27,23 @@ def c_split_atom(mol, c, only_i=None):
     return [c[i0:i1] for i0, i1 in aoslice_by_atom]
 
 
-def idxl0(ao_i, l, ao):
-    """Return index of basis function with same L and N quantum numbers but M=0.
+def idxl0(i, l, m):
+    """Return index of basis function (AO) with same L and N quantum numbers but M=0.
 
     Finds the m=0 component of the same angular momentum shell.
 
     Args:
-        ao_i (int): Basis function (atomic orbital) index.
+        i (int): Basis function (atomic orbital) index.
         l (int): Angular momentum quantum number.
-        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
+        m (int): Magnetic quantum number.
 
     Returns:
-        int: Index of corresponding m=0 basis function.
+        int: Index of corresponding m=0 atomic orbital.
     """
     if l != 1:
-        return ao_i - ao['m'][ao_i]+l
+        return i - m + l
     else:
-        return ao_i + [0, 2, 1][ao['m'][ao_i]]
+        return i + [0, 2, 1][m]
 
 
 def get_S(q, basis):
@@ -63,41 +63,15 @@ def get_S(q, basis):
     """
     mol = compound.make_atom(q, basis)
     S = mol.intor_symmetric('int1e_ovlp')
-
-    l_per_bas, _n_per_bas, ao_start = compound.singleatom_basis_enumerator(mol._basis[q])
-
-    ao = {'l': [], 'm': []}
-    for l in l_per_bas:
-        ao['l'].extend([l]*(2*l+1))
-        ao['m'].extend(get_mrange(l))
-
+    (_, l, m), ao_start = compound.basis_flatten(mol, return_both=False, return_shells=True)
+    ao = {'l': l, 'm': m}
     return S, ao, ao_start
-
-
-def store_pair_indices(ao):
-    """Store basis function pair indices with matching L and M quantum numbers.
-
-    Creates list of all (i,j) pairs where basis functions have identical angular momenta.
-
-    Args:
-        ao (dict): Angular momentum info with 'l' and 'm' lists for each AO.
-
-    Returns:
-        numpy ndarray: [i, j] index pairs with matching (l, m).
-    """
-    idx = []
-    for i, [li, mi] in enumerate(zip(ao['l'], ao['m'], strict=True)):
-        for j, [lj, mj] in enumerate(zip(ao['l'], ao['m'], strict=True)):
-            if (li!=lj) or (mi!=mj):
-                continue
-            idx.append([i, j])
-    return np.array(idx)
 
 
 def store_pair_indices_short(ao, ao_start):
     """Store basis function pair indices for m=0 components only.
 
-    Creates list of (i,j) pairs using only the first basis function (m=0)
+    Creates list of (i,j) pairs using only the first basis function
     of each angular momentum shell, for compact representation.
 
     Args:
@@ -107,47 +81,12 @@ def store_pair_indices_short(ao, ao_start):
     Returns:
         numpy ndarray: [i, j] index pairs for m=0 components with matching L.
     """
+    l_shell = ao['l'][ao_start]
     idx = []
-    for i in ao_start:
-        for j in ao_start:
-            li = ao['l'][i]
-            lj = ao['l'][j]
-            if li!=lj:
-                continue
-            idx.append([i, j])
-    return np.array(idx)
-
-
-def metric_matrix(q, idx, ao, S):
-    """Compute metric matrix for symmetrization of density fitting coefficients.
-
-    Constructs metric matrix from overlap integrals of basis function pairs,
-    normalized by angular momentum degeneracy (2l+1). Returns square root
-    for transformation to orthonormal representation.
-
-    Args:
-        q (str): Element symbol key for angular momentum info.
-        idx (numpy ndarray): [i, j] basis function pair indices.
-        ao (dict): Angular momentum info dict with nested structure ao[q].
-        S (numpy ndarray): Overlap matrix.
-
-    Returns:
-        numpy ndarray: Square root of metric matrix.
-    """
-    N = len(idx)
-    A = np.zeros((N,N))
-    for p in range(N):
-        for p1 in range(p,N):
-            i,  j  = idx[p]
-            i1, j1 = idx[p1]
-            l  = ao['l'][i]
-            l1 = ao['l'][i1]
-            if l!=l1:
-                continue
-            A[p1,p] = A[p,p1] = 1.0/(2*l+1) \
-                                * S[idxl0(i, l, ao[q]), idxl0(i1, l, ao[q])] \
-                                * S[idxl0(j, l, ao[q]), idxl0(j1, l, ao[q])]
-    return sqrtm(A)
+    for i, li in zip(ao_start, l_shell, strict=True):
+        js = ao_start[np.where(l_shell==li)][:,None]
+        idx.append(np.pad(js, ((0,0), (1,0)), mode='constant', constant_values=i))
+    return np.vstack(idx)
 
 
 def metric_matrix_short(idx, ao, S):
@@ -161,12 +100,9 @@ def metric_matrix_short(idx, ao, S):
     Returns:
         numpy ndarray: Square root of metric matrix.
     """
-    N = len(idx)
-    A = np.zeros((N,N))
-    for p in range(N):
-        for p1 in range(p,N):
-            i, j  = idx[p]
-            i1,j1 = idx[p1]
+    A = np.zeros((len(idx),len(idx)))
+    for p, (i, j) in enumerate(idx):
+        for p1, (i1, j1) in enumerate(idx[:p+1]):
             l  = ao['l'][i]
             l1 = ao['l'][i1]
             if l!=l1:
@@ -188,7 +124,7 @@ def vectorize_c(idx, c):
         numpy ndarray: 1D array of coefficient products c[i]*c[j].
     """
     v = np.zeros(len(idx))
-    for p, (i,j) in enumerate(idx):
+    for p, (i, j) in enumerate(idx):
         v[p] = c[i]*c[j]
     return v
 
@@ -214,7 +150,7 @@ def vectorize_c_MR2021(idx_pair, ao, c):
     """
     idx = np.unique(idx_pair[:,0])
     v = np.zeros(len(idx))
-    for p,i in enumerate(idx):
+    for p, i in enumerate(idx):
         l = ao['l'][i]
         msize = 2*l+1
         v[p] = c[i:i+msize] @ c[i:i+msize]
@@ -235,7 +171,7 @@ def vectorize_c_short(idx, ao, c):
         numpy ndarray: 1D array of shell-pair dot products.
     """
     v = np.zeros(len(idx))
-    for p, [i,j] in enumerate(idx):
+    for p, (i, j) in enumerate(idx):
         l = ao['l'][i]
         msize = 2*l+1
         v[p] = c[i:i+msize] @ c[j:j+msize]
@@ -256,11 +192,9 @@ def store_pair_indices_z(ao):
     """
     idx = []
     for i, mi in enumerate(ao['m']):
-        for j, mj in enumerate(ao['m']):
-            if abs(mi)!=abs(mj):
-                continue
-            idx.append([i,j])
-    return np.array(idx)
+        js = np.where(abs(ao['m'])==abs(mi))[0][:,None]
+        idx.append(np.pad(js, ((0,0), (1,0)), mode='constant', constant_values=i))
+    return np.vstack(idx)
 
 
 def store_pair_indices_z_only0(ao):
@@ -274,15 +208,8 @@ def store_pair_indices_z_only0(ao):
     Returns:
         numpy ndarray: [i, j] index pairs where both m_i = m_j = 0.
     """
-    idx = []
-    for i, mi in enumerate(ao['m']):
-        if mi!=0:
-            continue
-        for j, mj in enumerate(ao['m']):
-            if mj!=0:
-                continue
-            idx.append([i,j])
-    return np.array(idx)
+    i_m0 = np.where(ao['m']==0)[0]
+    return np.array([*itertools.product(i_m0, i_m0)])
 
 
 def metric_matrix_z(idx, ao, S):
@@ -290,7 +217,7 @@ def metric_matrix_z(idx, ao, S):
 
     Constructs metric matrix accounting for m and -m degeneracy. Matrix
     elements are nonzero only when angular momenta match and m quantum
-    numbers satisfy m_i=m_j AND m_i1=m_j1, or m_i=-m_j AND m_i1=-m_j1.
+    numbers satisfy m_i=m_i1 AND m_j=m_j1, or m_i=-m_i1 AND m_j=-m_j1.
 
     Args:
         idx (numpy ndarray): [i, j] basis function pair indices.
@@ -300,26 +227,22 @@ def metric_matrix_z(idx, ao, S):
     Returns:
         numpy ndarray: Square root of metric matrix for z-symmetric normalization.
     """
-    N = len(idx)
-    A = np.zeros((N,N))
-    for p in range(N):
-        for p1 in range(p,N):
-            i,i1 = idx[p]
-            j,j1 = idx[p1]
+    A = np.zeros((len(idx),len(idx)))
+    for p, (i, j) in enumerate(idx):
+        for p1, (i1, j1) in enumerate(idx[:p+1]):
             li  = ao['l'][i ]
-            li1 = ao['l'][i1]
             lj  = ao['l'][j ]
+            li1 = ao['l'][i1]
             lj1 = ao['l'][j1]
-            if (li != lj) or (li1 != lj1):
+            if (li != li1) or (lj != lj1):
                 continue
-
             mi  = ao['m'][i ]
-            mi1 = ao['m'][i1]
             mj  = ao['m'][j ]
+            mi1 = ao['m'][i1]
             mj1 = ao['m'][j1]
 
-            A[p1,p] = A[p,p1] = ((mi==mj)*(mi1==mj1) + (mi==-mj)*(mi1==-mj1)*(mi!=0)) \
-                                * S[idxl0(i,  li,  ao), idxl0(j,  li,  ao)] \
-                                * S[idxl0(i1, li1, ao), idxl0(j1, li1, ao)]
+            A[p1,p] = A[p,p1] = ((mi==mi1)*(mj==mj1) + (mi==-mi1)*(mj==-mj1)*(mi!=0)) \
+                                * S[idxl0(i,  li, mi), idxl0(i1, li1, mi1)] \
+                                * S[idxl0(j , lj, mj), idxl0(j1, lj1, mj1)]
 
     return sqrtm(A)

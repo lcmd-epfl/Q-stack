@@ -10,14 +10,13 @@ from qstack.reorder import reorder_ao
 
 
 def _dipole_moment(mol, dm):
-    charges = mol.atom_charges()
-    coords  = mol.atom_coords()
-    mass = np.round(np.array(elements.MASSES)[charges], 3)
+    coords = mol.atom_coords()
+    mass = np.array(elements.MASSES)[qstack.compound.numbers(mol)]
     mass_center = np.einsum('i,ix->x', mass, coords) / sum(mass)
     with mol.with_common_orig(mass_center):
         ao_dip = mol.intor_symmetric('int1e_r', comp=3)
     el_dip = np.einsum('xij,ji->x', ao_dip, dm.sum(axis=0))
-    nucl_dip = np.einsum('i,ix->x', charges, coords-mass_center)
+    nucl_dip = np.einsum('i,ix->x', mol.atom_charges(), coords-mass_center)
     mol_dip = nucl_dip - el_dip
     return mol_dip
 
