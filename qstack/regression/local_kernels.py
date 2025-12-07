@@ -11,10 +11,10 @@ import os
 import ctypes
 import sysconfig
 import warnings
+from itertools import pairwise
 import numpy as np
 import sklearn.metrics.pairwise as _SKLEARN_PAIRWISE
 from qstack.regression import __path__ as REGMODULE_PATH
-from qstack.tools import pairwise
 
 
 RAM_BATCHING_SIZE = 1024**3 * 5  # 5GiB

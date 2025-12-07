@@ -4,25 +4,11 @@ Provides decorators, argument parsers, and helper functions for command-line too
 """
 
 import os
-import sys
 import time
 import resource
 import argparse
 import numpy as np
-from itertools import accumulate
-if sys.version_info[1]>=10:
-    from itertools import pairwise
-else:
-    def pairwise(iterable):
-        """Implement itertools.pairwise for python<3.10.
-
-        Taken from https://docs.python.org/3/library/itertools.html#itertools.pairwise
-        """
-        iterator = iter(iterable)
-        a = next(iterator, None)
-        for b in iterator:
-            yield a, b
-            a = b
+from itertools import accumulate, pairwise
 
 
 def unix_time_decorator(func):
