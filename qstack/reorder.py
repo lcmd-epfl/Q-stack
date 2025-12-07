@@ -26,6 +26,9 @@ from .compound import basis_flatten
 from .constants import XYZ
 
 
+_TURBOMOLE_MAX_L = 4
+
+
 class MagneticOrder:
     """Class to handle ordering conventions of atomic orbitals.
 
@@ -123,12 +126,13 @@ def _conv2gpr_idx(nao, l_slices, convention):
     return idx
 
 
-def _get_idx(l_shells, m, convention):
+def _get_idx(l, m, shell_start, convention):
     """Get the indices and sign multipliers to convert from a given convention to SA-GPR.
 
     Args:
-        l_shells (iterable): List of angular momentum quantum numbers per shell.
+        l (numpy.ndarray): Array of magnetic quantum numbers per atomic orbital.
         m (numpy.ndarray): Array of magnetic quantum numbers per atomic orbital.
+        shell_start (numpy.ndarray): Starting AO indices for each shell (2*l+1 block).
         convention (str): Ordering convention.
 
     Returns:
@@ -137,31 +141,35 @@ def _get_idx(l_shells, m, convention):
             signs: Sign multipliers to convert from given convention to SA-GPR.
 
     Raises:
-        NotImplementedError: If the specified convention is not implemented or if l>2 for Turbomole convention.
+        NotImplementedError: If the specified convention is not implemented or if l>4 for Turbomole convention.
     """
     convention = convention.lower()
+    l_shells = l[shell_start]
     l_slices = slice_generator(l_shells, inc=lambda l: 2*l+1)
 
     if convention not in _conventions:
         errstr = f'Conversion to/from the {convention} convention is not implemented'
         raise NotImplementedError(errstr)
 
-    if convention == 'turbomole':
-        #TODO: check signs:
-        #    l=3 m=-3
-        #    l=4 m=-3
-        #    l=4 m=2
-        lmax = max(l_shells)
-        if lmax>=3:
-            raise NotImplementedError("Phase convention differences orbitals with l>2 are not implemented yet. You can contribute by adding them to the _turbomole2gpr_idx function.")
+    idx = _conv2gpr_idx(len(l), l_slices, convention)
 
-    idx = _conv2gpr_idx(len(m), l_slices, convention)
+    signs = np.ones_like(idx)
     if convention == 'orca':
-        signs = np.ones_like(idx)
         signs[np.where(np.abs(m)>=3)] = -1  # in pyscf order
-        signs[idx] = np.copy(signs)  # in orca order. copy for numpy < 2
-    else:
-        signs = np.ones_like(m)
+    elif convention == 'turbomole':
+        """
+        To get this, use `infsao` command of Turbomole's `define` program.
+        It will print AO order and equations for each spherical harmonic.
+        Check if the phase convention is the same we use
+        (https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics).
+        """
+        if max(l)>_TURBOMOLE_MAX_L:
+            raise NotImplementedError(f"Phase convention differences orbitals with l>{_TURBOMOLE_MAX_L} are not implemented yet. You can contribute!")
+        signs[(l==3) & (m==-3)] = -1  # in pyscf order
+        signs[(l==4) & (m==-3)] = -1  # in pyscf order
+        signs[(l==4) & (m== 2)] = -1  # in pyscf order
+    signs[idx] = np.copy(signs)   # in convention order. copy for numpy < 2
+
     return idx, signs
 
 
@@ -196,10 +204,9 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             return vector
 
     (_, l, m), shell_start = basis_flatten(mol, return_both=False, return_shells=True)
-    l_shells = l[shell_start]
 
-    idx_src, sign_src  = _get_idx(l_shells, m, src)
-    idx_dest, sign_dest = _get_idx(l_shells, m, dest)
+    idx_src, sign_src  = _get_idx(l, m, shell_start, src)
+    idx_dest, sign_dest = _get_idx(l, m, shell_start, dest)
 
     if vector is None:
         idx = np.arange(mol.nao)

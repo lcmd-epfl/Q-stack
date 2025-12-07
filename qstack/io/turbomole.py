@@ -1,4 +1,7 @@
-"""Read Turbomole MOs files."""
+"""Read Turbomole MOs files.
+
+Tested with TURBOMOLE V7.1
+"""
 
 import re
 import numpy as np
@@ -21,15 +24,16 @@ def read_mos(mol, fname, reorder_dest='pyscf'):
     Returns:
         c (ndarray): AO coefficients, shape (nao, nmo).
         e (ndarray): Orbital energies, shape (nmo,).
+        title (str): Title of the MOs set, e.g. '$scfmo', '$uhfmo_alpha', '$uhfmo_beta'.
 
     Raises:
         RuntimeError: If the file format is invalid or unsupported.
     """
     with open(fname) as f:
-        lines = f.readlines()
+        lines = [*filter(lambda x: not x.strip().startswith('#'), f.readlines())]
 
-    l0 = lines[0].split()
-    if l0[0] != '$scfmo':
+    title, _, fmt = lines[0].split()
+    if title not in ['$scfmo', '$uhfmo_alpha', '$uhfmo_beta']:
         raise RuntimeError('Not a valid Turbomole MOs file')
 
     re_int = r'(\d+)'
@@ -37,7 +41,7 @@ def read_mos(mol, fname, reorder_dest='pyscf'):
     re_fmt = re.compile(f'format\\({re_int}d{re_int}\\.{re_int}\\)')
     re_eigen = re.compile(f'.*eigenvalue={re_flt}\\s+nsaos={re_int}')
 
-    matcher = re_fmt.fullmatch(l0[2])
+    matcher = re_fmt.fullmatch(fmt)
     if matcher is None:
         raise RuntimeError('Cannot parse Turbomole format string')
     fmt = [*map(int, matcher.groups())]
@@ -75,4 +79,4 @@ def read_mos(mol, fname, reorder_dest='pyscf'):
         for i in range(c.shape[1]):
             c[:,i] = c[idx,i]*sign
 
-    return c, e
+    return c, e, title
