@@ -1,0 +1,115 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: Q-Stack
+version: v0.1.0+2025.12.08
+date-released: 2025-12-08
+authors:
+# current maintainers
+- family-names: Briling
+  given-names: Ksenia R.
+  orcid: https://orcid.org/0000-0003-2250-9898
+- family-names: Calvino Alonso
+  given-names: Yannick
+  orcid: https://orcid.org/0009-0008-9573-7772
+- family-names: Hernandez-Cuellar
+  given-names: Osvaldo
+  orcid: https://orcid.org/0009-0001-5693-0034
+- family-names: Marsh
+  given-names: Liam Oliver
+  orcid: https://orcid.org/0000-0002-7276-5673
+# past maintainers
+- family-names: Fabrizio
+  given-names: Alberto
+  orcid: https://orcid.org/0000-0002-4440-3149
+- family-names: Gerwen
+  name-particle: van
+  given-names: Puck
+  orcid: https://orcid.org/0000-0002-7992-5529
+- family-names: Laplaza
+  given-names: Rubén
+  orcid: https://orcid.org/0000-0001-6315-4398
+
+repository-code: "https://github.com/lcmd-epfl/Q-stack"
+license: MIT
+type: software
+url: "https://lcmd-epfl.github.io/Q-stack"
+references:
+- title: "Machine-learning the transition density of the productive excited states of azo-dyes"
+  type: article
+  doi: 10.1021/acs.jpclett.1c01425
+  year: 2021
+  authors:
+  - family-names: Vela
+    given-names: Sergi
+  - family-names: Fabrizio
+    given-names: Alberto
+    orcid: https://orcid.org/0000-0002-4440-3149
+  - family-names: Briling
+    given-names: Ksenia R.
+    orcid: https://orcid.org/0000-0003-2250-9898
+  - family-names: Corminboeuf
+    given-names: Clemence
+    orcid: https://orcid.org/0000-0001-7993-2879
+- title: "Impact of quantum-chemical metrics on the machine learning prediction of electron density"
+  type: article
+  doi: 10.1063/5.0055393
+  year: 2021
+  authors:
+  - family-names: Briling
+    given-names: Ksenia R.
+    orcid: https://orcid.org/0000-0003-2250-9898
+  - family-names: Fabrizio
+    given-names: Alberto
+    orcid: https://orcid.org/0000-0002-4440-3149
+  - family-names: Corminboeuf
+    given-names: Clemence
+    orcid: https://orcid.org/0000-0001-7993-2879
+- title: "SPAHM: the Spectrum of Approximated Hamiltonian Matrices representations"
+  type: article
+  doi: 10.1039/D1DD00050K
+  year: 2022
+  authors:
+  - family-names: Fabrizio
+    given-names: Alberto
+    orcid: https://orcid.org/0000-0002-4440-3149
+  - family-names: Briling
+    given-names: Ksenia R.
+    orcid: https://orcid.org/0000-0003-2250-9898
+  - family-names: Corminboeuf
+    given-names: Clemence
+    orcid: https://orcid.org/0000-0001-7993-2879
+- title: "SPAHM(a,b): Encoding the Density Information from Guess Hamiltonian in Quantum Machine Learning Representations"
+  type: article
+  doi: 10.1021/acs.jctc.3c01040
+  year: 2024
+  authors:
+  - family-names: Briling
+    given-names: Ksenia R.
+    orcid: https://orcid.org/0000-0003-2250-9898
+  - family-names: Calvino Alonso
+    given-names: Yannick
+    orcid: https://orcid.org/0009-0008-9573-7772
+  - family-names: Fabrizio
+    given-names: Alberto
+    orcid: https://orcid.org/0000-0002-4440-3149
+  - family-names: Corminboeuf
+    given-names: Clemence
+    orcid: https://orcid.org/0000-0001-7993-2879
+- title: "Physics-based representations for machine learning properties of chemical reactions"
+  type: article
+  doi: 10.1088/2632-2153/ac8f1a
+  year: 2022
+  authors:
+  - family-names: Gerwen
+    name-particle: van
+    given-names: Puck
+    orcid: https://orcid.org/0000-0002-7992-5529
+  - family-names: Fabrizio
+    given-names: Alberto
+    orcid: https://orcid.org/0000-0002-4440-3149
+  - family-names: Wodrich
+    given-names: Matthew D
+    orcid: https://orcid.org/0000-0002-6006-671X
+  - family-names: Corminboeuf
+    given-names: Clemence
+    orcid: https://orcid.org/0000-0001-7993-2879
