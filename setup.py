@@ -7,7 +7,7 @@ import shutil
 # ruff: noqa: S607  # look, if people are installing qstack while using a borked PATH, that's on them
 # ruff: noqa: D100  # this is a setup.py file, no docstring is needed
 
-VERSION="0.0.1"
+VERSION="0.1.0"
 
 def get_git_version_hash():
     """Get tag/hash of the latest commit.

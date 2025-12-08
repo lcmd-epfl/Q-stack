@@ -9,7 +9,7 @@ Q-stack
 ## About
 
 Q-stack is a stack of codes for dedicated pre- and post-processing tasks for Quantum Machine Learning (QML).
-It is a work in progress. Stay tuned for updates!
+
 
 ## Install
 
