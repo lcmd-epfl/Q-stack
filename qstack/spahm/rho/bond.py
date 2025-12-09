@@ -139,7 +139,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
     if len(only_z) > 0:
         all_atoms   = np.array([z for mol in mols for z in mol.elements if z in only_z], ndmin=2)
     else:
-        all_atoms   = np.array([mol.elements for mol in mols])
+        all_atoms   = np.array([mol.elements for mol in mols], dtype=object)
     spin = np.array(spin) ## a bit dirty but couldn't find a better way to ensure Iterable type!
     if (spin == None).all():
         omods = [None]
