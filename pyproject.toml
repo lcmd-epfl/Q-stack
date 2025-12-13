@@ -35,7 +35,7 @@ classifiers = [
 
 # note: minimal versions were just copy-pasted from requirements.txt, some earlier versions may also work
 # note: maximal versions are just the latest versions to exist when compatibility checks were made, later versions may also work
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     'numpy >= 1.26.1, < 2.4',
     'scipy >= 1.1.0, < 1.17',

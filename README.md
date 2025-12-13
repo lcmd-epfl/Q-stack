@@ -34,6 +34,7 @@ The last one is recommended if you do not know which features you wish to use, s
 | `[equio]`   | interface with [metatensor](https://github.com/metatensor/metatensor) |
 | `[regression]` | tools to run kernel ridge regression (no quantum chemistry) | 
 | `[wigner]` | tool to compute Wigner d-matrices for real spherical harmonics |
+| `[dev]` | all above + linting + documentation building |
 
 
 If you want to be able to edit Q-stack's code after installing, you need to download it yourself, for instance with this series of commands
@@ -43,7 +44,7 @@ git clone https://github.com/lcmd-epfl/Q-stack
 cd Q-stack
 
 #optionally, run the following line, if you want to be extra-careful about reproducibility, by installing a well-known version of all dependencies
-python -m pip install -r requirements.py3.13.txt   # (or "requirements.py3.{9,11}.txt" if you have an older version of python and that first file doesn't work)
+python -m pip install -r requirements.py3.13.txt   # (or "requirements.py3.11.txt" if you have an older version of python and that first file doesn't work)
 
 python -m pip install -e .[all]    # note: this translates as "install as '-e'ditable, install from this directory ('.'), with optional feature 'all'"
 ```
