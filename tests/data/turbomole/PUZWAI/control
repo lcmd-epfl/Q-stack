@@ -1,0 +1,44 @@
+$title
+$operating system unix
+$symmetry c1
+$coord    file=coord
+$user-defined bonds    file=coord
+$atoms
+p  1                                                                           \
+   basis =p cc-pVDZ                                                            \
+   cbas  =p cc-pVDZ
+o  2-3                                                                         \
+   basis =o cc-pVDZ                                                            \
+   cbas  =o cc-pVDZ
+n  4                                                                           \
+   basis =n cc-pVDZ                                                            \
+   cbas  =n cc-pVDZ
+c  5,8,10,12,15,17,21,25,27,31                                                 \
+   basis =c cc-pVDZ                                                            \
+   cbas  =c cc-pVDZ
+h  6-7,9,11,13-14,16,18-20,22-24,26,28-30,32-34                                \
+   basis =h cc-pVDZ                                                            \
+   cbas  =h cc-pVDZ
+$basis    file=basis
+$rundimensions
+   dim(fock,dens)=49812
+   natoms=34
+   nshell=146
+   nbf(CAO)=314
+   dim(trafo[SAO<-->AO/CAO])=342
+   rhfshells=1
+$scfmo   file=mos
+$scfiterlimit       300
+$scfconv        7
+$thize     0.10000000E-04
+$thime        5
+$scfdamp   start=0.300  step=0.050  min=0.100
+$scfdump
+$scfintunit
+ unit=30       size=0        file=twoint
+$scfdiis
+$scforbitalshift  automatic=.1
+$denconv     0.10000000E-06
+$maxcor   6000
+$cbas file=auxbasis
+$end
