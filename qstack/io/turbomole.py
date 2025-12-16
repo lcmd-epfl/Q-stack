@@ -24,7 +24,7 @@ def read_mos(mol, fname, reorder_dest='pyscf'):
     Returns:
         c (ndarray): AO coefficients, shape (nao, nmo).
         e (ndarray): Orbital energies, shape (nmo,).
-        title (str): Title of the MOs set, e.g. '$scfmo', '$uhfmo_alpha', '$uhfmo_beta'.
+        title (str): Title of the MOs set ('$scfmo', '$uhfmo_alpha', or '$uhfmo_beta').
 
     Raises:
         RuntimeError: If the file format is invalid or unsupported.
@@ -34,7 +34,7 @@ def read_mos(mol, fname, reorder_dest='pyscf'):
 
     title, _, fmt = lines[0].split()
     if title not in ['$scfmo', '$uhfmo_alpha', '$uhfmo_beta']:
-        raise RuntimeError('Not a valid Turbomole MOs file')
+        raise RuntimeError(f'Not a valid Turbomole MOs file or unsupported MO set ({title}). You can contribute!')
 
     re_int = r'(\d+)'
     re_flt = r'([0-].\d+[Ee][+-]\d+)'

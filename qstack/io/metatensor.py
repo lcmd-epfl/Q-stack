@@ -300,7 +300,13 @@ def _tensormap_to_matrix(mol, tensor, fast=False):
         mol (pyscf.gto.Mole): pyscf Mole object.
         tensor (metatensor.TensorMap): tensor to transform.
         fast (bool): Whether to use a faster approach using assumptions
-            on the internal ordering of the TensorMap. Default is False.
+              on the internal ordering of the TensorMap. Default is False.
+              Assumptions:
+              * tensor keys are ordered as (o3_lambda1, o3_lambda2, center_type1, center_type2),
+              * for each element, the basis functions are ordered wrt L,
+              * the individual samples are ordered as nested itemizations of atom_i1,atom_i2,
+                the components as that of m1,m2, the properties as that of n1,n2 in this order.
+              This structure correstonds to `_matrix_to_tensormap()` output.
 
     Returns:
         numpy.ndarray: 2D array (matrix) representation.
@@ -404,7 +410,8 @@ def tensormap_to_array(mol, tensor, dest='pyscf', fast=False):
         tensor (metatensor.TensorMap): Tensor to transform.
         dest (str): Destination AO ordering of the output array. Default is 'pyscf'.
         fast (bool): Whether to use a faster approach for matrix conversion
-            using assumptions on the internal ordering of the TensorMap. Default is False.
+            using assumptions on the internal ordering of the TensorMap
+            (see `_tensormap_to_matrix()`). Default is False.
 
     Returns:
         numpy.ndarray: Array representation (1D vector or 2D matrix).

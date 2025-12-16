@@ -141,7 +141,8 @@ def _get_idx(l, m, shell_start, convention):
             signs: Sign multipliers to convert from given convention to SA-GPR.
 
     Raises:
-        NotImplementedError: If the specified convention is not implemented or if l>4 for Turbomole convention.
+        NotImplementedError: If the specified convention is not implemented
+            or if Turbomole convention is used and functions with L>4 are present.
     """
     convention = convention.lower()
     l_shells = l[shell_start]
@@ -164,7 +165,7 @@ def _get_idx(l, m, shell_start, convention):
         (https://en.wikipedia.org/wiki/Table_of_spherical_harmonics#Real_spherical_harmonics).
         """
         if max(l)>_TURBOMOLE_MAX_L:
-            raise NotImplementedError(f"Phase convention differences orbitals with l>{_TURBOMOLE_MAX_L} are not implemented yet. You can contribute!")
+            raise NotImplementedError(f"Phase convention for orbitals with l>{_TURBOMOLE_MAX_L} are not implemented for {convention} yet. You can contribute!")
         signs[(l==3) & (m==-3)] = -1  # in pyscf order
         signs[(l==4) & (m==-3)] = -1  # in pyscf order
         signs[(l==4) & (m== 2)] = -1  # in pyscf order
