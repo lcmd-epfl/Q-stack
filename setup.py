@@ -22,7 +22,7 @@ def get_git_version_hash():
     if not version.strip():
         return VERSION + "+unknown"
     print(version)
-    return VERSION+'+'+version.strip().decode()
+    return version.strip().decode()
 
 
 def check_for_openmp():
