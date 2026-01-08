@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from qstack.c2mio import get_cell, get_mol, get_ligand
+from qstack.io.cell2mol import get_cell, get_mol, get_ligand
 
 
 def test_c2mio():

@@ -1,7 +1,7 @@
 """Density matrix manipulation and analysis functions."""
 
 import numpy as np
-from pyscf import dft
+from pyscf import dft, scf
 from qstack import constants
 from qstack.tools import Cursor
 
@@ -103,3 +103,32 @@ def sphericalize_density_matrix(mol, dm):
                         spherical_dm[idx+m,jdx+m] = trace / msize
 
     return spherical_dm
+
+
+def make_rdm1(c, occ):
+    """Construct the density matrix from molecular orbital coefficients and occupations.
+
+    Args:
+        c (numpy ndarray): Molecular orbital coefficients. Shape (nao, nmo) for closed-shell
+            or (2, nao, nmo) for open-shell.
+        occ (numpy ndarray): Orbital occupations. Shape (nmo,) for closed-shell
+            or (2, nmo) for open-shell.
+
+    Returns:
+        numpy ndarray: density matrix, shape (nao, nao) for closed-shell or (2, nmo, nmo) for open-shell.
+
+    Raises:
+        ValueError: If the dimensions or shapes of c and occ are not compatible.
+    """
+    if c.ndim not in (2,3):
+        raise ValueError('Coefficient array C must be 2D or 3D.')
+    if occ.ndim != c.ndim-1:
+        raise ValueError('Occupation array occ has to have one less dimension than C.')
+    if c.shape[:-1] != occ.shape:
+        raise ValueError('The first dimensions of C and occ must be the same size.')
+    if c.ndim==3:
+        if c.shape[0]!=2:
+            raise ValueError('For open-shell case, the first dimension of C must be 2 (alpha and beta).')
+        return scf.uhf.make_rdm1(c, occ)
+    else:
+        return scf.hf.make_rdm1(c, occ)

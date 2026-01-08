@@ -24,3 +24,6 @@ BOHR2ANGS = 0.52917721092  # Angstroms
 HARTREE2J = HBAR**2/(MASS_E*(BOHR2ANGS*1e-10)**2)
 HARTREE2EV = 27.21138602
 AU2DEBYE = FUND_CHARGE * BOHR2ANGS*1e-10 / DEBYE  # 2.541746
+
+# m values for p-orbitals ordered as x,y,z
+XYZ = (1, -1, 0)

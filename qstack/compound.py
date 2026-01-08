@@ -6,10 +6,10 @@ import warnings
 import numpy as np
 from pyscf import gto, data
 from qstack import constants
-from qstack.reorder import get_mrange
-from qstack.mathutils.array import stack_padding, loadtxtvar
+from qstack.mathutils.array import stack_padding, loadtxt_var
 from qstack.mathutils.rotation_matrix import rotate_euler
 from qstack.tools import Cursor
+from .constants import XYZ
 
 
 # detects a charge-spin line, containing only two ints (one positive or negative, the other positive and nonzero)
@@ -144,7 +144,7 @@ def xyz_to_mol(inp, basis="def2-svp", charge=None, spin=None, ignore=False, unit
     if ignore:
         if charge not in (0, None) or spin not in (0, None):
             warnings.warn("Spin and charge values are overwritten", RuntimeWarning, stacklevel=2)
-        atoms = [int(q) if q.isdigit() else data.elements.ELEMENTS_PROTON[q] for q in loadtxtvar(molxyz, dtype='str', usecols=0)]
+        atoms = [int(q) if q.isdigit() else data.elements.ELEMENTS_PROTON[q] for q in loadtxt_var(molxyz, dtype='str', usecols=0)]
         mol.spin = 0
         mol.charge = -(sum(atoms)%2)
     else:
@@ -325,6 +325,9 @@ def basis_flatten(mol, return_both=True, return_shells=False):
         If return_shells is True, also returns:
         - numpy.ndarray: starting AO indices for each shell.
     """
+    def get_mrange(l):
+        return XYZ if l==1 else range(-l, l+1)
+
     x = []
     ao_starts = []
     cursor = Cursor(action='ranger')
