@@ -107,7 +107,7 @@ def main():
     y = np.loadtxt(args.prop)
     final = cv_results(X, y, sigmaarr=args.sigma, etaarr=args.eta,
                        gdict=args.gdict, gkernel=args.gkernel, akernel=args.akernel,
-                       read_kernel=args.read_kernel,
+                       read_kernel=args.readk,
                        test_size=args.test_size, splits=args.splits, printlevel=args.printlevel,
                        adaptive=args.adaptive, train_size=args.train_size, n_rep=args.n_rep,
                        preffix=args.nameout, save=args.save_all, save_pred=args.save_pred,
