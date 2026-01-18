@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import scipy
 from sklearn.model_selection import KFold
+from sklearn.utils.parallel import Parallel, delayed
 from qstack.mathutils.fps import do_fps
 from qstack.tools import correct_num_threads
 from .kernel_utils import get_kernel, defaults, train_test_split_idx, sparse_regression_kernel
@@ -69,18 +70,21 @@ def hyperparameters(X, y,
 
     def hyper_loop(sigma, eta):
         errors = []
-        for s in sigma:
-            if read_kernel is False:
-                K_all = kernel(X_train, X_train, 1.0/s)
-            else:
-                K_all = X_train
+        with Parallel(n_jobs=-1) as parallel:
+            for s in sigma:
+                if read_kernel is False:
+                    K_all = kernel(X_train, X_train, 1.0/s)
+                else:
+                    K_all = X_train
 
-            for e in eta:
-                mean, std = k_fold_opt(K_all, e)
-                if printlevel>0 :
-                    sys.stderr.flush()
-                    print(s, e, mean, std, flush=True)
-                errors.append((mean, std, e, s))
+                def inner_loop(s,e):
+                    mean, std = k_fold_opt(K_all, e)
+                    if printlevel>0 :
+                        sys.stderr.flush()
+                        print(s, e, mean, std, flush=True)
+                    return (mean, std, e, s)
+
+                errors += parallel(delayed(inner_loop)(s,e) for e in eta)
         return errors
     if gkernel is None:
         gwrap = None
@@ -139,7 +143,6 @@ def hyperparameters(X, y,
 def _get_arg_parser():
     """Parse CLI arguments."""
     parser = RegressionParser(description='This program finds the optimal hyperparameters.', hyperparameters_set='array')
-    parser.remove_argument("random_state")
     parser.remove_argument("train_size")
     return parser
 
