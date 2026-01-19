@@ -19,7 +19,10 @@ logger = logging.getLogger("qstack.regression.hyperparameters2")
 
 
 def fit_quadratic(x1,x2,x3, y1,y2,y3):
-    """Compute the three coefficients of a quadratic polynomial going through three given points."""
+    """
+    Compute the three coefficients of a quadratic polynomial going through three given points.
+    Could probably be replaced by `np.polyfit` now that I know about it. Fluff it, we ball.
+    """
     # we need to change coordinates around for this
 
     # first, slopes at 0.5(x1+x2) and 0.5(x2+x3)
@@ -38,7 +41,21 @@ def fit_quadratic(x1,x2,x3, y1,y2,y3):
     return curv, slope, intercept
 
 def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0.01):
-    """A 1D optimisation function, assuming the loss function in question is convex, It first checks to see the bounds are correct, then refines them by fitting quadratic polynomials"""
+    """
+    Gradient-less line search of the minimum of `get_err`, supposedly between `x_left` and `x_right`.
+    Fits quadratic polynomials to perform this search, meaning `get_err` is assumed to be convex.
+
+    Args:
+        x_left (float): supposed left bound of the minimum of `get_err`
+        x_right (float): supposed right bound of the minimum of `get_err`
+        get_err (callable float->float): the function to minimise.
+        n_iter (int): the number of function calls allowed
+        x_thres (float): the acceptable error threshold for the the argmin to find
+        y_thres (float): the acceptable error threshold for the min to find
+
+    Returns:
+        the (argmin, min) tuple characterising the minimum of the function (2x float)
+    """
 
     y_left = get_err(x_left)
     y_right = get_err(x_right)
@@ -122,6 +139,21 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
 
 
 def kfold_alpha_eval(K_all, y, n_splits, alpha_grid, parallel=None, on_compute=(lambda eta,err,stderr:None)):
+    """Module-internal function: optimise alpha (regularisation parameter) of a KRR learning model, using a K-fold validation.
+
+    Args:
+        K_all: matrix of kernel values (can be n_total*n_total for naive KRR or n_total*n_references for sparse KRR)
+        y: learnable properties for all inputs (n_total-length vector)
+        n_splits: number of folds for k-fold validation
+        alpha_grid: all the values of alpha to try (array-like)
+        parallel: optional joblib.Parallel instance to use to parallelise this function (by default one is constructed)
+        on_compute: function to call for the error summaries of each value of alpha
+                    (callable: alpha, error_mean, error_stddev -> None)
+
+    Returns:
+        - optimal value of alpha
+        - validation error list for all k-fold evaluations for this value of alpha
+    """
     if parallel is None:
         parallel = Parallel(n_jobs=-1, return_as="generator_unordered")
     kfold = KFold(n_splits=n_splits, shuffle=False)
@@ -181,9 +213,32 @@ def search_sigma(
     sigma_bounds, alpha_grid,
     n_iter, n_splits,
     stddev_portion=+1.0, sparse_idx=None,
-    parallel=None, on_compute=(lambda sigma,eta,err,stderr:None)
+    parallel=None, on_compute=(lambda sigma,alpha,err,stderr:None)
 ):
-    """Search"""
+    """Search the optimal values of sigma and alpha for a KRR model with known representations.
+    Sigma is the width parameter of the kernel function used,
+    and alpha is the regularisation parameter of the resulting matrix equation.
+
+    Internally, calls the line-search rountine for gamma,
+    where the function to minimise performs its own grid-based optimisation of alpha.
+
+    Args:
+        X (np.ndarray[n_total,n_features]: feature vectors for the combined train-validation dataset
+        y (np.ndarray[n_total]): learnable properties for all inputs
+        sigma_bounds (tuple(float,float)): presumed bounds of the optimal value of sigma
+        alpha_grid (array-like of floats): values of alpha to try
+        n_iter (int): number of iterations for the sigma line-search
+        n_splits (int): number of folds for k-fold validation
+        stddev_portion (float): contribution of the error's standard deviation to compare error distributions
+        sparse_idx (optional np.ndarray[int, n_references]): selection of reference inputs for sparse KRR.
+        parallel (optional joblib.Parallel): tool to make the optimisation more parallel. by default, one will be (re)created as often as necessary.
+        on_compute (callable sigma,alpha,err_mean,err_stddev -> None)
+
+    Returns:
+        sigma (float): optimal value of sigma
+        alpha (float): optimal value of alpha
+        costs (np.ndarray[n_splits]): validation error distribution for these values of sigma,alpha
+    """
 
     sigma_left, sigma_right = sigma_bounds
 
