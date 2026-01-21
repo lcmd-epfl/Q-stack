@@ -3,6 +3,7 @@
 import os
 import numpy as np
 import qstack.regression.hyperparameters as hyperparameters
+import qstack.regression.hyperparameters2 as hyperparameters2
 import qstack.regression.regression as regression
 import qstack.regression.final_error as final_error
 import qstack.regression.condition as condition
@@ -25,6 +26,25 @@ def test_hyperparameters():
 
     assert (np.allclose(hyper, true_hyper))
 
+def test_hyperparameters2():
+    #import logging
+    #logging.basicConfig()
+    #logging.getLogger("qstack").setLevel('DEBUG')
+    path = os.path.dirname(os.path.realpath(__file__))
+    xfile = os.path.join(path, 'data/mols/X_lb.npy')
+    X = np.load(xfile)
+    yfile = os.path.join(path, 'data/mols/dipole.dat')
+    y = np.loadtxt(yfile)
+
+    hyper = hyperparameters2.hyperparameters(X, y, random_state=42)[-4:]
+    true_hyper = [
+        [5.15813198e-01, 2.37774396e-01, 3.16227766e-08, 3.64079252e+04],
+        [5.15719232e-01, 2.37430538e-01, 1.00000000e-10, 1.00000000e+06],
+        [5.15657638e-01, 2.37472003e-01, 1.00000000e-10, 3.64079252e+04],
+        [5.15699162e-01, 2.37420839e-01, 1.00000000e-10, 1.71990639e+05],
+    ]
+
+    assert (np.allclose(hyper, true_hyper))
 
 def test_regression():
     path = os.path.dirname(os.path.realpath(__file__))

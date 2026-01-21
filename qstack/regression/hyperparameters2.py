@@ -87,7 +87,7 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
     # after this point, either we are exiting early or we have found the right bounds
     all_errs.sort()
     logger.debug('local minimum in bounds, proceeding with parabolic search (bounds at: %r)', all_errs)
-    logger.debug('chosen: %f\%f/%f', x_left, x_center, x_right)
+    logger.debug('chosen: %f\\%f/%f', x_left, x_center, x_right)
     while n_iter > 0:
         a,b,c = fit_quadratic(x_left, x_center, x_right, y_left, y_center, y_right)
         if a<=0:  # lol no local minimum
@@ -103,6 +103,7 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
             ypred_new = -0.25*b**2/a + c
         y_new = get_err(x_new)
         n_iter -=1
+        logger.debug('from chosen points %f\\%f/%f', x_left, x_center, x_right)
         logger.debug('predicted local minimum at %f->%f, true error %f', x_new, ypred_new, y_new)
         all_errs.append((x_new, y_new)) ; all_errs.sort()
         logger.debug('current data: %r', all_errs)
@@ -116,20 +117,21 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
             x_right, y_right = all_errs[new_index+1]
             x_center, y_center = all_errs[new_index]
 
+        elif max(y_right,y_left, y_new)-min(y_new, y_center) < y_thres:
+            break
         elif y_new > y_center:
             if x_new > x_center:
                 x_right, y_right = x_new, y_new
             else:
                 x_left, y_left = x_new, y_new
-        elif y_left < y_right:
-            if max(y_right,y_left, y_new)-min(y_new, y_center) < y_thres:
-                break
+        else:  # if y_new <= y_center
             if x_new > x_center:
                 x_left, y_left = x_center, y_center
                 x_center, y_center = x_new, y_new
             else:
                 x_right, y_right = x_center, y_center
                 x_center, y_center = x_new, y_new
+        
         if abs(x_right - x_left) < x_thres:
             break
 
@@ -198,7 +200,7 @@ def kfold_alpha_eval(K_all, y, n_splits, alpha_grid, parallel=None, on_compute=(
         if not np.isfinite(maes[:, alpha_i]).any():
             pass
         else:
-            res = maes[alpha_i]
+            res = maes[:,alpha_i]
             res = res[np.isfinite(res)]
             concat_results[alpha_i,0] = res.mean()
             concat_results[alpha_i,1] = res.std()
@@ -257,6 +259,7 @@ def search_sigma(
         )
         err_dict[log_sigma] = (alpha,costs)
         cost_res = costs.mean() + stddev_portion*costs.std()
+        #print("now eval'ing σ=", sigma, '... α=', alpha, costs.shape, costs.mean(), costs.std())
         return cost_res
 
     log_sigma_selected, cost_selected = parabolic_search(
@@ -334,7 +337,7 @@ def hyperparameters(X, y,
         sparse_idx = np.arange(X_train.shape[0])
 
     errors = []
-    with Parallel(n_jobs=-1, return_as="generator_unordered") as parallel:
+    with Parallel(n_jobs=1, return_as="generator_unordered") as parallel:
         if optimise_sigma:
             err_append = lambda sigma,alpha,err,stderr: errors.append((err,stderr, alpha,sigma))
             _,_,_ = search_sigma(
@@ -357,7 +360,7 @@ def hyperparameters(X, y,
 
 
     errors = np.array(errors)
-    ind = np.argsort(errors[:,0]+stddev_portion*errors[:,-1])[::-1]
+    ind = np.argsort(errors[:,0]+stddev_portion*errors[:,1])[::-1]
     errors = errors[ind]
     return errors
 

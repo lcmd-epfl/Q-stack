@@ -13,6 +13,10 @@ from tqdm import tqdm
 
 defaults = SimpleNamespace(rcut=3.5, gridspace=0.03)
 
+class Reaction:
+    def __init__(self, reactants, products):
+        self.reactants = reactants
+        self.products = products
 
 def get_bags(unique_ncharges):
     """Generate all unique element pair combinations including self-interactions.
