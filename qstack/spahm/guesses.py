@@ -217,7 +217,7 @@ def check_nelec(nelec, nao):
         warnings.warn(msg, RuntimeWarning, stacklevel=2)
 
 
-def get_occ(e, nelec, spin):
+def get_occ(e, nelec, spin, verbose=1):
     """Extract occupied orbital eigenvalues/energies.
 
     Args:
@@ -225,13 +225,15 @@ def get_occ(e, nelec, spin):
             or possibly arrays of larger dimensionality.
         nelec (tuple): Number of (alpha, beta) electrons.
         spin (int or None): Spin multiplicity. If None, assumes closed-shell.
+        verbose (int): Level of verbosity
 
     Returns:
         numpy ndarray: Occupied eigenvalues. Shape depends on spin:
         - Closed-shell (spin=None): 1D array of occupied eigenvalues
         - Open-shell: 2D array (2, nocc) for alpha and beta separately
     """
-    check_nelec(nelec, e.shape[0])
+    if verbose > 0:
+        check_nelec(nelec, e.shape[0])
     if spin is None:
         nocc = nelec[0]
         return e[:nocc,...]
@@ -243,20 +245,22 @@ def get_occ(e, nelec, spin):
         return e1
 
 
-def get_dm(v, nelec, spin):
+def get_dm(v, nelec, spin, verbose=1):
     """Construct density matrix from occupied molecular orbitals.
 
     Args:
         v (numpy ndarray): 2D array of MO coefficients (eigenvectors), columns are MOs.
         nelec (tuple): Number of (alpha, beta) electrons.
         spin (int or None): Spin multiplicity. If None, assumes closed-shell (RHF).
+        verbose (int): Level of verbosity
 
     Returns:
         numpy ndarray: Density matrix in AO basis.
         - Closed-shell: 2D array (nao, nao)
         - Open-shell: 3D array (2, nao, nao) for alpha and beta
     """
-    check_nelec(nelec, len(v))
+    if verbose > 0 :
+        check_nelec(nelec, len(v))
     if spin is None:
         nocc = nelec[0]
         dm = v[:,:nocc] @ v[:,:nocc].T
