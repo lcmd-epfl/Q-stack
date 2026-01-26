@@ -203,7 +203,7 @@ def check_nelec(nelec, nao, full_shell_warning=1):
     Args:
         nelec (tuple or int): Number of electrons (alpha, beta) or total.
         nao (int): Number of atomic orbitals.
-
+        full_shell_warning (int): if < 1 supresses warnings about fully occupied shells
     Raises:
         RuntimeError: If there are more electrons than available orbitals.
 
