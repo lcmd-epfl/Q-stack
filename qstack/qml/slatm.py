@@ -136,7 +136,7 @@ def get_three_body(j, mbtype, q, r, dist,
         """
         v1 = r[a] - r[b]
         v2 = r[c] - r[b]
-        return v1 @ v2 / (dist[a,b] * dist[b,c])
+        return np.clip(v1 @ v2 / (dist[a,b] * dist[b,c]), -1, 1)
 
     theta1 = np.pi + theta0
     ngrid = int((theta1+theta0)/dgrid) + 1
