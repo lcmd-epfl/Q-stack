@@ -114,7 +114,7 @@ def get_guess_orbitals_grad(mol, guess, field=None):
     return e, eigenvalue_grad(mol, e, c, s1, h1), de_dfield
 
 
-def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
+def get_spahm_representation(mol, guess_in, xc="pbe", field=None, verbose=1):
     """Compute the ε-SPAHM molecular representation.
 
     Reference:
@@ -128,6 +128,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
         xc (str): Exchange-correlation functional name. Defaults to 'pbe'.
         field (numpy ndarray, optional): 3-component uniform electric field (∇φ) in atomic units.
             Defaults to None.
+        verbose (int): Level of verbosity
 
     Returns:
         numpy ndarray: SPAHM representation consisting of occupied orbital eigenvalues.
@@ -136,7 +137,7 @@ def get_spahm_representation(mol, guess_in, xc="pbe", field=None):
     """
     guess = get_guess(guess_in)
     e, _v = get_guess_orbitals(mol, guess, xc, field=field)
-    e1    = get_occ(e, mol.nelec, mol.spin)
+    e1    = get_occ(e, mol.nelec, mol.spin, verbose=verbose)
     return e1
 
 
