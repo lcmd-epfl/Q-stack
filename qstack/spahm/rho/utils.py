@@ -106,7 +106,7 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
         xc (str): Exchange-correlation functional for guess. Defaults to defaults.xc.
         spin (list or None): List of spin multiplicities. Defaults to None.
         readdm (str, optional): Directory path to load pre-computed density matrices. Defaults to None.
-        printlevel (int): Verbosity level. Defaults to 0.
+        printlevel (int): Verbosity level. Defaults to 0. (if < 0 supresses warnings)
 
     Returns:
         list: List of density matrices (2D or 3D numpy arrays).
@@ -120,7 +120,7 @@ def mols_guess(mols, xyzlist, guess, xc=defaults.xc, spin=None, readdm=None, pri
             print(xyzfile, flush=True)
         if readdm is None:
             _e, v = spahm.get_guess_orbitals(mol, guess, xc=xc)
-            dm = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None)
+            dm = guesses.get_dm(v, mol.nelec, mol.spin if sp is not None else None, verbose=printlevel+1)
         else:
             dm = np.load(f'{readdm}/{os.path.basename(xyzfile)}.npy')
             if spin and dm.ndim==2:
