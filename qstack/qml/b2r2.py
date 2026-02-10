@@ -5,6 +5,7 @@ Provides:
 """
 
 import itertools
+from dataclasses import dataclass
 from types import SimpleNamespace
 import numpy as np
 from scipy.special import erf
@@ -13,10 +14,12 @@ from tqdm import tqdm
 
 defaults = SimpleNamespace(rcut=3.5, gridspace=0.03)
 
+@dataclass
 class Reaction:
-    def __init__(self, reactants, products):
-        self.reactants = reactants
-        self.products = products
+    """Utility reaction-storing class for Inner workings of B2R2."""
+    reactants: list  # lists of Mol-like objects (that have .positions (in Å) and .charges attributes)
+    products: list
+
 
 def get_bags(unique_ncharges):
     """Generate all unique element pair combinations including self-interactions.

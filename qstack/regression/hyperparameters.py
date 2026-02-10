@@ -1,6 +1,7 @@
 """Hyperparameter optimization."""
 
-import sys, logging
+import sys
+import logging
 import numpy as np
 import scipy
 from sklearn.model_selection import KFold
@@ -17,8 +18,8 @@ logger = logging.getLogger("qstack.regression.hyperparameters")
 # parabola-based line search
 
 def fit_quadratic(x1,x2,x3, y1,y2,y3):
-    """
-    Compute the three coefficients of a quadratic polynomial going through three given points.
+    """Compute the three coefficients of a quadratic polynomial going through three given points.
+
     Could probably be replaced by `np.polyfit` now that I know about it. Fluff it, we ball.
     """
     # we need to change coordinates around for this
@@ -39,8 +40,8 @@ def fit_quadratic(x1,x2,x3, y1,y2,y3):
     return curv, slope, intercept
 
 def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0.01):
-    """
-    Gradient-less line search of the minimum of `get_err`, supposedly between `x_left` and `x_right`.
+    """Gradient-less line search of the minimum of `get_err`, supposedly between `x_left` and `x_right`.
+
     Fits quadratic polynomials to perform this search, meaning `get_err` is assumed to be convex.
 
     Args:
@@ -54,7 +55,6 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
     Returns:
         the (argmin, min) tuple characterising the minimum of the function (2x float)
     """
-
     y_left = get_err(x_left)
     y_right = get_err(x_right)
     x_center = 0.5*(x_left+x_right)
@@ -103,7 +103,8 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
         n_iter -=1
         logger.debug('from chosen points %f\\%f/%f', x_left, x_center, x_right)
         logger.debug('predicted local minimum at %f->%f, true error %f', x_new, ypred_new, y_new)
-        all_errs.append((x_new, y_new)) ; all_errs.sort()
+        all_errs.append((x_new, y_new))
+        all_errs.sort()
         logger.debug('current data: %r', all_errs)
 
         if x_new < x_left or x_new > x_right:
@@ -138,14 +139,32 @@ def parabolic_search(x_left, x_right, get_err, n_iter=10, x_thres=0.1, y_thres=0
 
 
 def standard_grid_search(x_list, get_err):
-    errors = []
-    for x in x_list:
-        errors.append(get_err(x))
-    errors = np.asarray(errors)
+    """Module-internal function: single-parameter optimisation function, using a simple grid search.
+
+    Args:
+        x_list (iterable[float]): pre-defined grid containing the values to try for the parameter
+        get_err (callable float->float): process to optimise, returning the error associated with a single parameter value.
+
+    Returns:
+        val (float): optimal parameter value
+        err (float): the associated error
+    """
+    errors = np.array(get_err(x) for x in x_list)
     xi = errors.argmin()
     return xi, errors[xi]
 
 def adaptative_grid_search(x_list, get_err):
+    """Module-internal function: single-parameter optimisation function, using an adaptive grid search.
+
+    Operates like a standard grid search, but extends the grid if the optimal parameter value is at one of the edges of the provided grid.
+
+    Args:
+        x_list (iterable[float]): pre-defined original grid of the parameter
+        get_err (callable float->float): process to optimise, returning the error associated with a single parameter value.
+
+    Returns:
+        errors (np.ndarray[N_evals,2]): list of (parameter value, error) pairs, sorted to have decreasing errors
+    """
     work_list = x_list
     errors = []
     direction = None
@@ -158,7 +177,6 @@ def adaptative_grid_search(x_list, get_err):
         errors = errors[ind]
 
         current_argmin = errors[-1,0]
-        new_sigma = None
 
         if direction is None:
             if   current_argmin==max(work_list):
@@ -246,13 +264,14 @@ def kfold_alpha_eval(K_all, y_train, n_splits, eta_list, sparse, parallel = None
 
 def search_sigma(
     X_train, y_train, splits,
-    kernel, sigma, eta,
+    kernel, sigma, eta_grid,
     sparse_idx=None,
     n_sigma_iter=5, stddev_portion=0.0,
     adaptive=False, adaptive_v2=False,
     read_kernel=False, printlevel=0,
 ):
     """Search the optimal values of sigma and alpha for a KRR model with known representations.
+
     Sigma is the width parameter of the kernel function used,
     and alpha is the regularisation parameter of the resulting matrix equation.
 
@@ -262,12 +281,13 @@ def search_sigma(
     No matter what, the optimisation of alpha is done over a grid, with k-fold validation.
 
     Args:
-        X (np.ndarray[n_total,n_features]: feature vectors for the combined train-validation dataset
-        y (np.ndarray[n_total]): learnable properties for all inputs
+        X_train (np.ndarray[n_total,n_features]): feature vectors for the combined train-validation dataset
+        y_train (np.ndarray[n_total]): learnable properties for all inputs
         sigma (array-like(float)): values of sigma. for `adaptive`, starting values, for `adaptive_v2`, only the first and last values are used, as presumed bounds of the optimal value of sigma
-        alpha_grid (array-like of floats): values of alpha to try
+        eta_grid (array-like of floats): values of eta to try
         n_sigma_iter (int): number of iterations for the sigma line-search (if adaptive_v2)
-        n_splits (int): number of folds for k-fold validation
+        kernel (callable): kernel function computing a kernel matrix from two sets of representations vectors and a "gamma" scale parameter
+        splits (int): number of folds for k-fold validation
         stddev_portion (float): contribution of the error's standard deviation to compare error distributions
         sparse_idx (optional np.ndarray[int, n_references]): selection of reference inputs for sparse KRR.
         adaptive (bool): to use the adaptive grid for sigma
@@ -288,12 +308,12 @@ def search_sigma(
         else:
             K_all = X_train
 
-        sparse = sparse_idx != None
+        sparse = sparse_idx is not None
         if sparse:
             K_all = K_all[:,sparse_idx]
 
         results_per_eta = kfold_alpha_eval(
-            K_all, y_train, splits, eta, sparse,
+            K_all, y_train, splits, eta_grid, sparse,
             parallel = parallel,
         )
         for mean,std,e in results_per_eta:
@@ -307,7 +327,8 @@ def search_sigma(
 
     with Parallel(n_jobs=-1) as parallel:
         if adaptive_v2:
-            assert not adaptive
+            if adaptive:
+                raise ValueError("Only one of `adaptive`, `adaptive_v2` may be specified.")
             _, _ = parabolic_search(
                 np.log(sigma[0]), np.log(sigma[-1]),
                 lambda log_s: get_err(np.exp(log_s)),
@@ -359,7 +380,6 @@ def hyperparameters(X, y,
     Raises:
         RuntimeError: If 'X' is a kernel and sparse regression is chosen.
     """
-
     if gkernel is None:
         gwrap = None
     else:

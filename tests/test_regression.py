@@ -3,7 +3,6 @@
 import os
 import numpy as np
 import qstack.regression.hyperparameters as hyperparameters
-import qstack.regression.hyperparameters2 as hyperparameters2
 import qstack.regression.regression as regression
 import qstack.regression.final_error as final_error
 import qstack.regression.condition as condition
