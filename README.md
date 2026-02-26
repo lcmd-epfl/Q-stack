@@ -143,7 +143,7 @@ Relevant packages incorporated (among others):
 ## Acknowledgements
 The authors of Q-stack acknowledge the National Centre of Competence in Research (NCCR)
 "Materials' Revolution: Computational Design and Discovery of Novel Materials (MARVEL)" 
-of the Swiss National Science Foundation (SNSF, grant number 182892)
+of the Swiss National Science Foundation (SNSF, grants number 182892 and 205602)
 and the European Research Council (ERC, grant agreement no 817977).
 
 ![acknowledgements logos](./images/ackw.png)
