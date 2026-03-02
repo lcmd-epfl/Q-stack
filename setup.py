@@ -15,7 +15,7 @@ def get_git_version_hash():
     Thanks to https://gist.github.com/nloadholtes/07a1716a89b53119021592a1d2b56db8
     """
     try:
-        p = subprocess.Popen(["git", "describe", "--tags", "--dirty", "--always"], stdout=subprocess.PIPE)
+        p = subprocess.Popen(["git", "describe", "--tags", "--match 'v[0-9]*'", "--dirty", "--always"], stdout=subprocess.PIPE)
     except OSError:
         return VERSION + "+unknown"
     version = p.communicate()[0]
