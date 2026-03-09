@@ -24,8 +24,9 @@ def energy_mol(newbasis, moldata):
     newmol = df.make_auxmol(mol, newbasis)
     ao = dft.numint.eval_ao(newmol, coords).T
     w = np.einsum('pi,i,i->p', ao, rho, weights)
-    S = np.einsum('pi,qi,i->pq', ao, ao, weights)
-    c = np.linalg.solve(S, w)
+    #S = np.einsum('pi,qi,i->pq', ao, ao, weights)
+    S = newmol.intor('int1e')
+    c = np.linalg.solve(S, w, assume_a='pos')
     E = self-c@w
 
     return E
@@ -56,14 +57,15 @@ def gradient_mol(nexp, newbasis, moldata):
     newmol = df.make_auxmol(mol, newbasis)
     ao = dft.numint.eval_ao(newmol, coords).T
 
-    w = np.einsum('pi,i,i->p', ao, rho, weights)
+    w = np.einsum('i,i,pi->p', rho, weights, ao)
     dw_da = np.zeros((nexp, newmol.nao))
     for p in range(newmol.nao):
         iat = centers[p]
         r2 = distances[iat]
         dw_da[idx[p], p] = np.einsum('i,i,i,i->', ao[p], rho, r2, weights)
 
-    S = np.einsum('pi,qi,i->pq', ao, ao, weights)
+    #S = np.einsum('pi,qi,i->pq', ao, ao, weights)
+    S = newmol.intor('int1e')
     dS_da = np.zeros((nexp, newmol.nao, newmol.nao))
 
     for p in range(newmol.nao):
@@ -83,7 +85,7 @@ def gradient_mol(nexp, newbasis, moldata):
                 dS_da[ip, q, p] += ip_p_q
                 dS_da[iq, q, p] += iq_p_q
 
-    c = np.linalg.solve(S, w)
+    c = np.linalg.solve(S, w, assume_a='pos')
     part1 = np.einsum('p,ip->i',  c, dw_da)
     part2 = np.einsum('p,ipq,q->i',  c, dS_da, c)
     dE_da = 2.0*part1 - part2
