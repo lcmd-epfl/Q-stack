@@ -9,7 +9,7 @@ from pyscf import gto
 import pyscf.data
 from ..compound import basis_flatten
 from . import basis_tools as qbbt
-
+import joblib
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", printlvl=2, check=False):
     """Optimize a given basis set.
@@ -27,6 +27,9 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         Dictionary containing the optimized basis.
 
     """
+
+    runner = joblib.Parallel(n_jobs=-1, return_as="generator_unordered")
+
     def energy(x):
         """Compute total loss function (fitting error) for given exponents.
 
@@ -38,9 +41,14 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         """
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
-        E = 0.0
-        for m in moldata:
-            E += qbbt.energy_mol(newbasis, m)
+        E = sum(runner(
+            joblib.delayed(qbbt.energy_mol)(newbasis, m)
+            for m in moldata
+        ), start=0.0)
+        if printlvl>=2:
+            print("energy complete:", E, flush=True)
+        elif printlvl>=1:
+            print(end="", flush=True)
         return E
 
     def gradient(x):
@@ -59,18 +67,25 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
         E = 0.0
         dE_da = np.zeros(nexp)
-        for m in moldata:
+        #for m in moldata:
+        def minirun(m):
             E_, dE_da_ = qbbt.gradient_mol(nexp, newbasis, m)
-            E     += E_
-            dE_da += dE_da_
             if printlvl>=2:
-                print('e =', E_, '(', E_/m['self']*100.0, '%)')
+                print('1-compound gradient: e =', E_, '(', E_/m['self']*100.0, '%)')
+            return E_, dE_da_
+        runs = runner(delayed(minirun)(m) for m in moldata)
+        for E_, dE_da_ in runs:
+            E += E_
+            dE_da += dE_da_
+
         if printlvl>=2:
-            print(E, max(abs(dE_da)))
+            print("gradient complete:", E, max(abs(dE_da)))
         dE_da = qbbt.cut_myelements(dE_da, myelements, bf_bounds)
 
         if printlvl>=2:
             print(flush=True)
+        elif printlvl>=1:
+            print(end='',flush=True)
 
         dE_dx = dE_da * exponents
         return E, dE_dx
@@ -217,7 +232,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return {'num': gr_num, 'an': gr_an, 'diff': gr_an-gr_num}
 
     xopt = scipy.optimize.minimize(energy, x1, method=method_in, jac=gradient_only,
-                                   options={'gtol': gtol_in, 'disp': printlvl}).x
+                                   options={'gtol': gtol_in, 'disp': printlvl>0}).x
 
     exponents = np.exp(xopt)
     newbasis = qbbt.exp2basis(exponents, myelements, basis)
