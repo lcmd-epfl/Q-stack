@@ -1,6 +1,6 @@
 """Basis set optimization routines and command-line interface."""
 
-import sys
+import sys, time
 from ast import literal_eval
 import argparse
 import numpy as np
@@ -39,6 +39,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         Returns:
             float: Loss function value.
         """
+        start = time.perf_counter()
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
         E = sum(runner(
@@ -46,7 +47,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             for m in moldata
         ), start=0.0)
         if printlvl>=2:
-            print("energy complete:", E, flush=True)
+            print(f"energy complete: {E:g} (took {time.perf_counter()-start:f} s)", flush=True)
         elif printlvl>=1:
             print(end="", flush=True)
         return E
@@ -62,6 +63,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             - E (float): Loss function value.
             - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
         """
+        gradstart = time.perf_counter()
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
 
@@ -69,17 +71,18 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         dE_da = np.zeros(nexp)
         #for m in moldata:
         def minirun(m):
+            start = time.perf_counter()
             E_, dE_da_ = qbbt.gradient_mol(nexp, newbasis, m)
             if printlvl>=2:
-                print('1-compound gradient: e =', E_, '(', E_/m['self']*100.0, '%)')
+                print(f"1-compound {(m['mol'].nao, m['rho'].shape)!r} gradient: err={E_:g} (rel: {E_/m['self']:g}) (took {time.perf_counter()-start:f} s)", flush=True)
             return E_, dE_da_
-        runs = runner(delayed(minirun)(m) for m in moldata)
+        runs = runner(joblib.delayed(minirun)(m) for m in moldata)
         for E_, dE_da_ in runs:
             E += E_
             dE_da += dE_da_
 
         if printlvl>=2:
-            print("gradient complete:", E, max(abs(dE_da)))
+            print(f"gradient complete: {E:g} (took {time.perf_counter()-gradstart:f}s)", E, max(abs(dE_da)))
         dE_da = qbbt.cut_myelements(dE_da, myelements, bf_bounds)
 
         if printlvl>=2:
