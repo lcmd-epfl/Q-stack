@@ -269,13 +269,13 @@ def printbasis(basis, f):
         f (file): File object to write to.
     """
     print('{', file=f)
-    for i, (q, b) in enumerate(basis.items()):
+    for atom_i, (q, b) in enumerate(basis.items()):
         print('  "'+q+'": [', file=f)
         for i, gto in enumerate(b):
             if i > 0:
                 print(',', file=f)
             print('   ', gto, file=f, end='')
-        if i==len(basis)-1:
+        if atom_i==len(basis)-1:
             print('\n  ]', file=f)
         else:
             print('\n  ],', file=f)

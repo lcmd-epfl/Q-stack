@@ -9,7 +9,10 @@ from pyscf import gto
 import pyscf.data
 from ..compound import basis_flatten
 from . import basis_tools as qbbt
-import joblib
+try:
+    import joblib
+except ImportError:
+    joblib = None
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", printlvl=2, check=False):
     """Optimize a given basis set.
@@ -28,7 +31,8 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
 
     """
 
-    runner = joblib.Parallel(n_jobs=-1, return_as="generator_unordered")
+    if joblib is not None:
+        runner = joblib.Parallel(n_jobs=-1, return_as="generator_unordered")
 
     def energy(x):
         """Compute total loss function (fitting error) for given exponents.
@@ -43,11 +47,15 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
         E = 0.0
-        for value in runner(
-            joblib.delayed(qbbt.energy_mol)(newbasis, m)
-            for m in moldata
-        ):
-            E += value
+        if joblib is not None:
+            for value in runner(
+                joblib.delayed(qbbt.energy_mol)(newbasis, m)
+                for m in moldata
+            ):
+                E += value
+        else:
+            for m in moldata:
+                E += qbbt.energy_mol(newbasis,m)
         if printlvl>=2:
             print(f"energy complete: {E:g} (took {time.perf_counter()-start:f} s)", flush=True)
         elif printlvl>=1:
@@ -78,7 +86,11 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             if printlvl>=3:
                 print(f"1-compound {(m['mol'].nao, m['rho'].shape)!r} gradient: err={E_:g} (rel: {E_/m['self']:g}) (took {time.perf_counter()-start:f} s)", flush=True)
             return E_, dE_da_
-        runs = runner(joblib.delayed(minirun)(m) for m in moldata)
+
+        if joblib is not None:
+            runs = runner(joblib.delayed(minirun)(m) for m in moldata)
+        else:
+            runs = (minirun(m) for m in moldata)
         for E_, dE_da_ in runs:
             E += E_
             dE_da += dE_da_
