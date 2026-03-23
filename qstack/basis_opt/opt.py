@@ -42,10 +42,12 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         start = time.perf_counter()
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
-        E = sum(runner(
+        E = 0.0
+        for value in runner(
             joblib.delayed(qbbt.energy_mol)(newbasis, m)
             for m in moldata
-        ), start=0.0)
+        ):
+            E += value
         if printlvl>=2:
             print(f"energy complete: {E:g} (took {time.perf_counter()-start:f} s)", flush=True)
         elif printlvl>=1:
@@ -73,7 +75,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         def minirun(m):
             start = time.perf_counter()
             E_, dE_da_ = qbbt.gradient_mol(nexp, newbasis, m)
-            if printlvl>=2:
+            if printlvl>=3:
                 print(f"1-compound {(m['mol'].nao, m['rho'].shape)!r} gradient: err={E_:g} (rel: {E_/m['self']:g}) (took {time.perf_counter()-start:f} s)", flush=True)
             return E_, dE_da_
         runs = runner(joblib.delayed(minirun)(m) for m in moldata)

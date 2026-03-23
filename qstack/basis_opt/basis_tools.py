@@ -4,6 +4,7 @@ import copy
 import numpy as np
 import scipy.linalg as spl
 from pyscf import df, dft
+import pyscf
 
 
 def energy_mol(newbasis, moldata):
@@ -268,11 +269,57 @@ def printbasis(basis, f):
         f (file): File object to write to.
     """
     print('{', file=f)
-    for q, b in basis.items():
+    for i, (q, b) in enumerate(basis.items()):
         print('  "'+q+'": [', file=f)
         for i, gto in enumerate(b):
             if i > 0:
                 print(',', file=f)
             print('   ', gto, file=f, end='')
-        print('  ]', file=f)
+        if i==len(basis)-1:
+            print('\n  ]', file=f)
+        else:
+            print('\n  ],', file=f)
     print('}', file=f)
+
+
+def basis_as_nwchem(f_out, basis_dict, name='custom basis set'):
+    """Print basis set in NWchem format (the one pyscf reads from files)
+
+    Prints a basis dictionnary into a provided file. The name of the basis, as indicated in the file itself, can be provided.
+
+    Args:
+        f_out (writable io.TextIOBase): the file to write the basis to
+        basis_dict (pyscf-format basis dictionnary): the basis to write
+        name (str): the optional name of the basis
+    """
+
+    sorted_atom_types = sorted(basis_dict.keys(), key=pyscf.data.elements.charge)
+    angular_names = 'spdfgh'
+
+    f_out.write(f"# {name:s}\n# (custom basis written by qstack)\n# supported elements: {', '.join(sorted_atom_types):s}\n\n")
+    f_out.write("BASIS \"ao basis\" PRINT")
+    for atom in sorted_atom_types:
+        fakemol = pyscf.M(atom=atom, charge=pyscf.data.elements.charge(atom))
+        nbas = fakemol.nbas
+        l_count = max(fakemol.bas_angular(x) for x in range(nbas))+1
+
+        prim_count=[0]*l_count
+        shell_count=[0]*l_count
+        for bas_i in range(nbas):
+            l = fakemol.bas_angular(bas_i)
+            prim_count[l] += fakemol.bas_nprim(bas_i)
+            shell_count[l] += fakemol.bas_nctr(bas_i)
+        prim_mark = [f"{n:d}{angular_names[l]:s}" for l,n in enumerate(prim_count) ]
+        shell_mark = [f"{n:d}{angular_names[l]:s}" for l,n in enumerate(shell_count) ]
+
+        f_out.write(f'#BASIS SET: ({",".join(prim_mark):s}) -> [{",".join(shell_mark):s}]\n')
+
+        for bas_i in range(nbas):
+            l = fakemol.bas_angular(bas_i)
+            f_out.write(f"{atom:<2s}    {angular_names[l].upper():s}\n")
+            exps = fakemol.bas_exp(bas_i)
+            coeffs = fakemol.bas_ctr_coeff(bas_i)
+            for exp, exp_coeff in zip(exps,coeffs):
+                fmt = "{:>15.7G}" + "        {:>15.7G}"*len(exp_coeff) + "\n"
+                f_out.write(fmt.format(exp, *exp_coeff).replace('E','D'))
+    f_out.write('END\n')
