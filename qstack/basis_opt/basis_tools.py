@@ -103,7 +103,6 @@ def energy_mol(newbasis, moldata):
 #     print(f'rest done: {time.perf_counter()-start:f} s')
 #     return E, dE_da
 
-import time
 def gradient_mol(nexp, newbasis, moldata):
     """Compute loss function and gradient for one molecule with respect to basis exponents.
 
@@ -165,8 +164,8 @@ def gradient_mol(nexp, newbasis, moldata):
     #     r2 = distances[iat]
     #     dw_da[idx[p], p] = np.einsum('i,i,i,i->', ao[p], rho, r2, weights)
     # assert np.allclose(dE_da, 2*dw_da@c)
-    
-    
+
+
     # ## the next block can also be expressed as:
     # temp = np.einsum('i,pi,qi,p,q,pi->pq',
     #     weights, ao, ao, c, c,
@@ -213,10 +212,10 @@ def gradient_mol(nexp, newbasis, moldata):
     # assert np.allclose(2*mapped.sum(axis=1), comparison)
 
 
-    
+
     dE_da -= 2*mapped.sum(axis=1)
     del mapped, wao, aoc
-        
+
     #print(f'dS part done: {time.perf_counter()-start:f} s')
     return E, dE_da
 
@@ -283,7 +282,7 @@ def printbasis(basis, f):
 
 
 def basis_as_nwchem(f_out, basis_dict, name='custom basis set'):
-    """Print basis set in NWchem format (the one pyscf reads from files)
+    """Print basis set in NWchem format (the one pyscf reads from files).
 
     Prints a basis dictionnary into a provided file. The name of the basis, as indicated in the file itself, can be provided.
 
@@ -292,7 +291,6 @@ def basis_as_nwchem(f_out, basis_dict, name='custom basis set'):
         basis_dict (pyscf-format basis dictionnary): the basis to write
         name (str): the optional name of the basis
     """
-
     sorted_atom_types = sorted(basis_dict.keys(), key=pyscf.data.elements.charge)
     angular_names = 'spdfgh'
 
@@ -319,7 +317,7 @@ def basis_as_nwchem(f_out, basis_dict, name='custom basis set'):
             f_out.write(f"{atom:<2s}    {angular_names[l].upper():s}\n")
             exps = fakemol.bas_exp(bas_i)
             coeffs = fakemol.bas_ctr_coeff(bas_i)
-            for exp, exp_coeff in zip(exps,coeffs):
+            for exp, exp_coeff in zip(exps, coeffs, strict=True):
                 fmt = "{:>15.7G}" + "        {:>15.7G}"*len(exp_coeff) + "\n"
                 f_out.write(fmt.format(exp, *exp_coeff).replace('E','D'))
     f_out.write('END\n')

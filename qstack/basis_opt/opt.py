@@ -1,6 +1,7 @@
 """Basis set optimization routines and command-line interface."""
 
-import sys, time
+import sys
+import time
 from ast import literal_eval
 import argparse
 import numpy as np
@@ -30,7 +31,6 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         Dictionary containing the optimized basis.
 
     """
-
     if joblib is not None:
         runner = joblib.Parallel(n_jobs=-1, return_as="generator_unordered")
 

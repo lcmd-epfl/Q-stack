@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-"""
-The command-line launcher for the basis set optimisation function of qstack.basis_opt.opt
+"""The command-line launcher for the basis set optimisation function of `qstack.basis_opt.opt`.
 
 (can be called as `python3 -m qstack.basis_opt`, and has a cleaner import chain than `python3 -m qstack.basis_opt.opt`)
 """
 
-import sys, argparse
+import sys
+import argparse
 from . import basis_tools as qbbt
 from .opt import optimize_basis
 
