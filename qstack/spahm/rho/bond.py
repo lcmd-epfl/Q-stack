@@ -2,6 +2,7 @@
 
 import os
 import argparse
+import time
 import numpy as np
 from itertools import chain
 from qstack.tools import correct_num_threads
@@ -95,7 +96,7 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              rep_type='bond', auxbasis='ccpvdzjkfit',
              with_symbols=False, only_z=[], merge=True,
-             no_lowdin=False):
+             no_lowdin=False, time_it=False):
     """ Computes and reshapes an array of SPAHM-b representation
 
     Args:
@@ -132,6 +133,9 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
             - if merge==True: collapses Nmods and returns (Natoms,Nfeatures*2)
             - if with_symbols==True: returns (Natoms, 2) containging the atom symbols along 1st dim and one of the above arrays
     """
+    if time_it:
+        t1 = time.time()
+        ftime = open(f"timing_{rep_type}_"+("no-lowdin" if no_lowdin else "")+".out", "a")
     if not dump_and_exit:
         dms     = utils.mols_guess(mols, xyzlist, guess,
                                xc=defaults.xc, spin=spin, readdm=readdm, printlevel=printlevel)
@@ -152,6 +156,11 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                    rep_type=rep_type, auxbasis=auxbasis,
                    pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z,
                    no_lowdin=no_lowdin)
+    if time_it:
+        t2 = time.time()
+        elapsed = t2-t1
+        print(f"Timing for {rep_type} (lowdin = {not no_lowdin}) =", elapsed, file=ftime, flush=True)
+        ftime.close()
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
     if split is False:
@@ -198,6 +207,7 @@ def main():
     parser.add_argument('--onlym0',        action='store_true', dest='only_m0',        default=False,                    help='use only functions with m=0')
     parser.add_argument('--savedm',        action='store_true', dest='savedm',         default=False,                    help='save density matrices')
     parser.add_argument('--no-lowdin',     action='store_true', dest='no_lowdin',      default=False,                    help='does not apply lowdin orthogonalisation (global reps only)')
+    parser.add_argument('--timing',        action='store_true', dest='time_it',        default=False,                    help='reports time to generate the representations')
     parser.add_argument('--readdm',        type=str,            dest='readdm',         default=None,                     help='directory to read density matrices from')
     parser.add_argument('--elements',      type=str,            dest='elements',       default=None,  nargs='+',         help='the elements to limit the representation for')
     parser.add_argument('--pairfile',      type=str,            dest='pairfile',       default=None,                     help='path to the atom pair file')
@@ -227,7 +237,7 @@ def main():
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
                       elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z,
-                    no_lowdin=args.no_lowdin)
+                    no_lowdin=args.no_lowdin, time_it=args.time_it)
     if args.print > 0: print(reps.shape)
     if args.merge:
         if (spin == None).all():
