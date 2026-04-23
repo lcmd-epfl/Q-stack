@@ -134,15 +134,28 @@ def vec_from_cs(z, cs, lmax, idx):
     return v
 
 
-def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff):
+def get_bond(mol, dm, at1idx, at2idx):
+    mo1idx = range(*mol.aoslice_nr_by_atom()[at1idx][2:])
+    mo2idx = range(*mol.aoslice_nr_by_atom()[at2idx][2:])
+    ix1 = np.ix_(mo1idx,mo2idx)
+    ix2 = np.ix_(mo2idx,mo1idx)
+    dmL_bond = np.zeros_like(dm)
+    dmL_bond[ix1] = dm[ix1]
+    dmL_bond[ix2] = dm[ix2]
+    return dmL_bond
+
+def repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff, no_lowdin=False, mol=None, dm=None):
     q0, q1 = q[i0], q[i1]
     r0, r1 = r[i0], r[i1]
     z = r1-r0
     if np.linalg.norm(z) > cutoff:
         return None, None
-    dm1   = L.get_bond(i0, i1)
+    if no_lowdin:
+        dm1   = get_bond(mol, dm, i0, i1)
+    else:
+        dm1   = L.get_bond(i0, i1)
     bname = make_bname(q0, q1)
-    cs    = fit_dm(dm1, L.mol, mybasis[bname], r0, r1)
+    cs    = fit_dm(dm1, mol, mybasis[bname], r0, r1)
     lmax  = max([c[0] for c in cs])
     v0    = vec_from_cs(+z, cs, lmax, idx[bname])
     v1    = vec_from_cs(-z, cs, lmax, idx[bname])
@@ -175,9 +188,12 @@ def repr_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
         vec[i1] = np.pad(vec[i1], (0, maxlen-len(vec[i1])), 'constant')
     return np.array(vec)
 
-def repr_glob_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
-
-    L = lowdin.Lowdin_split(mol, dm)
+def repr_glob_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[], no_lowdin=False):
+    
+    if no_lowdin is False:
+        L = lowdin.Lowdin_split(mol, dm)
+    else:
+        L = None
     q = [mol.atom_symbol(i) for i in range(mol.natm)]
     r = mol.atom_coords(unit='ANG')
     
@@ -190,7 +206,7 @@ def repr_glob_for_mol(mol, dm, qqs, M, mybasis, idx, maxlen, cutoff, only_z=[]):
         rest = mol.natm if len(only_z) > 0 else i0
         for i1 in range(rest):
             if i0 == i1 : continue
-            v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff)
+            v, bname = repr_for_bond(i0, i1, L, mybasis, idx, q, r, cutoff, no_lowdin=no_lowdin, mol=mol, dm=dm)
             if v is None:
                 continue
             mybonds[0][bname] += v[0] ## or also += v[1] TODO: check the difference

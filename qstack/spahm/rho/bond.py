@@ -13,7 +13,8 @@ def bond(mols, dms,
          bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
          elements=None, only_m0=False, zeros=False, printlevel=0,
          rep_type='bond',auxbasis = 'ccpvdzjkfit', model='lowdin-long-x',
-         pairfile=None, dump_and_exit=False, same_basis=False, only_z=[]):
+         pairfile=None, dump_and_exit=False, same_basis=False, only_z=[],
+         no_lowdin=False):
     """ Computes SPAHM-b representations for a set of molecules.
 
     Args:
@@ -78,7 +79,7 @@ def bond(mols, dms,
             DM  = utils.dm_open_mod(dm, omod)
             vec = None # This too !!! (maybe a wrapper or dict)
             if rep_type == 'global-bond':
-                vec = dmbb.repr_glob_for_mol(mol, DM, qqs0, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
+                vec = dmbb.repr_glob_for_mol(mol, DM, qqs0, M, mybasis, idx, maxlen, cutoff, only_z=only_z, no_lowdin=no_lowdin)
             if rep_type == 'bond':
                 vec = dmbb.repr_for_mol(mol, DM, qqs, M, mybasis, idx, maxlen, cutoff, only_z=only_z)
             elif rep_type == 'atom':
@@ -93,7 +94,8 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
              bpath=defaults.bpath, cutoff=defaults.cutoff, omods=defaults.omod,
              elements=None, only_m0=False, zeros=False, split=False, printlevel=0,
              rep_type='bond', auxbasis='ccpvdzjkfit',
-             with_symbols=False, only_z=[], merge=True):
+             with_symbols=False, only_z=[], merge=True,
+             no_lowdin=False):
     """ Computes and reshapes an array of SPAHM-b representation
 
     Args:
@@ -148,7 +150,8 @@ def get_repr(mols, xyzlist, guess,  xc=defaults.xc, spin=None, readdm=None,
                    elements=elements, only_m0=only_m0,
                    zeros=zeros, printlevel=printlevel,
                    rep_type=rep_type, auxbasis=auxbasis,
-                   pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z)
+                   pairfile=pairfile, dump_and_exit=dump_and_exit, same_basis=same_basis, only_z=only_z,
+                   no_lowdin=no_lowdin)
     maxlen=allvec.shape[-1]
     natm = allvec.shape[-2]
     if split is False:
@@ -194,6 +197,7 @@ def main():
     parser.add_argument('--symbols',       action='store_true', dest='with_symbols',   default=False,                    help='if save tuples with (symbol, vec) for all atoms')
     parser.add_argument('--onlym0',        action='store_true', dest='only_m0',        default=False,                    help='use only functions with m=0')
     parser.add_argument('--savedm',        action='store_true', dest='savedm',         default=False,                    help='save density matrices')
+    parser.add_argument('--no-lowdin',     action='store_true', dest='no_lowdin',      default=False,                    help='does not apply lowdin orthogonalisation (global reps only)')
     parser.add_argument('--readdm',        type=str,            dest='readdm',         default=None,                     help='directory to read density matrices from')
     parser.add_argument('--elements',      type=str,            dest='elements',       default=None,  nargs='+',         help='the elements to limit the representation for')
     parser.add_argument('--pairfile',      type=str,            dest='pairfile',       default=None,                     help='path to the atom pair file')
@@ -222,7 +226,8 @@ def main():
                     auxbasis=args.auxbasis, rep_type=args.rep,
                       pairfile=args.pairfile, dump_and_exit=args.dump_and_exit, same_basis=args.same_basis,
                       bpath=args.bpath, cutoff=args.cutoff, omods=args.omod, with_symbols=args.with_symbols,
-                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z)
+                      elements=args.elements, only_m0=args.only_m0, zeros=args.zeros, split=args.split, only_z=args.only_z,
+                    no_lowdin=args.no_lowdin)
     if args.print > 0: print(reps.shape)
     if args.merge:
         if (spin == None).all():
