@@ -1,354 +1,142 @@
-"""Density Overlap Regions Indicator (DORI) computation."""
-
+#!/usr/bin/env python3
 import numpy as np
-from tqdm import trange
-from pyscf.dft.numint import eval_ao, _dot_ao_dm, _contract_rho
-from pyscf.tools.cubegen import Cube, RESOLUTION, BOX_MARGIN
-from .dm import make_grid_for_rho
+import scipy.linalg as spl
 
-
-def eval_rho_dm(mol, ao, dm, deriv=2):
-    """Compute electron density and its derivatives from a density matrix.
-
-    Modified from pyscf/dft/numint.py to return full second derivative matrices
-    needed for DORI calculations.
-
+def _dori_inner_formula(values, with_color=False):
+    """Computes the DORI indicator for a set of points in space, from the data given by pyscf
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
-        ao (numpy ndarray): 3D array of shape (*, ngrids, nao) where
-            - ao[0]: atomic orbital values on the grid,
-            - ao[1:4]: first derivatives (if deriv>=1),
-            - ao[4:10]: second derivatives in upper triangular form (if deriv==2).
-        dm (numpy ndarray): Density matrix in AO basis.
-        deriv (int): Maximum derivative order to compute (0, 1, or 2). Defaults to 2.
+      - values: the evaluation of the density and its derivatives, of shape [N_components, N_points],
+                where the components are [ρ, x,y,z, xx, xy, xz, yy, yz, zz]
+      
 
-    Returns:
-        tuple: Depending on deriv value:
-            - deriv=0: rho as (ngrids,) numpy ndarray,
-            - deriv=1: (rho, drho_dr) where drho_dr is (3, ngrids) numpy ndarray,
-            - deriv=2: (rho, drho_dr, d2rho_dr2) where d2rho_dr2 is (3, 3, ngrids) numpy ndarray.
     """
-    AO, dAO_dr, d2AO_dr2 = np.split(ao, [1,4])
-    DM_AO = _dot_ao_dm(mol, AO[0], dm, None, None, None)
-    rho = _contract_rho(AO[0], DM_AO)
-    if deriv==0:
-        return rho
+    _explainer = """
+    T = N( (N(ρ) / ρ)**2 )
+    = N( 1/ρ**2 * (x**2+y**2+z**2) )
+    = 1/ρ**2 * (x(x**2)+x(y**2)+x(z**2) ; _; _) + (x**2+y**2+z**2) * N(1/ρ**2)
+    = 1/ρ**2 * (2*xx*x+ 2*xy*y + 2*xz*z ; _; _) - (x**2+y**2+z**2) * 2/ρ**3 * (x;y;z)
+    = 2/ρ**2 * ((xx*x+xy*y+xz*z; _; _) - (x**2+y**2+z**2)/ρ * (x;y;z) )
 
-    drho_dr = np.zeros((3, len(rho)))
-    if deriv==2:
-        d2rho_dr2 = np.zeros((3, 3, len(rho)))
-        triu_idx = {(i,j): k for k, (i,j) in enumerate(zip(*np.triu_indices(3), strict=True))}
+    DORI = T**2 / (1/ρ**2 * (x**2+y**2+z**2))**3
+    = 4/ρ**4 (
+        (xx*x+xy*y+xz*z)**2+ (yx*x+yy*y+yz*z)**2 + (zx*x+zy*y+zz*z)**2
+        + (x**2+y**2+z**2)**3/ρ**2
+        -2*(x**2+y**2+z**2)/ρ * (xx*x*x+xy*y*x+xz*z*x + yx*x*y+yy*y*y+yz*z*y + zx*x*z+zy*y*z+zz*z*z)
+      )
+      /
+      1/ρ**6 * (x**2+y**2+z**2)**3
 
-    for i in range(3):
-        drho_dr[i] = 2.0*_contract_rho(dAO_dr[i], DM_AO)
-        if deriv==2:
-            DM_dAO_dr_i = 2 * _dot_ao_dm(mol, dAO_dr[i], dm, None, None, None)
-            for j in range(i, 3):
-                d2rho_dr2[i,j] = _contract_rho(dAO_dr[j], DM_dAO_dr_i) + 2.0*np.einsum('ip,ip->i', d2AO_dr2[triu_idx[i,j]], DM_AO)
-                d2rho_dr2[j,i] = d2rho_dr2[i,j]
-
-    if deriv==1:
-        return rho, drho_dr
-    return rho, drho_dr, d2rho_dr2
+    = 4/ρ**6 (
+        ρ**2 * ((xx*x+xy*y+xz*z)**2+ (yx*x+yy*y+yz*z)**2 + (zx*x+zy*y+zz*z)**2)
+        + (x**2+y**2+z**2)**3
+        -2*ρ*(x**2+y**2+z**2) * (xx*x*x+xy*y*x+xz*z*x + yx*x*y+yy*y*y+yz*z*y + zx*x*z+zy*y*z+zz*z*z)
+      )
+      /
+      1/ρ**6 * (x**2+y**2+z**2)**3
 
 
-def eval_rho_df(ao, c, deriv=2):
-    """Compute electron density and its derivatives from density-fitting coefficients.
+    = 4 * (
+        ρ**2 * ((xx*x+xy*y+xz*z)**2+ (yx*x+yy*y+yz*z)**2 + (zx*x+zy*y+zz*z)**2)/(x**2+y**2+z**2)**3
+        + 1
+        -2*ρ/(x**2+y**2+z**2)**2 * (xx*x*x+xy*y*x+xz*z*x + yx*x*y+yy*y*y+yz*z*y + zx*x*z+zy*y*z+zz*z*z)
+      )
 
-    Args:
-        ao (numpy ndarray): 3D array of shape (*, ngrids, nao) where:
-            - ao[0]: atomic orbital values on the grid,
-            - ao[1:4]: first derivatives (if deriv>=1),
-            - ao[4:10]: second derivatives in upper triangular form (if deriv==2).
-        c (numpy ndarray): 1D array of density fitting/expansion coefficients.
-        deriv (int): Maximum derivative order to compute (0, 1, or 2). Defaults to 2.
-
-    Returns:
-        tuple: Depending on deriv value:
-            - deriv=0: rho as (ngrids,) numpy ndarray,
-            - deriv=1: (rho, drho_dr) where drho_dr is (3, ngrids) numpy ndarray,
-            - deriv=2: (rho, drho_dr, d2rho_dr2) where d2rho_dr2 is (3, 3, ngrids) numpy ndarray.
     """
-    maxdim = 1 if deriv==0 else (4 if deriv==1 else 10)
-    rho_all = np.tensordot(ao[:maxdim], c, 1)  # corresponds to np.einsum('xip,p->xi', ao[:maxdim], c)
-    if deriv==0:
-        return rho_all[0]
-    if deriv==1:
-        return rho_all[0], rho_all[1:4]
-    if deriv==2:
-        d2rho_dr2 = np.zeros((3, 3, rho_all.shape[-1]))
-        for k, (i, j) in enumerate(zip(*np.triu_indices(3), strict=True)):
-            d2rho_dr2[i,j] = d2rho_dr2[j,i] = rho_all[4+k]
-        return rho_all[0], rho_all[1:4], d2rho_dr2
+
+    rho = values[0]
+    first = values[1:4]
+    second = np.zeros_like(values, shape=(3, 3, values.shape[-1]))
+    second[:,0,:] = values[4:7]
+    second[0,1:,:] = values[5:7]
+    second[1,1:,:] = values[7:9]
+    second[2,1:,:] = values[8:10]
+
+    nabla2 = (first**2).sum(axis=0)  # (x**2+y**2+z**2)
+    bigterm= np.einsum('xp,xyp,yp->p', first, second, first)  # (xx*x*x+xy*y*x+xz*z*x + yx*x*y+yy*y*y+yz*z*y + zx*x*z+zy*y*z+zz*z*z)
+
+    final = (np.einsum('xyp,yp->xp', second, first)**2).sum(axis=0)  # ((xx*x+xy*y+xz*z)**2+ (yx*x+yy*y+yz*z)**2 + (zx*x+zy*y+zz*z)**2)
+
+    if with_color:
+        color = np.empty_like(final)
+        for index in range(color.shape[0]):
+            color[index] = spl.eigvalsh(second[:,:,index], overwrite_a=True)[1]
+    del second
+    if with_color:
+        color = np.sign(color)
+        color /= rho
+
+    final *= rho/nabla2
+    final -= 2*bigterm
+    del bigterm
+    final *= rho/nabla2**2
+    del nabla2
+    final +=1
+    final *=4
+    if with_color:
+        return final, color
+    else:
+        return final 
+
+def get_dori_from_density(mol, rho_coeffs, coords, with_color=False):
+    values_all = mol.eval_ao('GTOval_sph_deriv2', coords)
+    rho_evaled = values_all @ rho_coeffs
+    del values_all
+    return _dori_inner_formula(rho_evaled, with_color)
 
 
-def compute_rho(mol, coords, dm=None, c=None, deriv=2, eps=1e-4):
-    """Calculate electron density and derivatives efficiently.
+def get_dori_from_rdm(mol, rdm, coords, with_color=False):
+    import time; a=time.perf_counter()
+    values_all = mol.eval_ao('GTOval_sph_deriv2', coords)
+    print('vaa', time.perf_counter()-a)
+    half_done = np.tensordot(values_all, rdm, 1)
+    # this asymmetric pre-evaluation assumes the rdm is a symmetric matrix.
 
-    Computes density and its spatial derivatives on a grid from either a density
-    matrix or fitting coefficients, with optimizations for numerical stability.
+    rho_evaled = np.empty_like(values_all, shape=(10,len(coords)))
+    np.einsum('px,px->p', values_all[0], half_done[0], out=rho_evaled[0])
+    np.einsum('cpx,px->cp', half_done[1:10], values_all[0], out=rho_evaled[1:10])
+    second_term = np.empty_like(values_all, shape=(6,len(coords)))
+    np.einsum('cpx,px->cp', half_done[1:4], values_all[1], out=second_term[0:3])
+    np.einsum('cpx,px->cp', half_done[2:4], values_all[2], out=second_term[3:5])
+    np.einsum('px,px->p', half_done[3], values_all[3], out=second_term[5])
+    rho_evaled[4:] += second_term
+    del second_term, values_all, half_done
 
-    Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
-        coords (numpy ndarray): 2D array (ngrids, 3) of grid coordinates in Bohr.
-        dm (numpy ndarray, optional): 2D density matrix in AO basis. Conflicts with c.
-        c (numpy ndarray, optional): 1D density fitting coefficients. Conflicts with dm.
-        deriv (int): Maximum derivative order (0, 1, or 2). Defaults to 2.
-        eps (float): Minimum density threshold below which derivatives are set to zero. Defaults to 1e-4.
-
-    Returns:
-        tuple: Depending on deriv value:
-            - deriv=0: rho as (ngrids,) numpy ndarray,
-            - deriv=1: (rho, drho_dr) where drho_dr is (3, ngrids) numpy ndarray,
-            - deriv=2: (rho, drho_dr, d2rho_dr2) where d2rho_dr2 is (3, 3, ngrids) numpy ndarray.
-
-    Raises:
-        RuntimeError: If both or neither of dm and c are provided.
-    """
-    if (c is None)==(dm is None):
-        raise RuntimeError('Use either density matrix (dm) or density fitting coefficients (c)')
-    if dm is not None:
-        eval_rho = lambda ao, deriv: eval_rho_dm(mol, ao.reshape(-1, ao.shape[-2], ao.shape[-1]), dm, deriv=deriv)
-    if c is not None:
-        eval_rho = lambda ao, deriv: eval_rho_df(ao.reshape(-1, ao.shape[-2], ao.shape[-1]), c, deriv=deriv)
-
-    ao0 = eval_ao(mol, coords, deriv=0)
-    rho = eval_rho(ao0, deriv=0)
-    if deriv==0:
-        return rho
-    good_idx = np.where(rho>=eps)[0]
-    drho_dr = np.zeros((3,len(coords)))
-    if deriv==2:
-        d2rho_dr2 = np.zeros((3,3,len(coords)))
-    if len(good_idx)>0:
-        ao = eval_ao(mol, coords[good_idx], deriv=deriv)
-        ret = eval_rho(ao, deriv=deriv)
-        drho_dr[:,good_idx] = ret[1]
-        if deriv==2:
-            d2rho_dr2[:,:,good_idx] = ret[2]
-    if deriv==1:
-        return rho, drho_dr
-    return rho, drho_dr, d2rho_dr2
+    rho_evaled[1:10]*=2
+    print('rho', time.perf_counter()-a)
+    
+    try:
+        return _dori_inner_formula(rho_evaled, with_color)
+    finally:
+        print('end', time.perf_counter()-a)
 
 
-def compute_s2rho(rho, d2rho_dr2, eps=1e-4):
-    """Compute signed density based on second eigenvalue of the density Hessian.
+def get_dori(mol, qty, coords, with_color=False, MAX_SZ=5*1024**3):
+    if qty.ndim==1:
+        # the inner calculation takes the main evaluation array (10), computes a new second derivative array (9),
+        # two temporary variables (2) and a temp in-flight buffer of up to second-derivative-size (9)
 
-    Useful for distinguishing bonding vs. non-bonding regions. The sign of the
-    second eigenvalue of the Hessian indicates local density topology.
+        # meanwhile, computing this evaluation array in the first place requires N_ao of temp-buffer.
+        floats_per_point = max(30, mol.nao)
+        _func = get_dori_from_density
+    elif qty.ndim==2:
+        # computing this evaluation array form an rdm uses several arrays (variables and in-flight): 2*N_ao*10 + N_ao*9 + 2
+        floats_per_point = max(30, 29*mol.nao+2)
+        _func = get_dori_from_rdm
 
-    Args:
-        rho (numpy ndarray): 1D array (ngrids,) of electron density values.
-        d2rho_dr2 (numpy ndarray): 3D array (3, 3, ngrids) of density second derivatives (Hessian).
-        eps (float): Density threshold below which values are set to zero. Defaults to 1e-4.
-
-    Returns:
-        numpy ndarray: 1D array (ngrids,) containing rho * sign(λ₂) where λ₂ is the
-            second eigenvalue of the Hessian, or 0 where rho < eps.
-    """
-    s2rho = np.zeros_like(rho)
-    idx = np.where(rho>=eps)
-    s2rho[idx] = np.copysign(rho[idx], [sorted(np.linalg.eigh(h)[0])[1] for h in d2rho_dr2.T[idx]])
-    return s2rho
-
-
-def compute_dori(rho, drho_dr, d2rho_dr2, eps=1e-4):
-    """Compute Density Overlap Regions Indicator (DORI) analytically.
-
-    Args:
-        rho (numpy ndarray): 1D array (ngrids,) of electron density.
-        drho_dr (numpy ndarray): 2D array (3, ngrids) of density first derivatives.
-        d2rho_dr2 (numpy ndarray): 3D array (3, 3, ngrids) of density second derivatives.
-        eps (float): Density threshold below which DORI is set to zero. Defaults to 1e-4.
-
-    Returns:
-        numpy ndarray: 1D array (ngrids,) of DORI values ranging from 0 to 1.
-    """
-    idx = np.where(abs(rho)>=eps)[0]
-    k = drho_dr[...,idx] / rho[idx]
-    k2 = np.einsum('xi,xi->i', k, k)
-    H = d2rho_dr2[...,idx] / rho[idx] - np.einsum('xi,yi->xyi', k, k)
-    dk2_dr = 2.0 * np.einsum('xyi,yi->xi', H, k)
-
-    dk2_dr_square = np.einsum('xi,xi->i', dk2_dr, dk2_dr)
-    theta = dk2_dr_square / k2**3
-    gamma = theta / (1.0 + theta)
-    # gamma = dk2_dr_square / (dk2_dr_square + k2**3)
-
-    gamma_full = np.zeros_like(rho)
-    gamma_full[idx] = gamma
-    return gamma_full
-
-
-def compute_dori_num(mol, coords, dm=None, c=None, eps=1e-4, dx=1e-4):
-    """Compute DORI using numerical differentiation (semi-numerical approach).
-
-    Alternative to analytical DORI calculation using finite differences for
-    derivatives of k², where k=dρ/dr. Useful for validation or when analytical
-    gradients are problematic.
-
-    Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
-        coords (numpy ndarray): 2D array (ngrids, 3) of grid coordinates in Bohr.
-        dm (numpy ndarray, optional): 2D density matrix in AO basis. Conflicts with c.
-        c (numpy ndarray, optional): 1D density fitting coefficients. Conflicts with dm.
-        eps (float): Density threshold below which DORI is zero. Defaults to 1e-4.
-        dx (float): Finite difference step size in Bohr. Defaults to 1e-4.
-
-    Returns:
-        tuple: (dori, rho) where both are 1D arrays (ngrids,) containing
-            DORI values and electron density respectively.
-    """
-    def grad_num(func, grid, d, **kwargs):
-        g = np.zeros_like(grid)
-        for j in range(3):
-            u = np.eye(1, 3, j)  # unit vector || jth dimension
-            e1  = func(grid+d*u, **kwargs)
-            e2  = func(grid-d*u, **kwargs)
-            e11 = func(grid+2*d*u, **kwargs)
-            e22 = func(grid-2*d*u, **kwargs)
-            g[:,j] = (8.0*e1-8.0*e2 + e22-e11) / (12.0*d)
-        return g
-
-    def compute_k2(coords, mol=None, dm=None, c=None):
-        rho, drho_dr = compute_rho(mol, coords, dm=dm, c=c, deriv=1)
-        k = drho_dr / rho
-        return np.einsum('xi,xi->i', k, k)
-
-    rho = compute_rho(mol, coords, dm=dm, c=c, deriv=0)
-
-    good_idx = np.where(rho>=eps)[0]
-    dori = np.zeros_like(rho)
-    if len(good_idx):
-        k2 = compute_k2(coords[good_idx], mol=mol, dm=dm, c=c)
-        dk2_dr = grad_num(compute_k2, coords[good_idx], d=dx, mol=mol, dm=dm, c=c)
-        dk2_dr_square = np.einsum('ix,ix->i', dk2_dr, dk2_dr)
-        theta = dk2_dr_square / k2**3
-        dori[good_idx] = theta / (theta + 1.0)
-    return dori, rho
-
-
-def dori_on_grid(mol, coords, dm=None, c=None, eps=1e-4, alg='analytical', mem=1, dx=1e-4, progress=False):
-    """Compute DORI on a user-specified grid with memory management.
-
-    Main computational function for DORI evaluation. Handles large grids by
-    chunking based on available memory.
-
-    Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
-        coords (numpy ndarray): 2D array (ngrids, 3) of grid coordinates in Bohr.
-        dm (numpy ndarray, optional): 2D density matrix in AO basis. Conflicts with c.
-        c (numpy ndarray, optional): 1D density fitting coefficients. Conflicts with dm.
-        eps (float): Density threshold for DORI calculation. Defaults to 1e-4.
-        alg (str): Algorithm choice: 'analytical' or 'numerical'. Defaults to 'analytical'.
-        mem (float): Maximum memory in GiB for AO evaluation. Defaults to 1 GiB.
-        dx (float): Step size in Bohr for numerical derivatives. Defaults to 1e-4.
-        progress (bool): If True, displays progress bar. Defaults to False.
-
-    Returns:
-        tuple: (dori, rho, s2rho) where:
-        - dori (numpy ndarray): 1D array (ngrids,) of DORI values
-        - rho (numpy ndarray): 1D array (ngrids,) of electron density
-        - s2rho (numpy ndarray): 1D array (ngrids,) of signed density (None if numerical)
-    """
-    max_size = int(mem * 2**30)  # mem * 1 GiB
-    point_size = 10 * mol.nao * np.float64().itemsize  # memory needed for 1 grid point
-    dgrid = max_size // point_size
-    grid_chunks = trange(0, len(coords), dgrid, disable=not progress)
-
-    rho = np.zeros(len(coords))
-
-    if 'analytical'.startswith(alg.lower()):
-        drho_dr = np.zeros((3, len(coords)))
-        d2rho_dr2 = np.zeros((3, 3, len(coords)))
-        for i in grid_chunks:
-            s = np.s_[i:i+dgrid]
-            rho[s], drho_dr[:,s], d2rho_dr2[:,:,s] = compute_rho(mol, coords[s], dm=dm, c=c, eps=eps)
-        dori = compute_dori(rho, drho_dr, d2rho_dr2, eps=eps)
-        s2rho = compute_s2rho(rho, d2rho_dr2, eps=eps)
-        return dori, rho, s2rho
-
-    elif 'numerical'.startswith(alg.lower()):
-        dori = np.zeros_like(rho)
-        for i in grid_chunks:
-            s = np.s_[i:i+dgrid]
-            dori_i, rho_i = compute_dori_num(mol, coords[s], dm=dm, c=c, eps=eps, dx=dx)
-            dori[s] = dori_i
-            rho[s] = rho_i
-        return dori, rho, None
-
-
-def dori(mol, dm=None, c=None,
-         eps=1e-4, alg='analytical',
-         grid_type='dft',
-         grid_level=1,
-         nx=80, ny=80, nz=80, resolution=RESOLUTION, margin=BOX_MARGIN,
-         cubename=None,
-         dx=1e-4, mem=1, progress=False):
-    """High-level interface to compute DORI with automatic grid generation and file output.
-
-    Reference:
-        P. de Silva, C. Corminboeuf,
-        "Simultaneous visualization of covalent and noncovalent interactions using regions of density overlap",
-        J. Chem. Theory Comput. 10, 3745–3756 (2014), doi:10.1021/ct500490b
-
-    Computes the Density Overlap Regions Indicator (DORI).
-    Automatically generates appropriate grids and optionally saves results
-    to cube files for visualization.
-
-    DORI is a density-based descriptor for identifying covalent bonding regions,
-    with values close to 1 indicating strong electron sharing (covalent bonds).
-
-    DORI(r) = γ(r) = θ(r) / (1 + θ(r)), where:
-    θ = |∇(k²)|² / |k|⁶, and k(r) = ∇ρ(r) / ρ(r)
-
-    Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
-        dm (numpy ndarray, optional): 2D density matrix in AO basis. Conflicts with c.
-        c (numpy ndarray, optional): 1D density fitting coefficients. Conflicts with dm.
-        eps (float): Density threshold for DORI. Defaults to 1e-4.
-        alg (str): Algorithm: 'analytical' or 'numerical'. Defaults to 'analytical'.
-        grid_type (str): Grid type: 'dft' for DFT quadrature grid or 'cube' for uniform grid. Defaults to 'dft'.
-        grid_level (int): For DFT grid, the grid level (higher = more points). Defaults to 1.
-        nx (int): For cube grid, number of points in x direction. Defaults to 80.
-        ny (int): For cube grid, number of points in y direction. Defaults to 80.
-        nz (int): For cube grid, number of points in z direction. Defaults to 80.
-        resolution (float): For cube grid, grid spacing in Bohr. Conflicts with nx/ny/nz.
-        margin (float): For cube grid, extra space around molecule in Bohr. Defaults to BOX_MARGIN.
-        cubename (str, optional): For cube grid, base filename for output cube files. If None, no files saved.
-        dx (float): For numerical algorithm, finite difference step in Bohr. Defaults to 1e-4.
-        mem (float): Maximum memory in GiB for AO evaluation. Defaults to 1.
-        progress (bool): If True, displays progress bar. Defaults to False.
-
-    Returns:
-        tuple: (dori, rho, s2rho, coords, weights) containing:
-        - dori (numpy ndarray): 1D array of DORI values
-        - rho (numpy ndarray): 1D array of electron density
-        - s2rho (numpy ndarray): 1D array of signed density (None if numerical)
-        - coords (numpy ndarray): 2D array (ngrids, 3) of grid coordinates
-        - weights (numpy ndarray): 1D array of grid weights
-
-    Note:
-        When cubename is provided with cube grid, creates three files:
-        - <cubename>.dori.cube: DORI values
-            - <cubename>.rho.cube: electron density
-            - <cubename>.sgnL2rho.cube: signed density (analytical only)
-    """
-    if grid_type=='dft':
-        grid = make_grid_for_rho(mol, grid_level=grid_level)
-        weights = grid.weights
-        coords  = grid.coords
-    elif grid_type=='cube':
-        grid = Cube(mol, nx, ny, nz, resolution, margin)
-        weights = np.full(grid.get_ngrids(), np.prod(np.diag(grid.box)) * grid.get_volume_element())
-        coords  = grid.get_coords()
-
-    dori, rho, s2rho = dori_on_grid(mol, coords, dm=dm, c=c, eps=eps, alg=alg, mem=mem, dx=dx, progress=progress)
-
-    if grid_type=='cube' and cubename:
-        grid.write(dori.reshape(grid.nx, grid.ny, grid.nz), cubename+'.dori.cube', comment='DORI')
-        grid.write(rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.rho.cube', comment='electron density rho')
-        if s2rho is not None:
-            grid.write(s2rho.reshape(grid.nx, grid.ny, grid.nz), cubename+'.sgnL2rho.cube', comment='sgn(lambda_2)*rho')
-
-    return dori, rho, s2rho, coords, weights
+    max_points = MAX_SZ // (floats_per_point * np.dtype(qty.dtype).itemsize)
+    dori = np.zeros_like(qty, shape=len(coords))
+    if with_color:
+        color = np.zeros_like(qty, shape=len(coords))
+    print(max_points, len(coords))
+    
+    for point_begin in range(0, len(coords), max_points):
+        point_end = min(point_begin+max_points, len(coords))
+        if with_color:
+            dori[point_begin:point_end],color[point_begin:point_end] = _func(mol, qty, coords[point_begin:point_end], with_color)
+        else:
+            dori[point_begin:point_end] = _func(mol, qty, coords[point_begin:point_end], with_color)
+    if with_color:
+        return dori, color
+    else:
+        return dori
+        
