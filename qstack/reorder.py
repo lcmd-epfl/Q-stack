@@ -68,6 +68,10 @@ _conventions = {
         'gpr': MagneticOrder(
             l_checker=lambda _: False,
             ),
+        'psi4': MagneticOrder(
+            l_checker=lambda l: l>0,
+            m_generator=_orca_get_m,
+            ),
         'orca': MagneticOrder(
             l_checker=lambda l: l>0,
             m_generator=_orca_get_m,
@@ -186,7 +190,7 @@ def reorder_ao(mol, vector, src='pyscf', dest='gpr'):
             If None, returns the indices to reorder and sign multipliers for an 1D vector
             to use as `x = x[idx]*sign`.
         src (str): Current convention. Defaults to 'pyscf'.
-        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca', 'gaussian', 'turbomole'). Defaults to 'gpr'.
+        dest (str): Convention to convert to (available: 'pyscf', 'gpr', 'orca', 'gaussian', 'turbomole', 'psi4'). Defaults to 'gpr'.
 
     Returns:
         numpy.ndarray: Reordered vector or matrix, or tuple of (idx (numpy.ndarray), sign (numpy.ndarray)) if vector is None.
