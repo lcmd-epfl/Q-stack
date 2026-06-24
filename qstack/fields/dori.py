@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
 import scipy.linalg as spl
+import pyscf
 
 def _dori_inner_formula(values, with_color=False):
     """Computes the DORI indicator for a set of points in space, from the data given by pyscf
@@ -55,7 +56,7 @@ def _dori_inner_formula(values, with_color=False):
     bigterm= np.einsum('xp,xyp,yp->p', first, second, first)  # (xx*x*x+xy*y*x+xz*z*x + yx*x*y+yy*y*y+yz*z*y + zx*x*z+zy*y*z+zz*z*z)
 
     final = (np.einsum('xyp,yp->xp', second, first)**2).sum(axis=0)  # ((xx*x+xy*y+xz*z)**2+ (yx*x+yy*y+yz*z)**2 + (zx*x+zy*y+zz*z)**2)
-
+    
     if with_color:
         color = np.empty_like(final)
         for index in range(color.shape[0]):
@@ -63,12 +64,19 @@ def _dori_inner_formula(values, with_color=False):
     del second
     if with_color:
         color = np.sign(color)
-        color /= rho
+        color *= rho
 
     final *= rho/nabla2
     final -= 2*bigterm
     del bigterm
     final *= rho/nabla2**2
+
+    needs_redo = np.logical_not(np.isfinite(final))
+    if needs_redo.sum() > 0:
+        print(len(needs_redo), np.nonzero(needs_redo)[0], final[needs_redo])
+    final[needs_redo] = 0
+
+
     del nabla2
     final +=1
     final *=4
@@ -116,7 +124,8 @@ def get_dori(mol, qty, coords, with_color=False, MAX_SZ=5*1024**3):
         # two temporary variables (2) and a temp in-flight buffer of up to second-derivative-size (9)
 
         # meanwhile, computing this evaluation array in the first place requires N_ao of temp-buffer.
-        floats_per_point = max(30, mol.nao)
+        # (still, we desirte a margin for the internal calculations done by eval_ao)
+        floats_per_point = max(30, 5*mol.nao)
         _func = get_dori_from_density
     elif qty.ndim==2:
         # computing this evaluation array form an rdm uses several arrays (variables and in-flight): 2*N_ao*10 + N_ao*9 + 2
@@ -140,3 +149,17 @@ def get_dori(mol, qty, coords, with_color=False, MAX_SZ=5*1024**3):
     else:
         return dori
         
+
+
+if __name__ == '__main__':
+    import sys
+    import qstack
+    # args: xyzfile, basis, datafile, outpath
+    
+    mol = qstack.compound.xyz_to_mol(sys.argv[1], basis=sys.argv[2], parse_comment=True)
+    cube = pyscf.tools.cubegen.Cube(mol) ; grid = cube.get_coords()
+    dori, color = qstack.fields.dori.get_dori(mol, np.load(sys.argv[3]), grid, with_color=True)
+    dorimod = dori * (abs(color)<0.03)*(abs(color)> 1E-5)
+    cube.write(dori.reshape(80,80,80), sys.argv[4]+'-dori.cube')
+    cube.write(dorimod.reshape(80,80,80), sys.argv[4]+'-dori-cropped.cube')
+    cube.write(color.reshape(80,80,80), sys.argv[4]+'-color.cube')
