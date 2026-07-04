@@ -1,0 +1,48 @@
+#!/usr/bin/env psi4
+
+# example: compute the density matrix from a psi4 calculation, use qstack to extract the corresponding density function,
+# then export both to disk
+
+# (first, make sure that the version of python that powers psi4 can import pyscf and qstack)
+import numpy as np
+import pyscf
+import qstack.fields
+import qstack.reorder
+
+name_base="compound_path_without_xyz_extension"
+
+set {
+    basis cc-pVQZ
+    scf_type DF
+    freeze_core True
+}
+
+# create molecule-representing objects for psi4 and pyscf
+mol_psi4 = psi4.geometry(open(name_base+".xyz",'r').read())
+mol_pyscf = pyscf.M(atom=pyscf.gto.mole.fromfile(name_base+'.xyz'), basis='cc-pVQZ')
+
+
+# note: this exact level of theory is not something
+energy, wfn = energy('wb97x-d', molecule=mol_psi4, return_wfn=True)
+wfn.to_file(name_base+".psi4-wfn")  # optional
+
+# if you already stored the wavefunction, you can also reload it from disk
+#wfn = psi4.core.Wavefunction.from_file(name_base+".psi4-wfn")
+
+
+# sanity check! is the basis set the same in pyscf and psi4?
+ovlp_pyscf = mol_pyscf.intor('int1e_ovlp')
+ovlp_psi4 = wfn.S().to_array(dense=True)
+ovlp_psi4 = qstack.reorder.reorder_ao(mol_pyscf, ovlp_psi4, src='psi4', dest='pyscf')
+assert np.allclose(ovlp_psi4, ovlp_pyscf)
+
+
+
+# combine the spin-up and spin-down density matrices,
+# and also make them regular numpy arrays in case symmetry-based optimisations exist
+rdm_psi4 = wfn.Da().to_array(dense=True)+wfn.Db().to_array(dense=True)
+
+rdm_pyscf = qstack.reorder.reorder_ao(mol_pyscf, rdm_psi4, src='psi4', dest='pyscf')
+auxmol_pyscf, rho = qstack.fields.decomposition.decompose(mol_pyscf, rdm_pyscf, 'cc-pVQZ-jkfit')
+np.save(name_base+'.psi4-rho.npy', rho)
+np.save(name_base+'.psi4-rdm.npy', rdm_pyscf)
