@@ -17,12 +17,43 @@ def test_hyperparameters():
     yfile = os.path.join(path, 'data/mols/dipole.dat')
     y = np.loadtxt(yfile)
 
-    hyper = hyperparameters.hyperparameters(X, y)[-4:]
+    hyper = hyperparameters.hyperparameters(X, y, stddev_portion=0)[-4:]
     true_hyper = [  [5.18303885e-01,3.00507798e-01,1.00000000e-05,3.16227766e+01],
                     [5.18262897e-01,3.00473853e-01,3.16227766e-08,3.16227766e+01],
                     [5.18262767e-01,3.00473746e-01,1.00000000e-10,3.16227766e+01],
                     [5.10592542e-01,3.38247735e-01,1.00000000e+00,3.16227766e+01]]
 
+
+    assert (np.allclose(hyper, true_hyper))
+
+def test_hyperparameters_adapt2():
+    #import logging
+    #logging.basicConfig()
+    #logging.getLogger("qstack").setLevel('DEBUG')
+    path = os.path.dirname(os.path.realpath(__file__))
+    xfile = os.path.join(path, 'data/mols/X_lb.npy')
+    X = np.load(xfile)
+    yfile = os.path.join(path, 'data/mols/dipole.dat')
+    y = np.loadtxt(yfile)
+    print(np.isfinite(X).all(), np.isfinite(y).all())
+
+    hyper = hyperparameters.hyperparameters(X, y, random_state=42, stddev_portion=1.0, adaptive_v2=True)[-4:]
+    true_hyper = [
+        [5.15813198e-01, 2.37774396e-01, 3.16227766e-08, 3.64079252e+04],
+        [5.15719232e-01, 2.37430538e-01, 1.00000000e-10, 1.00000000e+06],
+        [5.15657638e-01, 2.37472003e-01, 1.00000000e-10, 3.64079252e+04],
+        [5.15699162e-01, 2.37420839e-01, 1.00000000e-10, 1.71990639e+05],
+    ]
+
+    assert (np.allclose(hyper, true_hyper))
+
+    hyper = hyperparameters.hyperparameters(X, y, random_state=42, stddev_portion=0.0, adaptive_v2=True)[-4:]
+    true_hyper = [
+        [5.10293083e-01, 2.45220151e-01, 1.00000000e-10, 3.25422973e+02],
+        [5.04772360e-01, 2.54644677e-01, 1.00000000e-05, 1.51009311e+02],
+        [5.04560208e-01, 2.54267311e-01, 3.16227766e-08, 1.51009311e+02],
+        [5.04559535e-01, 2.54266113e-01, 1.00000000e-10, 1.51009311e+02],
+    ]
     assert (np.allclose(hyper, true_hyper))
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Generate Sphinx-ready .rst files
+"""Generate Sphinx-ready .rst files
 
 Used instead of Sphinx to avoid importing broken or expensive dependecies
 
@@ -147,7 +146,7 @@ def extract_module_info(py_path: Path, module_name: str) -> ModuleInfo:
     try:
         tree = ast.parse(src)
     except SyntaxError:
-        return ModuleInfo(module_name, py_path, None, [], [], None, [],)
+        return ModuleInfo(module_name, py_path, None, [], [], None, [])
 
     mdoc = ast.get_docstring(tree)
     classes: list[ClassInfo] = []
