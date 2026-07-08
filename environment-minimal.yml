@@ -13,4 +13,5 @@ dependencies:
   - pip:
       - pyscf==2.11.0
       - metatensor-core==0.1.17
+      - lcmd-db==0.4.1
       - git+https://github.com/lcmd-epfl/cell2mol.git@40b3237

@@ -40,6 +40,7 @@ dependencies = [
     'numpy >= 1.26.1, < 2.4',
     'scipy >= 1.1.0, < 1.17',
     'tqdm >= 4.66',
+    'lcmd-db >= 0.4.1',
 ]
 
 [project.optional-dependencies]
