@@ -56,6 +56,20 @@ def _get_tsize(tensor):
     return sum(np.prod(tensor.block(key).values.shape) for key in tensor.keys)
 
 
+def _get_nao(atoms, llists):
+    """Compute the number of orbitals in a molecule with a given basis.
+
+    Args:
+        atoms (numpy.ndarray): 1D int array of atom numbers in molecule.
+        llists (dict): List of angular momentum quantum numbers for each shell for each element.
+                       Output of _get_llist().
+
+    Returns:
+        int: Number of orbitals.
+    """
+    return sum(sum(np.array(llists[q])*2+1) for q in atoms)
+
+
 def _labels_to_array(labels):
     """Represent a set of metatensor labels as an array.
 
@@ -70,36 +84,32 @@ def _labels_to_array(labels):
     return values.view(dtype=dtype).reshape(values.shape[0])
 
 
-def _vector_to_tensormap(mol, c):
+def _vector_to_tensormap(atoms, llists, c):
     """Transform an vector into a tensor map.
 
     The input vector is assumed to be in the GPR order.
     Each element of the vector corresponds to an atomic orbital of the molecule.
 
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
+        atoms (numpy.ndarray): 1D int array of atom numbers in molecule.
+        llists (dict): List of angular momentum quantum numbers for each shell for each element.
+                       Output of _get_llist().
         c (numpy.ndarray): vector to transform.
 
     Returns:
         metatensor.TensorMap: Tensor map representation of the vector.
     """
-    atom_charges = numbers(mol)
-
     tm_label_vals = []
     block_prop_label_vals = {}
     block_samp_label_vals = {}
     block_comp_label_vals = {}
-
     blocks = {}
-    llists = {}
 
     # Create labels for TensorMap, lables for blocks, and empty blocks
 
-    llists = _get_llist(mol)
-
-    for q, samples_count in zip(*np.unique(atom_charges, return_counts=True), strict=True):
+    for q, samples_count in zip(*np.unique(atoms, return_counts=True), strict=True):
         llist = llists[q]
-        block_samp_label_vals_q = np.where(atom_charges==q)[0].reshape(-1,1)
+        block_samp_label_vals_q = np.where(atoms==q)[0].reshape(-1,1)
         for l in sorted(set(llist)):
             label = (l, q)
             tm_label_vals.append(label)
@@ -120,7 +130,7 @@ def _vector_to_tensormap(mol, c):
 
     iq = dict.fromkeys(llists.keys(), 0)
     i = Cursor(action='slicer')
-    for q in atom_charges:
+    for q in atoms:
         if llists[q]==sorted(llists[q]):
             for l in set(llists[q]):
                 msize = 2*l+1
@@ -144,30 +154,30 @@ def _vector_to_tensormap(mol, c):
     return tensor
 
 
-def _tensormap_to_vector(mol, tensor):
+def _tensormap_to_vector(atoms, llists, tensor):
     """Transform a tensor map into a vector.
 
     The output vector will be in the GPR order.
 
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
+        atoms (numpy.ndarray): 1D int array of atom numbers in molecule.
+        llists (dict): List of angular momentum quantum numbers for each shell for each element.
+                       Output of _get_llist().
         tensor (metatensor.TensorMap): tensor to transform.
 
     Returns:
         numpy.ndarray: 1D array (vector) representation.
 
     Raises:
-        RuntimeError: If tensor size does not match mol.nao.
+        RuntimeError: If tensor size does not match number of orbitals.
     """
-    nao = _get_tsize(tensor)
-    if mol.nao != nao:
-        raise RuntimeError(f'Tensor size mismatch ({nao} instead of {mol.nao})')
+    nao = _get_nao(atoms, llists)
+    if nao != (nao1 := _get_tsize(tensor)):
+        raise RuntimeError(f'Tensor size mismatch ({nao1} instead of {nao})')
 
-    c = np.zeros(mol.nao)
-    atom_charges = numbers(mol)
-    llists = _get_llist(mol)
+    c = np.zeros(nao)
     i = 0
-    for iat, q in enumerate(atom_charges):
+    for iat, q in enumerate(atoms):
         llist = llists[q]
         il = dict.fromkeys(range(max(llist) + 1), 0)
         for l in llist:
@@ -182,24 +192,24 @@ def _tensormap_to_vector(mol, tensor):
     return c
 
 
-def _matrix_to_tensormap(mol, dm):
+def _matrix_to_tensormap(atoms, llists, dm):
     """Transform a matrix into a tensor map.
 
     The input matrix is assumed to be in the GPR order.
     Each element of the matrix corresponds to a pair of atomic orbitals.
 
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
+        atoms (numpy.ndarray): 1D int array of atom numbers in molecule.
+        llists (dict): List of angular momentum quantum numbers for each shell for each element.
+                       Output of _get_llist().
         dm (numpy.ndarray): matrix to transform.
 
     Returns:
         metatensor.TensorMap: Tensor map representation of the matrix.
     """
-    atom_charges = numbers(mol)
-    elements, counts = np.unique(atom_charges, return_counts=True)
+    elements, counts = np.unique(atoms, return_counts=True)
     counts = dict(zip(elements, counts, strict=True))
-    element_indices = {q: np.where(atom_charges==q)[0] for q in elements}
-    llists = _get_llist(mol)
+    element_indices = {q: np.where(atoms==q)[0] for q in elements}
 
     tm_label_vals = []
     block_prop_label_vals = {}
@@ -244,14 +254,14 @@ def _matrix_to_tensormap(mol, dm):
     if all(llists[q]==sorted(llists[q]) for q in llists):
         iq1 = dict.fromkeys(elements, 0)
         i1 = Cursor(action='slicer')
-        for iat1, q1 in enumerate(atom_charges):
+        for iat1, q1 in enumerate(atoms):
             for l1 in set(llists[q1]):
                 msize1 = 2*l1+1
                 nsize1 = llists[q1].count(l1)
                 iq2 = dict.fromkeys(elements, 0)
                 i1 += nsize1*msize1
                 i2 = Cursor(action='slicer')
-                for iat2, q2 in enumerate(atom_charges):
+                for iat2, q2 in enumerate(atoms):
                     for l2 in set(llists[q2]):
                         msize2 = 2*l2+1
                         nsize2 = llists[q2].count(l2)
@@ -265,13 +275,13 @@ def _matrix_to_tensormap(mol, dm):
     else:
         iq1 = dict.fromkeys(elements, 0)
         i1 = Cursor(action='slicer')
-        for iat1, q1 in enumerate(atom_charges):
+        for iat1, q1 in enumerate(atoms):
             il1 = dict.fromkeys(range(max(llists[q1]) + 1), 0)
             for l1 in llists[q1]:
                 i1 += 2*l1+1
                 iq2 = dict.fromkeys(elements, 0)
                 i2 = Cursor(action='slicer')
-                for iat2, q2 in enumerate(atom_charges):
+                for iat2, q2 in enumerate(atoms):
                     il2 = dict.fromkeys(range(max(llists[q2]) + 1), 0)
                     for l2 in llists[q2]:
                         dmslice = dm[i1(),i2(2*l2+1)]
@@ -291,13 +301,15 @@ def _matrix_to_tensormap(mol, dm):
     return tensor
 
 
-def _tensormap_to_matrix(mol, tensor, fast=False):
+def _tensormap_to_matrix(atoms, llists, tensor, fast=False):
     """Transform a tensor map into a matrix.
 
     The output matrix will be in the GPR order.
 
     Args:
-        mol (pyscf.gto.Mole): pyscf Mole object.
+        atoms (numpy.ndarray): 1D int array of atom numbers in molecule.
+        llists (dict): List of angular momentum quantum numbers for each shell for each element.
+                       Output of _get_llist().
         tensor (metatensor.TensorMap): tensor to transform.
         fast (bool): Whether to use a faster approach using assumptions
               on the internal ordering of the TensorMap. Default is False.
@@ -312,21 +324,19 @@ def _tensormap_to_matrix(mol, tensor, fast=False):
         numpy.ndarray: 2D array (matrix) representation.
 
     Raises:
-        RuntimeError: If tensor size does not match mol.nao * mol.nao.
+        RuntimeError: If tensor size does not match number of orbitals squared.
     """
-    nao2 = _get_tsize(tensor)
-    if mol.nao*mol.nao != nao2:
-        raise RuntimeError(f'Tensor size mismatch ({nao2} instead of {mol.nao*mol.nao})')
+    nao = _get_nao(atoms, llists)
+    if nao*nao != (nao2 := _get_tsize(tensor)):
+        raise RuntimeError(f'Tensor size mismatch ({nao2} instead of {nao*nao})')
 
-    dm = np.zeros((mol.nao, mol.nao))
-    atom_charges = numbers(mol)
-    llists = _get_llist(mol)
+    dm = np.zeros((nao, nao))
 
     if fast:
         nsizes = {q: np.unique(llist, return_counts=True)[1] for q, llist in llists.items()}
         idx = {}
         i = 0
-        for iat, q in enumerate(atom_charges):
+        for iat, q in enumerate(atoms):
             idx[iat] = np.zeros_like(nsizes[q])
             for l, n in enumerate(nsizes[q]):
                 idx[iat][l] = i
@@ -337,23 +347,23 @@ def _tensormap_to_matrix(mol, tensor, fast=False):
             msize2 = 2*l2+1
             nsize1 = nsizes[q1][l1]
             nsize2 = nsizes[q2][l2]
-            ac1 = np.count_nonzero(atom_charges==q1)
-            ac2 = np.count_nonzero(atom_charges==q2)
+            ac1 = np.count_nonzero(atoms==q1)
+            ac2 = np.count_nonzero(atoms==q2)
             values = block.values.reshape((ac1, ac2, msize1, msize2, nsize1, nsize2))
-            for iiat1, iat1 in enumerate(np.where(atom_charges==q1)[0]):
-                for iiat2, iat2 in enumerate(np.where(atom_charges==q2)[0]):
+            for iiat1, iat1 in enumerate(np.where(atoms==q1)[0]):
+                for iiat2, iat2 in enumerate(np.where(atoms==q2)[0]):
                     i1 = idx[iat1][l1]
                     i2 = idx[iat2][l2]
                     dm[i1:i1+nsize1*msize1,i2:i2+nsize2*msize2] = values[iiat1,iiat2].transpose((2,0,3,1)).reshape((nsize1*msize1,nsize2*msize2))
     else:
         i1 = 0
-        for iat1, q1 in enumerate(atom_charges):
+        for iat1, q1 in enumerate(atoms):
             llist1 = llists[q1]
             il1 = np.zeros(max(llist1)+1, dtype=int)
             for l1 in llist1:
                 msize1 = 2 * l1 + 1
                 i2 = 0
-                for iat2, q2 in enumerate(atom_charges):
+                for iat2, q2 in enumerate(atoms):
                     llist2 = llists[q2]
                     il2 = np.zeros(max(llist2)+1, dtype=int)
                     for l2 in llist2:
@@ -391,10 +401,12 @@ def array_to_tensormap(mol, v, src='pyscf'):
         ValueError: If array dimension is not 1 or 2.
     """
     v = reorder_ao(mol, v, dest='gpr', src=src)
+    atoms = numbers(mol)
+    llists = _get_llist(mol)
     if v.ndim==1:
-        return _vector_to_tensormap(mol, v)
+        return _vector_to_tensormap(atoms, llists, v)
     elif v.ndim==2:
-        return _matrix_to_tensormap(mol, v)
+        return _matrix_to_tensormap(atoms, llists, v)
     else:
         raise ValueError(f'Cannot convert to TensorMap an array with ndim={v.ndim}')
 
@@ -419,10 +431,12 @@ def tensormap_to_array(mol, tensor, dest='pyscf', fast=False):
     Raises:
         RuntimeError: If tensor key names don't match expected format.
     """
+    atoms = numbers(mol)
+    llists = _get_llist(mol)
     if tensor.keys.names==vector_label_names.tm:
-        v = _tensormap_to_vector(mol, tensor)
+        v = _tensormap_to_vector(atoms, llists, tensor)
     elif tensor.keys.names==matrix_label_names.tm:
-        v = _tensormap_to_matrix(mol, tensor, fast=fast)
+        v = _tensormap_to_matrix(atoms, llists, tensor, fast=fast)
     else:
         raise RuntimeError('Tensor key names mismatch. Cannot determine if it is a vector or a matrix')
     return reorder_ao(mol, v, src='gpr', dest=dest)

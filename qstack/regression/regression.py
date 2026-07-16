@@ -85,6 +85,8 @@ def regression(X, y, read_kernel=False, sigma=defaults.sigma, eta=defaults.eta,
             alpha = scipy.linalg.solve(K_solve, y_solve, assume_a='pos')
             y_kf_predict = np.dot(Ks, alpha)
             maes.append(np.mean(np.abs(y_test-y_kf_predict)))
+            if size_train==len(all_indices_train):
+                break
         maes_all.append((size_train, np.mean(maes), np.std(maes)))
     return maes_all if not save_pred else (maes_all, (y_test, y_kf_predict))
 

@@ -13,17 +13,14 @@ def scatter(values, indices):
     for i, j in enumerate(indices):
         x[...,i,j] = values[...,i]
     ```
-
     Args:
         values (numpy.ndarray): Array of values to be scattered of shape (..., N).
         indices (numpy.ndarray): Array of indices indicating where to scatter the values of shape (N,).
 
     Returns:
         numpy.ndarray: New array with scattered values of shape (..., N, max(indices)+1).
-
-
     """
-    x = np.zeros((*values.shape, max(indices)+1))
+    x = np.zeros((*values.shape, max(indices)+1), dtype=np.asarray(values).dtype)
     x[...,np.arange(len(indices)),indices] = values
     return x
 
@@ -62,7 +59,7 @@ def stack_padding(xs):
     max_size = max(shapes)
     if max_size == min(shapes):
         return np.stack(xs, axis=0)
-    X = np.zeros((len(xs), *max_size))
+    X = np.zeros((len(xs), *max_size), dtype=np.result_type(*xs))
     for i, x in enumerate(xs):
         slices = tuple(np.s_[0:s] for s in x.shape)
         X[i][slices] = x
@@ -90,7 +87,7 @@ def vstack_padding(xs):
     shapes_common_axis, shapes_other_axes = np.split(np.array([x.shape for x in xs]), (1,), axis=1)
     if len(np.unique(shapes_other_axes, axis=0))==1:
         return np.vstack(xs)
-    X = np.zeros((shapes_common_axis.sum(), *shapes_other_axes.max(axis=0)))
+    X = np.zeros((shapes_common_axis.sum(), *shapes_other_axes.max(axis=0)), dtype=np.result_type(*xs))
     for x, s0 in slice_generator(xs, inc=lambda x: x.shape[0]):
         slices = (s0, *(np.s_[0:s] for s in x.shape[1:]))
         X[slices] = x

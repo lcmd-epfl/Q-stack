@@ -146,7 +146,7 @@ def train_test_split_idx(y, idx_test=None, idx_train=None,
             raise RuntimeError("Repeated train indices")
         if len(np.delete(np.arange(len(y)), idx_test)) != len(y)-len(idx_test):
             raise RuntimeError("Repeated test indices")
-        if len(np.delete(np.arange(len(y)), idx_test+idx_train)) != len(y)-len(idx_test)-len(idx_train):
+        if len(np.delete(np.arange(len(y)), np.hstack((idx_test, idx_train)))) != len(y)-len(idx_test)-len(idx_train):
             warnings.warn('Train and test set indices overlap. Is it intended?', RuntimeWarning, stacklevel=2)
     return np.array(idx_train), np.array(idx_test), y[idx_train], y[idx_test]
 
