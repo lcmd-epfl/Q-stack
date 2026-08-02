@@ -92,4 +92,4 @@ dependencies:
       - typing-extensions==4.15.0
       - typing-inspection==0.4.2
       - tzdata==2025.2
-      - git+https://github.com/lcmd-epfl/cell2mol.git@40b3237
+      - git+https://github.com/lcmd-epfl/cell2mol.git@283c965

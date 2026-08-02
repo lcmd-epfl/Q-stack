@@ -1,8 +1,8 @@
 """Converter from cell2mol Cell objects to PySCF Mole."""
 
-import sys
 import os
 import io
+from contextlib import redirect_stdout
 from cell2mol.read_write import load_binary
 from cell2mol.unitcell import process_unitcell
 from qstack.compound import xyz_to_mol
@@ -21,10 +21,9 @@ def get_cell2mol_xyz(mol):
         - spin (int): Number of unpaired electrons of the molecule (multiplicity - 1)
         for molecules and None for ligands.
     """
-    f = io.StringIO()
-    sys.stdout, stdout = f, sys.stdout
-    mol.print_xyz()
-    xyz, sys.stdout = f.getvalue(), stdout
+    with redirect_stdout(io.StringIO()) as f:
+        mol.print_xyz()
+    xyz = f.getvalue()
     f.close()
     return xyz, mol.totcharge, (mol.get_spin()-1 if hasattr(mol, 'get_spin') else None)
 
