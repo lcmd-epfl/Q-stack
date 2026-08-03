@@ -1,0 +1,81 @@
+YOXKUS
+Total charge comparison result: True
+Metal oxidation state comparison result: True
+
+Molecules in unitcell:
+Molecule 0: H24-C23-O-P-I2-Re (TM Complex) totcharge=0 spin_multiplicity=1 smiles=C[c]12->[Re+3]3456(<-[I-])(<-[I-])(<-[C-]#[O+])<-[c]1(C)[c]->3(C)[c-]->4(C[P]->5(c1ccccc1)c1ccccc1)[c]->62C
+	Re (metal) atom_site_label=Re1 metal_OS=3 metal_spin=1
+	|--coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C5', 'C2', 'C3', 'C4'] denticity=5 haptic_type=eta5(Cp)
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1
+	C-O (ligand) smiles=[C-]#[O+] denticity=1 totcharge=0
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1 connected_metals=['Re1']
+	H24-C22-P (ligand) smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] denticity=6 totcharge=-1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C5', 'C2', 'C3', 'C4'] denticity=5 haptic_type=eta5(Cp) connected_metals=['Re1']
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1 connected_metals=['Re1']
+Molecule 1: H24-C23-O-P-I2-Re (TM Complex) totcharge=0 spin_multiplicity=1 smiles=C[c]12->[Re+3]3456(<-[I-])(<-[I-])(<-[C-]#[O+])<-[c]1(C)[c]->3(C)[c-]->4(C[P]->5(c1ccccc1)c1ccccc1)[c]->62C
+	Re (metal) atom_site_label=Re1 metal_OS=3 metal_spin=1
+	|--coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C2', 'C3', 'C4', 'C5'] denticity=5 haptic_type=eta5(Cp)
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1
+	C-O (ligand) smiles=[C-]#[O+] denticity=1 totcharge=0
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1 connected_metals=['Re1']
+	H24-C22-P (ligand) smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] denticity=6 totcharge=-1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C2', 'C3', 'C4', 'C5'] denticity=5 haptic_type=eta5(Cp) connected_metals=['Re1']
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1 connected_metals=['Re1']
+Molecule 2: H24-C23-O-P-I2-Re (TM Complex) totcharge=0 spin_multiplicity=1 smiles=C[c]12->[Re+3]3456(<-[I-])(<-[I-])(<-[C-]#[O+])<-[c]1(C)[c]->3(C)[c-]->4(C[P]->5(c1ccccc1)c1ccccc1)[c]->62C
+	Re (metal) atom_site_label=Re1 metal_OS=3 metal_spin=1
+	|--coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C5', 'C2', 'C3', 'C4'] denticity=5 haptic_type=eta5(Cp)
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1
+	C-O (ligand) smiles=[C-]#[O+] denticity=1 totcharge=0
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1 connected_metals=['Re1']
+	H24-C22-P (ligand) smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] denticity=6 totcharge=-1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C5', 'C2', 'C3', 'C4'] denticity=5 haptic_type=eta5(Cp) connected_metals=['Re1']
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1 connected_metals=['Re1']
+Molecule 3: H24-C23-O-P-I2-Re (TM Complex) totcharge=0 spin_multiplicity=1 smiles=C[c]12->[Re+3]3456(<-[I-])(<-[I-])(<-[C-]#[O+])<-[c]1(C)[c]->3(C)[c-]->4(C[P]->5(c1ccccc1)c1ccccc1)[c]->62C
+	Re (metal) atom_site_label=Re1 metal_OS=3 metal_spin=1
+	|--coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C2', 'C3', 'C4', 'C5'] denticity=5 haptic_type=eta5(Cp)
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1
+	C-O (ligand) smiles=[C-]#[O+] denticity=1 totcharge=0
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1 connected_metals=['Re1']
+	H24-C22-P (ligand) smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] denticity=6 totcharge=-1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C2', 'C3', 'C4', 'C5'] denticity=5 haptic_type=eta5(Cp) connected_metals=['Re1']
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1 connected_metals=['Re1']
+UnitCell Error (mode=reconstruction): No errors found
+UnitCell Error (mode=balance_charges): No errors found
+UnitCell Error (mode=charge_assignment): No errors found
+UnitCell Error (mode=spin_assignment): No errors found

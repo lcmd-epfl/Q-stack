@@ -1,0 +1,89 @@
+YOXKUS
+Total charge comparison result: True
+Metal oxidation state comparison result: True
+  - Reported:   [('carbonyl-diiodo-rhenium', 3)]
+  - Matched:    ['Re_3']
+  - Confidence: 1.00
+
+Molecules in reference:
+Molecule 0: H24-C23-O-P-I2-Re (TM Complex) totcharge=0 totcharge_cif=0 totcharge_agree=True spin_multiplicity=1 smiles=C[c]12->[Re+3]3456(<-[I-])(<-[I-])(<-[C-]#[O+])<-[c]1(C)[c]->3(C)[c-]->4(C[P]->5(c1ccccc1)c1ccccc1)[c]->62C
+	Re (metal) atom_site_label=Re1 metal_OS=3 metal_spin=1
+	|--coord_sphere_formula=C6-P-I2
+	|--coord_nr=5 coord_geometry=Trigonal bipyramidal geom_deviation=3.348
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C2', 'C3', 'C4', 'C5'] denticity=5 haptic_type=eta5(Cp)
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1
+	C-O (ligand) smiles=[C-]#[O+] denticity=1 totcharge=0
+	|--(group) ['C'] atom_site_labels=['C23'] denticity=1 connected_metals=['Re1']
+	H24-C22-P (ligand) smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] denticity=6 totcharge=-1
+	|--(group) ['C', 'C', 'C', 'C', 'C'] atom_site_labels=['C1', 'C2', 'C3', 'C4', 'C5'] denticity=5 haptic_type=eta5(Cp) connected_metals=['Re1']
+	|--(group) ['P'] atom_site_labels=['P1'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I2'] denticity=1 connected_metals=['Re1']
+	I (ligand) smiles=[I-] denticity=1 totcharge=-1
+	|--(group) ['I'] atom_site_labels=['I1'] denticity=1 connected_metals=['Re1']
+
+Unique Species in reference:
+	unique_index=0 C-O (ligand) denticity=1 smiles=[C-]#[O+] totcharge=0 groups=['C']
+	unique_index=1 H24-C22-P (ligand) denticity=6 haptic_type=['eta5(Cp)'] smiles=[H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])[c-]2c(C([H])([H])[H])c(C([H])([H])[H])c(C([H])([H])[H])c2C([H])([H])[H])c([H])c1[H] totcharge=-1 groups=['C5', 'P']
+	unique_index=2 I (ligand) denticity=1 smiles=[I-] totcharge=-1 groups=['I']
+	unique_index=3 Re (metal) coord_sphere_formula=C6-P-I2 charge=3
+
+Possible charges of species in reference:
+	unique_index=0 C-O (ligand)
+	possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [C-]#[O+]
+ Number of Protons Added         = 0
+ Charge Tried                    = 0
+ Uncorrected Total Charge        = 0
+ Corrected Total Charge          = 0
+ Corrected Absolute Total Charge = 2
+ Corrected Is Zwitterion?        = True
+---------------------------------------------------
+]
+	unique_index=1 H24-C22-P (ligand)
+	possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [H]c1c([H])c([H])c(P(c2c([H])c([H])c([H])c([H])c2[H])C([H])([H])C2([H])C(C([H])([H])[H])=C(C([H])([H])[H])C(C([H])([H])[H])=C2C([H])([H])[H])c([H])c1[H]
+ Number of Protons Added         = 1
+ Charge Tried                    = 0
+ Uncorrected Total Charge        = 0
+ Corrected Total Charge          = -1
+ Corrected Absolute Total Charge = 1
+ Corrected Is Zwitterion?        = False
+---------------------------------------------------
+]
+	unique_index=2 I (ligand)
+	possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [I-]
+ Number of Protons Added         = 0
+ Charge Tried                    = -1
+ Uncorrected Total Charge        = -1
+ Corrected Total Charge          = -1
+ Corrected Absolute Total Charge = 1
+ Corrected Is Zwitterion?        = False
+---------------------------------------------------
+]
+	unique_index=2 I (ligand)
+	possible_cs=[------------- Cell2mol Charge State ---------------
+ Status                          = True
+ Smiles                          = [I-]
+ Number of Protons Added         = 0
+ Charge Tried                    = -1
+ Uncorrected Total Charge        = -1
+ Corrected Total Charge          = -1
+ Corrected Absolute Total Charge = 1
+ Corrected Is Zwitterion?        = False
+---------------------------------------------------
+]
+	unique_index=3 Re (metal) coord_sphere_formula=C6-P-I2 possible_cs=[1, 2, 3, 4, 5, 7]
+
+Reference Error (mode=ref_molecules): No errors found
+Reference Error (mode=hydrogens): No errors found
+Reference Error (mode=possible_charges): No errors found
+Reference Error (mode=charge_assignment): No errors found
+Reference Error (mode=spin_assignment): No errors found
