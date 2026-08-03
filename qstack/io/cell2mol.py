@@ -3,8 +3,8 @@
 import os
 import io
 from contextlib import redirect_stdout
-from cell2mol.read_write import load_binary
-from cell2mol.unitcell import process_unitcell
+import numpy as np
+from cell2mol.process_unitcell import interpret_unitcell
 from qstack.compound import xyz_to_mol
 
 
@@ -48,14 +48,14 @@ def get_cell(fpath, workdir='.'):
     """
     ext = os.path.splitext(fpath)[-1]
     if ext=='.cell':
-        cell = load_binary(fpath)
+        cell = np.load(fpath, allow_pickle=True)
     elif ext=='.cif':
         name = os.path.basename(os.path.splitext(fpath)[0])
         cell_path = f'{workdir}/Cell_{name}.cell'
         if os.path.isfile(cell_path):
-            cell = load_binary(cell_path)
+            cell = np.load(cell_path, allow_pickle=True)
         else:
-            cell = process_unitcell(fpath, name, workdir, cif_bond_info=True, debug=0)
+            cell = interpret_unitcell(input_path=fpath, name=name, current_dir=workdir)
     else:
         raise NotImplementedError(f'{ext} input is not supported')
     return cell
