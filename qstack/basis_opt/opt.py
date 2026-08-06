@@ -1,6 +1,7 @@
 """Basis set optimization routines and command-line interface."""
 
 import sys
+import time
 from ast import literal_eval
 import argparse
 import numpy as np
@@ -9,7 +10,10 @@ from pyscf import gto
 import pyscf.data
 from ..compound import basis_flatten
 from . import basis_tools as qbbt
-
+try:
+    import joblib
+except ImportError:
+    joblib = None
 
 def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in="CG", printlvl=2, check=False):
     """Optimize a given basis set.
@@ -27,6 +31,9 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         Dictionary containing the optimized basis.
 
     """
+    if joblib is not None:
+        runner = joblib.Parallel(n_jobs=-1, return_as="generator_unordered")
+
     def energy(x):
         """Compute total loss function (fitting error) for given exponents.
 
@@ -36,11 +43,23 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         Returns:
             float: Loss function value.
         """
+        start = time.perf_counter()
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
         E = 0.0
-        for m in moldata:
-            E += qbbt.energy_mol(newbasis, m)
+        if joblib is not None:
+            for value in runner(
+                joblib.delayed(qbbt.energy_mol)(newbasis, m)
+                for m in moldata
+            ):
+                E += value
+        else:
+            for m in moldata:
+                E += qbbt.energy_mol(newbasis,m)
+        if printlvl>=2:
+            print(f"energy complete: {E:g} (took {time.perf_counter()-start:f} s)", flush=True)
+        elif printlvl>=1:
+            print(end="", flush=True)
         return E
 
     def gradient(x):
@@ -54,23 +73,36 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
             - E (float): Loss function value.
             - dE_dx (numpy.ndarray): Gradient with respect to log(exponents).
         """
+        gradstart = time.perf_counter()
         exponents = np.exp(x)
         newbasis = qbbt.exp2basis(exponents, myelements, basis)
 
         E = 0.0
         dE_da = np.zeros(nexp)
-        for m in moldata:
+        #for m in moldata:
+        def minirun(m):
+            start = time.perf_counter()
             E_, dE_da_ = qbbt.gradient_mol(nexp, newbasis, m)
-            E     += E_
+            if printlvl>=3:
+                print(f"1-compound {(m['mol'].nao, m['rho'].shape)!r} gradient: err={E_:g} (rel: {E_/m['self']:g}) (took {time.perf_counter()-start:f} s)", flush=True)
+            return E_, dE_da_
+
+        if joblib is not None:
+            runs = runner(joblib.delayed(minirun)(m) for m in moldata)
+        else:
+            runs = (minirun(m) for m in moldata)
+        for E_, dE_da_ in runs:
+            E += E_
             dE_da += dE_da_
-            if printlvl>=2:
-                print('e =', E_, '(', E_/m['self']*100.0, '%)')
+
         if printlvl>=2:
-            print(E, max(abs(dE_da)))
+            print(f"gradient complete: {E:g} (took {time.perf_counter()-gradstart:f}s)", E, max(abs(dE_da)))
         dE_da = qbbt.cut_myelements(dE_da, myelements, bf_bounds)
 
         if printlvl>=2:
             print(flush=True)
+        elif printlvl>=1:
+            print(end='',flush=True)
 
         dE_dx = dE_da * exponents
         return E, dE_dx
@@ -217,7 +249,7 @@ def optimize_basis(elements_in, basis_in, molecules_in, gtol_in=1e-7, method_in=
         return {'num': gr_num, 'an': gr_an, 'diff': gr_an-gr_num}
 
     xopt = scipy.optimize.minimize(energy, x1, method=method_in, jac=gradient_only,
-                                   options={'gtol': gtol_in, 'disp': printlvl}).x
+                                   options={'gtol': gtol_in, 'disp': printlvl>0}).x
 
     exponents = np.exp(xopt)
     newbasis = qbbt.exp2basis(exponents, myelements, basis)
